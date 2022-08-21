@@ -1,0 +1,12 @@
+NODE_ENV=staging
+PORT=8081
+APP_LOGIN_EMAIL=koboapp@kobo360.com
+APP_LOGIN_SECRET=4SwDUf!+7X
+DB_HOST=cluster0.qulve.gcp.mongodb.net
+DB_NAME=boomba
+DB_PASS=Boomba
+DB_USER=boomba-user
+DB_PORT=27018
+JWT_KEY=ourjsonewebtoken4key
+JWT_SECRET=ourjsonewebtoken4key
+JWT_TOKEN=ourjsonewebtoken4key
