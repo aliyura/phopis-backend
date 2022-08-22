@@ -10,6 +10,7 @@ export class UserDto {
   @IsOptional() @IsString() street: string;
   @IsOptional() @IsString() regNumber: string;
   @IsString() @IsUppercase() target: string;
+  @IsString() password: string;
 }
 
 export class UserUpdateDto {

@@ -8,6 +8,10 @@ import { UserService } from './services/user/user.service';
 import { AuthService } from './services/auth/auth.service';
 import { UserController } from './api/v1/user/user.controller';
 import { AuthController } from './api/v1/auth/auth.controller';
+import { CryptoService } from './services/crypto/crypto.service';
+import { PassportModule } from '@nestjs/passport';
+import { JwtModule } from '@nestjs/jwt';
+import { AuthStrategy } from './services/auth/auth.strategy';
 
 @Module({
   imports: [
@@ -18,8 +22,13 @@ import { AuthController } from './api/v1/auth/auth.controller';
       dbName: process.env.DB_NAME,
     }),
     MongooseModule.forFeature([{ name: User.name, schema: UserSchema }]),
+    JwtModule.register({
+      secret: process.env.APP_SECRET,
+      signOptions: { expiresIn: '100s' },
+    }),
+    PassportModule,
   ],
   controllers: [UserController, AuthController],
-  providers: [UserService, AuthService],
+  providers: [UserService, AuthService, AuthStrategy, CryptoService],
 })
 export class AppModule {}

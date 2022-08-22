@@ -1,5 +1,6 @@
-import { HttpException, HttpStatus } from '@nestjs/common';
+import { HttpException } from '@nestjs/common';
 import axios from 'axios';
+import { HttpStatus } from 'src/enums/http.status';
 import { v4 as uuidv4 } from 'uuid';
 export type HttpClient = (
   path: string,
@@ -106,7 +107,7 @@ export class Helpers {
 
   static getUniqueId(): Promise<string> {
     const id = uuidv4();
-    const stamp = id.split('-').join('');
-    return stamp.substring(0, 11);
+    const businessId = id.split('-').join('');
+    return businessId.substring(0, 11);
   }
 }

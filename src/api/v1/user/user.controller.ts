@@ -6,16 +6,22 @@ import {
   Post,
   Put,
   Redirect,
+  UseGuards,
 } from '@nestjs/common';
 import { UserDto } from 'src/dtos';
 import { Helpers } from 'src/helpers';
 import { UserService } from 'src/services/user/user.service';
 import { UserStatus, UserRole } from '../../../enums/enums';
 import { UserUpdateDto } from '../../../dtos/user.dto';
+import { CryptoService } from '../../../services/crypto/crypto.service';
+import { AppGuard } from '../../../services/auth/app.guard';
 
 @Controller('user')
 export class UserController {
-  constructor(private readonly userService: UserService) {}
+  constructor(
+    private readonly userService: UserService,
+    private readonly cryptoService: CryptoService,
+  ) {}
 
   @Get('/docs')
   @Redirect('https://documenter.getpostman.com/view/10509620/VUqpsx5F')
@@ -32,11 +38,15 @@ export class UserController {
       if (existingUser)
         return Helpers.error('Business already exist', 'BAD_REQUEST');
 
+      //encrypt password
+      const hash = await this.cryptoService.encrypt(requestDto.password);
+      requestDto.password = hash;
+
       const request = {
         ...requestDto,
         status: UserStatus.INACTIVE,
         role: UserRole.BUSINESS,
-        stamp: Helpers.getUniqueId(),
+        businessId: Helpers.getUniqueId(),
       } as any;
 
       console.log('Creating user:', request);
@@ -51,10 +61,11 @@ export class UserController {
     }
   }
 
-  @Put('/:stamp')
+  @UseGuards(AppGuard)
+  @Put('/:businessId')
   async updateUser(
     @Body() requestDto: UserUpdateDto,
-    @Param('stamp') stamp: string,
+    @Param('businessId') businessId: string,
   ): Promise<Response> {
     try {
       if (requestDto && (requestDto.email || requestDto.phone)) {
@@ -74,7 +85,7 @@ export class UserController {
 
       const request = requestDto as any;
       console.log('Updating user:', request);
-      const res = await this.userService.updateUser(stamp, request);
+      const res = await this.userService.updateUser(businessId, request);
       if (res) return Helpers.success(res, 'User updated successfully');
 
       return Helpers.error('Unable to create Business', 'BAD_REQUEST');
@@ -85,13 +96,14 @@ export class UserController {
     }
   }
 
-  @Get('/:stamp')
-  async getUser(@Param('stamp') stamp: string): Promise<Response> {
+  @UseGuards(AppGuard)
+  @Get('/:businessId')
+  async getUser(@Param('businessId') businessId: string): Promise<Response> {
     try {
-      const res = await this.userService.findByStamp(stamp);
+      const res = await this.userService.findByBusinessId(businessId);
       if (res) return Helpers.success(res, 'User Found');
 
-      return Helpers.error('Invalid User Stamp', 'BAD_REQUEST');
+      return Helpers.error('Invalid User businessId', 'BAD_REQUEST');
     } catch (e) {
       const { message } = e;
       console.log(message);
