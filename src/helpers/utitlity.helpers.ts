@@ -108,6 +108,6 @@ export class Helpers {
   static getUniqueId(): Promise<string> {
     const id = uuidv4();
     const businessId = id.split('-').join('');
-    return businessId.substring(0, 11);
+    return businessId.substring(0, 11).toUpperCase();
   }
 }

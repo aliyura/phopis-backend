@@ -12,6 +12,12 @@ import { CryptoService } from './services/crypto/crypto.service';
 import { PassportModule } from '@nestjs/passport';
 import { JwtModule } from '@nestjs/jwt';
 import { AuthStrategy } from './services/auth/auth.strategy';
+import { BusinessTypeController } from './api/v1/business-type/business-type.controller';
+import { BusinessTypeService } from './services/business-type/business-type.service';
+import {
+  BusinessType,
+  BusinessTypeSchema,
+} from './schemas/business-type.schema';
 
 @Module({
   imports: [
@@ -22,13 +28,23 @@ import { AuthStrategy } from './services/auth/auth.strategy';
       dbName: process.env.DB_NAME,
     }),
     MongooseModule.forFeature([{ name: User.name, schema: UserSchema }]),
+    MongooseModule.forFeature([
+      { name: BusinessType.name, schema: BusinessTypeSchema },
+    ]),
+
     JwtModule.register({
       secret: process.env.APP_SECRET,
       signOptions: { expiresIn: '100s' },
     }),
     PassportModule,
   ],
-  controllers: [UserController, AuthController],
-  providers: [UserService, AuthService, AuthStrategy, CryptoService],
+  controllers: [UserController, AuthController, BusinessTypeController],
+  providers: [
+    UserService,
+    AuthService,
+    AuthStrategy,
+    CryptoService,
+    BusinessTypeService,
+  ],
 })
 export class AppModule {}

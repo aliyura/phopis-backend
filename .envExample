@@ -7,6 +7,4 @@ DB_NAME=boomba
 DB_PASS=Boomba
 DB_USER=boomba-user
 DB_PORT=27018
-JWT_KEY=ourjsonewebtoken4key
-JWT_SECRET=ourjsonewebtoken4key
-JWT_TOKEN=ourjsonewebtoken4key
+APP_SECRET=630252351dedba60a7d469ae

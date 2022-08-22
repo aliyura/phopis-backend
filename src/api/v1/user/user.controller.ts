@@ -11,7 +11,7 @@ import {
 import { UserDto } from 'src/dtos';
 import { Helpers } from 'src/helpers';
 import { UserService } from 'src/services/user/user.service';
-import { UserStatus, UserRole } from '../../../enums/enums';
+import { Status, UserRole } from '../../../enums/enums';
 import { UserUpdateDto } from '../../../dtos/user.dto';
 import { CryptoService } from '../../../services/crypto/crypto.service';
 import { AppGuard } from '../../../services/auth/app.guard';
@@ -44,9 +44,9 @@ export class UserController {
 
       const request = {
         ...requestDto,
-        status: UserStatus.INACTIVE,
+        status: Status.INACTIVE,
         role: UserRole.BUSINESS,
-        businessId: Helpers.getUniqueId(),
+        businessId: `BIS${Helpers.getUniqueId()}`,
       } as any;
 
       console.log('Creating user:', request);
@@ -57,7 +57,7 @@ export class UserController {
     } catch (e) {
       const { message } = e;
       console.log(message);
-      return Helpers.error(message, 'BAD_REQUEST');
+      return Helpers.error(message, 'INTERNAL_SERVER_ERROR');
     }
   }
 

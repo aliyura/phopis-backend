@@ -3,7 +3,7 @@ export enum UserRole {
   STAFF = 'STAFF',
   BUSINESS = 'BUSINESS',
 }
-export enum UserStatus {
+export enum Status {
   ACTIVE = 'ACTIVE',
   INACTIVE = 'INACTIVE',
   SUSPENDED = 'SUSPENDED',
