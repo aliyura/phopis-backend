@@ -2,6 +2,7 @@ import {
   Body,
   Controller,
   Get,
+  Param,
   Post,
   Redirect,
   UseGuards,
@@ -26,13 +27,46 @@ export class BusinessTypeController {
     @Body() requestDto: BusinessTypeDto,
   ): Promise<Response> {
     try {
-      const response = await this.businessTypeService.createBusinessType(
+      // check if business exist
+      const response = await this.businessTypeService.findBusinessType(
+        requestDto.title,
+      );
+
+      // Business Already Exist
+      if (response)
+        return Helpers.error('Business Type Already Exist', 'BAD_REQUEST');
+
+      // Not Exist, Create New
+      const newResponse = await this.businessTypeService.createBusinessType(
         requestDto,
       );
-      if (response)
-        return Helpers.success(response, 'Business type created successfully');
+      if (newResponse)
+        return Helpers.success(
+          newResponse,
+          'Business type created successfully',
+        );
 
       return Helpers.error('Authenticated successfully', 'BAD_REQUEST');
+    } catch (e) {
+      const { message } = e;
+      console.log(message);
+      return Helpers.error(message, 'INTERNAL_SERVER_ERROR');
+    }
+  }
+  // FInd Business Type
+  @UseGuards(AppGuard)
+  @Get('/:businessType')
+  async getusinessType(
+    @Param('businessType') businessType: any,
+  ): Promise<Response> {
+    try {
+      const response = await this.businessTypeService.findBusinessType(
+        businessType,
+      );
+      // const response = await this.businessTypeService.allBusinessType();
+      if (response) return Helpers.success(response, 'Successfully');
+
+      return Helpers.error('No data found ', 'BAD_REQUEST');
     } catch (e) {
       const { message } = e;
       console.log(message);

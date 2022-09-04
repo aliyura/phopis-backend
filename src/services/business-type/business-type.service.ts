@@ -25,4 +25,12 @@ export class BusinessTypeService {
 
     return (await this.businessType.create(request)).save();
   }
+
+  async findBusinessType(type: string): Promise<BusinessType> {
+    return await this.businessType.findOne({ title: type }).exec();
+  }
+
+  async allBusinessType(): Promise<BusinessType> {
+    return await this.businessType.findOne().exec();
+  }
 }

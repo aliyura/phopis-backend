@@ -3,8 +3,8 @@ import {
   Catch,
   ArgumentsHost,
   HttpException,
-  HttpStatus,
 } from '@nestjs/common';
+import { HttpStatus } from 'src/enums/http.status';
 
 @Catch()
 export class AllExceptionsFilter implements ExceptionFilter {
