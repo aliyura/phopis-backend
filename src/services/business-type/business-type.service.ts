@@ -30,7 +30,7 @@ export class BusinessTypeService {
     return await this.businessType.findOne({ title: type }).exec();
   }
 
-  async allBusinessType(): Promise<BusinessType> {
-    return await this.businessType.findOne().exec();
+  async allBusinessType(): Promise<BusinessType[]> {
+    return await this.businessType.find().exec();
   }
 }

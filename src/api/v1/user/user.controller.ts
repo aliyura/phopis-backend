@@ -46,7 +46,7 @@ export class UserController {
         ...requestDto,
         status: Status.INACTIVE,
         role: UserRole.BUSINESS,
-        businessId: `BIS${Helpers.getUniqueId()}`,
+        businessId: requestDto??`BIS${Helpers.getUniqueId()}`,
       } as any;
 
       console.log('Creating user:', request);

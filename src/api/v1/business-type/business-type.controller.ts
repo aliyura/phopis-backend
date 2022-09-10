@@ -56,14 +56,28 @@ export class BusinessTypeController {
   // FInd Business Type
   @UseGuards(AppGuard)
   @Get('/:businessType')
-  async getusinessType(
+  async getBusinessType(
     @Param('businessType') businessType: any,
   ): Promise<Response> {
     try {
       const response = await this.businessTypeService.findBusinessType(
         businessType,
-      );
-      // const response = await this.businessTypeService.allBusinessType();
+      ); 
+      if (response) return Helpers.success(response, 'Successfully');
+
+      return Helpers.error('No data found ', 'BAD_REQUEST');
+    } catch (e) {
+      const { message } = e;
+      console.log(message);
+      return Helpers.error(message, 'INTERNAL_SERVER_ERROR');
+    }
+  }
+  // FInd Business Type
+  // @UseGuards(AppGuard)
+  @Get('/')
+  async allBusinessType(): Promise<Response> {
+    try { 
+      const response = await this.businessTypeService.allBusinessType();
       if (response) return Helpers.success(response, 'Successfully');
 
       return Helpers.error('No data found ', 'BAD_REQUEST');

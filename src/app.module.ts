@@ -18,6 +18,9 @@ import {
   BusinessType,
   BusinessTypeSchema,
 } from './schemas/business-type.schema';
+import { Business } from './schemas/business.schema'; 
+import { BusinessService } from './services/business/business.service';
+import { BusinessController } from './api/v1/business/business.controller';
 
 @Module({
   imports: [
@@ -28,6 +31,7 @@ import {
       dbName: process.env.DB_NAME,
     }),
     MongooseModule.forFeature([{ name: User.name, schema: UserSchema }]),
+    MongooseModule.forFeature([{ name: Business.name, schema: UserSchema }]),
     MongooseModule.forFeature([
       { name: BusinessType.name, schema: BusinessTypeSchema },
     ]),
@@ -38,13 +42,14 @@ import {
     }),
     PassportModule,
   ],
-  controllers: [UserController, AuthController, BusinessTypeController],
+  controllers: [UserController, AuthController, BusinessTypeController, BusinessController],
   providers: [
     UserService,
     AuthService,
     AuthStrategy,
     CryptoService,
-    BusinessTypeService,
+    BusinessTypeService, 
+    BusinessService,
   ],
 })
 export class AppModule {}
