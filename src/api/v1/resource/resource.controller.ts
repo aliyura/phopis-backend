@@ -42,7 +42,8 @@ export class ResourceController {
     @Body() requestDto: ResourceDto,
   ): Promise<ApiResponse> {
     try {
-      const user = (await this.jwtService.decode(token)) as AuthUserDto;
+      const authToken = token.substring(7);
+      const user = (await this.jwtService.decode(authToken)) as AuthUserDto;
 
       return await this.resourceService.createResource(user, requestDto);
     } catch (e) {
@@ -60,7 +61,8 @@ export class ResourceController {
     @Body() requestDto: UpdateResourceDto,
   ): Promise<ApiResponse> {
     try {
-      const user = (await this.jwtService.decode(token)) as AuthUserDto;
+      const authToken = token.substring(7);
+      const user = (await this.jwtService.decode(authToken)) as AuthUserDto;
 
       return await this.resourceService.updateResource(
         user,
@@ -84,7 +86,8 @@ export class ResourceController {
     @Body() requestDto: ResourceStatusUpdateDto,
   ): Promise<ApiResponse> {
     try {
-      const user = (await this.jwtService.decode(token)) as AuthUserDto;
+      const authToken = token.substring(7);
+      const user = (await this.jwtService.decode(authToken)) as AuthUserDto;
 
       return await this.resourceService.updateResourceStatus(
         user,
@@ -107,7 +110,8 @@ export class ResourceController {
     @Body() requestDto: ResourceOwnershipChangeDto,
   ): Promise<ApiResponse> {
     try {
-      const user = (await this.jwtService.decode(token)) as AuthUserDto;
+      const authToken = token.substring(7);
+      const user = (await this.jwtService.decode(authToken)) as AuthUserDto;
 
       return await this.resourceService.changeResourceOwnership(
         user,
@@ -122,12 +126,13 @@ export class ResourceController {
   }
 
   @UseGuards(AppGuard)
-  @Put('/')
+  @Get('/')
   async getMyResources(
     @Headers('Authorization') token: string,
   ): Promise<ApiResponse> {
     try {
-      const user = (await this.jwtService.decode(token)) as AuthUserDto;
+      const authToken = token.substring(7);
+      const user = (await this.jwtService.decode(authToken)) as AuthUserDto;
 
       return await this.resourceService.getMyResources(user);
     } catch (e) {
@@ -141,10 +146,11 @@ export class ResourceController {
   @Get('/:ruid')
   async getResourceByRuid(
     @Headers('Authorization') token: string,
-    ruid: string,
+    @Param('ruid') ruid: string,
   ): Promise<ApiResponse> {
     try {
-      const user = (await this.jwtService.decode(token)) as AuthUserDto;
+      const authToken = token.substring(7);
+      const user = (await this.jwtService.decode(authToken)) as AuthUserDto;
 
       return await this.resourceService.getResourceByRuid(user, ruid);
     } catch (e) {
@@ -161,7 +167,8 @@ export class ResourceController {
     @Param('identityNumber') identityNumber: string,
   ): Promise<ApiResponse> {
     try {
-      const user = (await this.jwtService.decode(token)) as AuthUserDto;
+      const authToken = token.substring(7);
+      const user = (await this.jwtService.decode(authToken)) as AuthUserDto;
 
       return await this.resourceService.getResourceByIdentityNumber(
         user,
@@ -180,7 +187,8 @@ export class ResourceController {
     @Param('serialNumber') serialNumber: string,
   ): Promise<ApiResponse> {
     try {
-      const user = (await this.jwtService.decode(token)) as AuthUserDto;
+      const authToken = token.substring(7);
+      const user = (await this.jwtService.decode(authToken)) as AuthUserDto;
 
       return await this.resourceService.getResourceBySerialNumber(
         user,
@@ -200,7 +208,8 @@ export class ResourceController {
     @Param('code') code: string,
   ): Promise<ApiResponse> {
     try {
-      const user = (await this.jwtService.decode(token)) as AuthUserDto;
+      const authToken = token.substring(7);
+      const user = (await this.jwtService.decode(authToken)) as AuthUserDto;
 
       return await this.resourceService.getResourceByCode(user, code);
     } catch (e) {

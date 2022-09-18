@@ -1,5 +1,10 @@
 import { IsOptional, IsString } from 'class-validator';
 
+export class CattonDetailDto {
+  @IsString() serialNumber: string;
+  @IsString() picture: string;
+}
+
 export class ResourceDto {
   @IsString() name: string;
   @IsString() model: string;
@@ -7,8 +12,7 @@ export class ResourceDto {
   @IsOptional() description: string;
   @IsString() identityNumber: string;
   @IsOptional() catton: boolean;
-  @IsOptional() cattonSerialNumber: string;
-  @IsOptional() cattonPicture: string;
+  @IsOptional() cattonDetail: CattonDetailDto;
   @IsOptional() type: string;
   @IsString() picture: string;
 }
@@ -21,13 +25,13 @@ export class UpdateResourceDto {
 }
 
 export class ResourceStatusUpdateDto {
-  @IsOptional() statusReason: string;
-  @IsOptional() statusChangeDate: Date;
-  @IsOptional() statusChangeDescription: string;
+  @IsOptional() date: Date;
+  @IsOptional() area: string;
+  @IsOptional() description: string;
 }
 
 export class ResourceOwnershipChangeDto {
   @IsOptional() currentOwner: string;
-  @IsOptional() newOwner: Date;
+  @IsOptional() newOwner: string;
   @IsOptional() description: string;
 }

@@ -1,6 +1,6 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { Document, Types } from 'mongoose';
-import { ResourceStatusUpdateDto } from '../dtos/resource.dto';
+import { CattonDetailDto, ResourceStatusUpdateDto } from '../dtos/resource.dto';
 
 export type ResourceDocument = Resource & Document;
 
@@ -40,10 +40,10 @@ export class Resource {
   catton: boolean;
 
   @Prop()
-  cattonSerialNumber: string;
+  cattonDetail: CattonDetailDto;
 
   @Prop()
-  cattonPicture: string;
+  missingDetail: ResourceStatusUpdateDto;
 
   @Prop()
   type: string;

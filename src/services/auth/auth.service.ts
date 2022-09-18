@@ -43,8 +43,8 @@ export class AuthService {
   async login(authRequest: UserAuthDto): Promise<ApiResponse> {
     const res = await this.validateUser(authRequest);
     if (res.success) {
-      const user = res.data;
-      const payload = { username: authRequest.username, sub: user.uuid };
+      const user = res.data as User;
+      const payload = { username: user.phoneNumber, sub: user.uuid };
       delete user.password;
       const token = {
         access_token: this.jwtService.sign(payload),

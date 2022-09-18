@@ -24,30 +24,30 @@ export class ResourceService {
     authUser: AuthUserDto,
     requestDto: ResourceDto,
   ): Promise<ApiResponse> {
-    const resourceByExistByIdentity = await this.resource.findOne({
+    const resourceExistByIdentity = await this.resource.findOne({
       identityNumber: requestDto.identityNumber,
     });
-    const resourceByExistBySerialNumber = await this.resource.findOne({
-      cattonSerialNumber: requestDto.cattonSerialNumber,
+    const resourceExistBySerialNumber = await this.resource.findOne({
+      cattonSerialNumber: requestDto.cattonDetail.serialNumber,
     });
 
+    console.log('resourceByExistByIdentity', resourceExistByIdentity);
+    console.log('resourceByExistBySerialNumber', resourceExistBySerialNumber);
+
     let resourceOwner = null;
-    if (resourceByExistByIdentity || resourceByExistBySerialNumber) {
-      const ownerId = resourceByExistByIdentity
-        ? resourceByExistByIdentity.currentOwnerUuid
-        : resourceByExistBySerialNumber.currentOwnerUuid;
-      resourceOwner = this.user.findOne({ currentOwnerUuid: ownerId });
+    if (resourceExistByIdentity || resourceExistBySerialNumber) {
+      const ownerId = resourceExistByIdentity
+        ? resourceExistByIdentity?.currentOwnerUuid
+        : resourceExistBySerialNumber?.currentOwnerUuid;
+
+      resourceOwner = await this.user.findOne({ uuid: ownerId });
     }
 
     const authenticatedUser = await this.user.findOne({
       phoneNumber: authUser.username,
     });
 
-    if (resourceOwner.uuid === authenticatedUser.uuid) {
-      return Helpers.error('Resource already exist', 'BAD_REQUEST');
-    }
-
-    if (resourceByExistByIdentity)
+    if (resourceExistByIdentity)
       return Helpers.error(
         'Resource identity you provide is owned by user (' + resourceOwner
           ? resourceOwner.name
@@ -55,7 +55,7 @@ export class ResourceService {
         'BAD_REQUEST',
       );
 
-    if (resourceByExistBySerialNumber)
+    if (resourceExistBySerialNumber)
       return Helpers.error(
         'Resource serial you provide is owned by user (' + resourceOwner
           ? resourceOwner.name
@@ -64,10 +64,10 @@ export class ResourceService {
       );
 
     if (requestDto.catton) {
-      if (!requestDto.cattonSerialNumber)
-        return Helpers.error('Resource serial number required', 'BAD_REQUEST');
-      if (!requestDto.cattonPicture)
-        return Helpers.error('Resource catton picture required', 'BAD_REQUEST');
+      if (!requestDto.cattonDetail || !requestDto.cattonDetail.serialNumber)
+        return Helpers.error('Serial number required', 'BAD_REQUEST');
+      if (!requestDto.cattonDetail || !requestDto.cattonDetail.picture)
+        return Helpers.error('Catton picture required', 'BAD_REQUEST');
     }
 
     const request = {
@@ -112,11 +112,13 @@ export class ResourceService {
       );
     }
 
-    const saved = await this.resource.updateOne(
-      { ruid: resourceId },
-      { $set: requestDto },
+    await this.resource.updateOne({ ruid: resourceId }, { $set: requestDto });
+    return Helpers.success(
+      await this.resource.findOne({
+        ruid: resourceId,
+      }),
+      'Resource updated successfully',
     );
-    return Helpers.success(saved, 'Resource updated successfully');
   }
 
   async updateResourceStatus(
@@ -153,16 +155,22 @@ export class ResourceService {
     if (!Object.values(Status).includes(status))
       return Helpers.error('Invalid status', 'BAD_REQUEST');
 
-    const request = { lastStatusChange: requestDto, status: status };
+    if (status == Status.MISSING) {
+      if (!requestDto.date)
+        return Helpers.error('Missing date required', 'BAD_REQUEST');
+    }
+
+    const request = { missingDetail: requestDto, status: status };
 
     const statusChangeHistory = {
       ...requestDto,
+      status: status,
       actionDate: new Date(),
       actionBy: authenticatedUser.uuid,
       actionByUser: authenticatedUser.name,
     };
-    
-    const saved = await this.resource.updateOne(
+
+    await this.resource.updateOne(
       { ruid: resourceId },
       {
         $set: request,
@@ -173,7 +181,12 @@ export class ResourceService {
       { upsert: true },
     );
 
-    return Helpers.success(saved, 'Resource updated successfully');
+    return Helpers.success(
+      await this.resource.findOne({
+        ruid: resourceId,
+      }),
+      'Resource status updated successfully',
+    );
   }
 
   async changeResourceOwnership(
@@ -199,17 +212,14 @@ export class ResourceService {
 
     if (!resourceOwner)
       resourceOwner = await this.user.findOne({
-        phoneNUmber: requestDto.currentOwner,
+        phoneNumber: requestDto.currentOwner,
       });
+
+    console.log('resourceOwner', resourceOwner);
+    console.log('existingResource', existingResource);
 
     if (!resourceOwner)
       return Helpers.error('Resource owner not found', 'BAD_REQUEST');
-
-    if (resourceOwner.uuid != existingResource.currentOwnerUuid)
-      return Helpers.error(
-        'You do not have permission to change ownership of this resource',
-        'BAD_REQUEST',
-      );
 
     let newOwner = await this.user.findOne({
       uuid: requestDto.newOwner,
@@ -222,8 +232,10 @@ export class ResourceService {
 
     if (!newOwner)
       newOwner = await this.user.findOne({
-        phoneNUmber: requestDto.newOwner,
+        phoneNumber: requestDto.newOwner,
       });
+
+    console.log('newOwner', newOwner);
 
     if (!newOwner) return Helpers.error('New owner not found', 'BAD_REQUEST');
 
@@ -231,15 +243,25 @@ export class ResourceService {
       phoneNumber: authUser.username,
     });
 
+    console.log('authUser', authenticatedUser.uuid);
+    console.log('resourceUser', existingResource.currentOwnerUuid);
+
     if (authenticatedUser.uuid != existingResource.currentOwnerUuid)
       return Helpers.error(
-        'You do not have permission to change ownership of this resource',
+        'You do not have rights to change ownership of this resource',
+        'BAD_REQUEST',
+      );
+
+    if (existingResource.status == Status.MISSING)
+      return Helpers.error(
+        "You can't change ownership of a missing resource ",
         'BAD_REQUEST',
       );
 
     const request = {
-      prevOwnerUuid: requestDto.currentOwner,
-      currentOwnerUuid: requestDto.newOwner,
+      prevOwnerUuid: resourceOwner.uuid,
+      currentOwnerUuid: newOwner.uuid,
+      status: Status.ACTIVE,
       lastOwnershipChangeDate: new Date(),
     } as any;
 
@@ -250,7 +272,7 @@ export class ResourceService {
       actionByUser: authenticatedUser.name,
     } as any;
 
-    const saved = await this.resource.updateOne(
+    await this.resource.updateOne(
       { ruid: resourceId },
       {
         $set: request,
@@ -261,7 +283,12 @@ export class ResourceService {
       { upsert: true },
     );
 
-    return Helpers.success(saved, 'Resource updated successfully');
+    return Helpers.success(
+      await this.resource.findOne({
+        ruid: resourceId,
+      }),
+      'Resource updated successfully',
+    );
   }
 
   async getMyResources(authUser: AuthUserDto): Promise<ApiResponse> {
@@ -285,7 +312,9 @@ export class ResourceService {
     authUser: AuthUserDto,
     ruid: string,
   ): Promise<ApiResponse> {
+    console.log(ruid);
     const resource = await this.resource.findOne({ ruid });
+    console.log(resource);
     if (resource) return Helpers.success(resource, 'Request  successful');
 
     return Helpers.error('Resource not found', 'NOT_FOUND');
@@ -305,7 +334,9 @@ export class ResourceService {
     authUser: AuthUserDto,
     cattonSerialNumber: string,
   ): Promise<ApiResponse> {
-    const resource = await this.resource.findOne({ cattonSerialNumber });
+    const resource = await this.resource.findOne({
+      'cattonDetail.serialNumber': cattonSerialNumber,
+    });
     if (resource) return Helpers.success(resource, 'Request  successful');
 
     return Helpers.error('Resource not found', 'NOT_FOUND');
