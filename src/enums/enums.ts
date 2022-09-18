@@ -14,3 +14,8 @@ export enum BusinessTarget {
   PRODUCT = 'PRODUCT',
   SERVICE = 'SERVICE',
 }
+
+export enum AccountType {
+  BUSINESS = 'BUSINESS',
+  INDIVIDUAL = 'INDIVIDUAL',
+}

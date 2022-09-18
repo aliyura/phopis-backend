@@ -11,6 +11,7 @@ import { BusinessTypeService } from '../../../services/business-type/business-ty
 import { BusinessTypeDto } from '../../../dtos/business-type.dto';
 import { Helpers } from '../../../helpers/utitlity.helpers';
 import { AppGuard } from '../../../services/auth/app.guard';
+import { ApiResponse } from '../../../dtos/ApiResponse.dto';
 
 @Controller('business-type')
 export class BusinessTypeController {
@@ -25,17 +26,8 @@ export class BusinessTypeController {
   @Post('/')
   async createBusinessType(
     @Body() requestDto: BusinessTypeDto,
-  ): Promise<Response> {
+  ): Promise<ApiResponse> {
     try {
-      // check if business exist
-      const response = await this.businessTypeService.findBusinessType(
-        requestDto.title,
-      );
-
-      // Business Already Exist
-      if (response)
-        return Helpers.error('Business Type Already Exist', 'BAD_REQUEST');
-
       // Not Exist, Create New
       const newResponse = await this.businessTypeService.createBusinessType(
         requestDto,
@@ -58,14 +50,9 @@ export class BusinessTypeController {
   @Get('/:businessType')
   async getBusinessType(
     @Param('businessType') businessType: any,
-  ): Promise<Response> {
+  ): Promise<ApiResponse> {
     try {
-      const response = await this.businessTypeService.findBusinessType(
-        businessType,
-      ); 
-      if (response) return Helpers.success(response, 'Successfully');
-
-      return Helpers.error('No data found ', 'BAD_REQUEST');
+      return await this.businessTypeService.findBusinessType(businessType);
     } catch (e) {
       const { message } = e;
       console.log(message);
@@ -75,12 +62,9 @@ export class BusinessTypeController {
   // FInd Business Type
   // @UseGuards(AppGuard)
   @Get('/')
-  async allBusinessType(): Promise<Response> {
-    try { 
-      const response = await this.businessTypeService.allBusinessType();
-      if (response) return Helpers.success(response, 'Successfully');
-
-      return Helpers.error('No data found ', 'BAD_REQUEST');
+  async allBusinessType(): Promise<ApiResponse> {
+    try {
+      return await this.businessTypeService.allBusinessType();
     } catch (e) {
       const { message } = e;
       console.log(message);

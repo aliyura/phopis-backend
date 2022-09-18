@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common';
+import { CacheModule, Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { MongooseModule } from '@nestjs/mongoose';
 import config from './config/config';
@@ -18,12 +18,10 @@ import {
   BusinessType,
   BusinessTypeSchema,
 } from './schemas/business-type.schema';
-import { Business } from './schemas/business.schema'; 
-import { BusinessService } from './services/business/business.service';
-import { BusinessController } from './api/v1/business/business.controller';
 
 @Module({
   imports: [
+    CacheModule.register(),
     ConfigModule.forRoot({
       load: [config, databaseConfig],
     }),
@@ -31,25 +29,23 @@ import { BusinessController } from './api/v1/business/business.controller';
       dbName: process.env.DB_NAME,
     }),
     MongooseModule.forFeature([{ name: User.name, schema: UserSchema }]),
-    MongooseModule.forFeature([{ name: Business.name, schema: UserSchema }]),
     MongooseModule.forFeature([
       { name: BusinessType.name, schema: BusinessTypeSchema },
     ]),
 
     JwtModule.register({
       secret: process.env.APP_SECRET,
-      signOptions: { expiresIn: '100s' },
+      signOptions: { expiresIn: '10000s' },
     }),
     PassportModule,
   ],
-  controllers: [UserController, AuthController, BusinessTypeController, BusinessController],
+  controllers: [UserController, AuthController, BusinessTypeController],
   providers: [
     UserService,
     AuthService,
     AuthStrategy,
     CryptoService,
-    BusinessTypeService, 
-    BusinessService,
+    BusinessTypeService,
   ],
 })
 export class AppModule {}

@@ -8,6 +8,7 @@ import {
 import { Helpers } from '../../helpers/utitlity.helpers';
 import { Model } from 'mongoose';
 import { InjectModel } from '@nestjs/mongoose';
+import { ApiResponse } from '../../dtos/ApiResponse.dto';
 
 @Injectable()
 export class BusinessTypeService {
@@ -16,21 +17,37 @@ export class BusinessTypeService {
     private businessType: Model<BusinessTypeDocument>,
   ) {}
 
-  async createBusinessType(requestDto: BusinessTypeDto): Promise<BusinessType> {
+  async createBusinessType(requestDto: BusinessTypeDto): Promise<ApiResponse> {
+    const response = await this.businessType
+      .findOne({ title: requestDto.title })
+      .exec();
+
+    if (response)
+      return Helpers.error('Business Type Already Exist', 'BAD_REQUEST');
+
     const request = {
       ...requestDto,
       status: Status.ACTIVE,
       businessTypeId: `BTI${Helpers.getUniqueId()}`,
     } as BusinessType;
 
-    return (await this.businessType.create(request)).save();
+    const saved = (await this.businessType.create(request)).save();
+    return Helpers.success(saved, 'Created Successfully');
   }
 
-  async findBusinessType(type: string): Promise<BusinessType> {
-    return await this.businessType.findOne({ title: type }).exec();
+  async findBusinessType(type: string): Promise<ApiResponse> {
+    const req = this.businessType.findOne({ title: type }).exec();
+    if (req) {
+      return Helpers.success(req, 'Request SUccessful');
+    }
+    return Helpers.error('Business type not found', 'NOT_FOUND');
   }
 
-  async allBusinessType(): Promise<BusinessType[]> {
-    return await this.businessType.find().exec();
+  async allBusinessType(): Promise<ApiResponse> {
+    const req = await this.businessType.find().exec();
+    if (req) {
+      return Helpers.success(req, 'Request SUccessful');
+    }
+    return Helpers.error('Business types not found', 'NOT_FOUND');
   }
 }

@@ -11,17 +11,17 @@ import {
 import { UserDto } from 'src/dtos';
 import { Helpers } from 'src/helpers';
 import { UserService } from 'src/services/user/user.service';
-import { Status, UserRole } from '../../../enums/enums';
-import { UserUpdateDto } from '../../../dtos/user.dto';
-import { CryptoService } from '../../../services/crypto/crypto.service';
+import {
+  UserUpdateDto,
+  VerifyUserDto,
+  ValidateUserDto,
+} from '../../../dtos/user.dto';
 import { AppGuard } from '../../../services/auth/app.guard';
+import { ApiResponse } from '../../../dtos/ApiResponse.dto';
 
 @Controller('user')
 export class UserController {
-  constructor(
-    private readonly userService: UserService,
-    private readonly cryptoService: CryptoService,
-  ) {}
+  constructor(private userService: UserService) {}
 
   @Get('/docs')
   @Redirect('https://documenter.getpostman.com/view/10509620/VUqpsx5F')
@@ -29,31 +29,33 @@ export class UserController {
   getDocs(): void {}
 
   @Post('/')
-  async createUser(@Body() requestDto: UserDto): Promise<Response> {
+  async createUser(@Body() requestDto: UserDto): Promise<ApiResponse> {
     try {
-      const existingUser = await this.userService.existByPhoneOrEmail(
-        requestDto.phone,
-        requestDto.email,
-      );
-      if (existingUser)
-        return Helpers.error('Business already exist', 'BAD_REQUEST');
+      return await this.userService.createUser(requestDto);
+    } catch (e) {
+      const { message } = e;
+      console.log(message);
+      return Helpers.error(message, 'INTERNAL_SERVER_ERROR');
+    }
+  }
 
-      //encrypt password
-      const hash = await this.cryptoService.encrypt(requestDto.password);
-      requestDto.password = hash;
+  @Post('/validate')
+  async validateUser(
+    @Body() requestDto: ValidateUserDto,
+  ): Promise<ApiResponse> {
+    try {
+      return await this.userService.validateUser(requestDto);
+    } catch (e) {
+      const { message } = e;
+      console.log(message);
+      return Helpers.error(message, 'INTERNAL_SERVER_ERROR');
+    }
+  }
 
-      const request = {
-        ...requestDto,
-        status: Status.INACTIVE,
-        role: UserRole.BUSINESS,
-        businessId: requestDto??`BIS${Helpers.getUniqueId()}`,
-      } as any;
-
-      console.log('Creating user:', request);
-      const res = await this.userService.createUser(request);
-      if (res) return Helpers.success(res, 'User created successfully');
-
-      return Helpers.error('Unable to create Business', 'BAD_REQUEST');
+  @Post('/verify')
+  async verifyUser(@Body() requestDto: VerifyUserDto): Promise<ApiResponse> {
+    try {
+      return await this.userService.verifyUser(requestDto);
     } catch (e) {
       const { message } = e;
       console.log(message);
@@ -62,33 +64,13 @@ export class UserController {
   }
 
   @UseGuards(AppGuard)
-  @Put('/:businessId')
+  @Put('/:userId')
   async updateUser(
     @Body() requestDto: UserUpdateDto,
-    @Param('businessId') businessId: string,
-  ): Promise<Response> {
+    @Param('userId') userId: string,
+  ): Promise<ApiResponse> {
     try {
-      if (requestDto && (requestDto.email || requestDto.phone)) {
-        const existingUser = await this.userService.findByPhoneOrEmail(
-          requestDto.phone,
-          requestDto.email,
-        );
-        if (existingUser) {
-          if (
-            existingUser.email != requestDto.email &&
-            existingUser.phone != requestDto.phone
-          ) {
-            return Helpers.error('Business already exist with ', 'BAD_REQUEST');
-          }
-        }
-      }
-
-      const request = requestDto as any;
-      console.log('Updating user:', request);
-      const res = await this.userService.updateUser(businessId, request);
-      if (res) return Helpers.success(res, 'User updated successfully');
-
-      return Helpers.error('Unable to create Business', 'BAD_REQUEST');
+      return this.userService.updateUser(userId, requestDto);
     } catch (e) {
       const { message } = e;
       console.log(message);
@@ -97,13 +79,10 @@ export class UserController {
   }
 
   @UseGuards(AppGuard)
-  @Get('/:businessId')
-  async getUser(@Param('businessId') businessId: string): Promise<Response> {
+  @Get('/:userId')
+  async getUser(@Param('userId') userId: string): Promise<ApiResponse> {
     try {
-      const res = await this.userService.findByBusinessId(businessId);
-      if (res) return Helpers.success(res, 'User Found');
-
-      return Helpers.error('Invalid User businessId', 'BAD_REQUEST');
+      return await this.userService.findByUserId(userId);
     } catch (e) {
       const { message } = e;
       console.log(message);

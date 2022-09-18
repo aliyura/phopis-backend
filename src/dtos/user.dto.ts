@@ -2,27 +2,36 @@ import { IsOptional, IsString, IsUppercase } from 'class-validator';
 
 export class UserDto {
   @IsString() name: string;
-  @IsString() type: string;
-  @IsString() phone: string;
-  @IsString() email: string;
+  @IsString() accountType: string;
+  @IsString() phoneNumber: string;
+  @IsOptional() @IsString() emailAddress: string;
+  @IsOptional() @IsString() businessType: string;
   @IsOptional() @IsString() state: string;
   @IsOptional() @IsString() lga: string;
   @IsOptional() @IsString() street: string;
   @IsOptional() @IsString() regNumber: string;
-  @IsString() @IsUppercase() target: string;
+  @IsOptional() @IsString() nin: string;
+  @IsOptional() @IsString() businessTarget: string;
   @IsString() password: string;
+}
+
+export class ValidateUserDto {
+  @IsString() phoneNumber: string;
+}
+export class VerifyUserDto {
+  @IsString() phoneNumber: string;
+  @IsString() otp: string;
 }
 
 export class UserUpdateDto {
   @IsOptional() name: string;
-  @IsOptional() type: string;
-  @IsOptional() phone: string;
-  @IsOptional() email: string;
+  @IsOptional() phoneNumber: string;
+  @IsOptional() emailAddress: string;
   @IsOptional() state: string;
   @IsOptional() lga: string;
   @IsOptional() street: string;
   @IsOptional() regNumber: string;
-  @IsString() target: string;
+  @IsOptional() businessTarget: string;
 }
 
 export class UserAuthDto {

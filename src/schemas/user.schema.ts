@@ -11,17 +11,23 @@ export class User {
   @Prop({ required: true })
   name: string;
 
-  @Prop({ required: true })
-  type: string;
+  @Prop({ required: true, unique: true })
+  emailAddress: string;
 
   @Prop({ required: true, unique: true })
-  email: string;
-
-  @Prop({ required: true, unique: true })
-  phone: string;
+  phoneNumber: string;
 
   @Prop({ required: true })
   password: string;
+
+  @Prop({ required: true, unique: true })
+  uuid: string;
+
+  @Prop({ required: true, unique: true })
+  code: string;
+
+  @Prop()
+  businessType: string;
 
   @Prop()
   state: string;
@@ -32,17 +38,20 @@ export class User {
   @Prop()
   address: string;
 
+  @Prop()
+  nin: string;
+
+  @Prop()
+  dp: string;
+
   @Prop({ required: true })
   status: string;
 
   @Prop({ required: true })
   role: string;
 
-  @Prop({ required: true })
-  target: string;
-
-  @Prop({ required: true })
-  businessId: string;
+  @Prop()
+  businessTarget: string;
 
   @Prop()
   regNumber: string;

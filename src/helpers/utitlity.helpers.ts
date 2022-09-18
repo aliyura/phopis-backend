@@ -1,7 +1,7 @@
-import { HttpException } from '@nestjs/common';
+import { HttpException, HttpStatus } from '@nestjs/common';
 import axios from 'axios';
-import { HttpStatus } from 'src/enums/http.status';
 import { v4 as uuidv4 } from 'uuid';
+import { ApiResponse } from '../dtos/ApiResponse.dto';
 export type HttpClient = (
   path: string,
   queryParam: { [key: string]: string | number | boolean },
@@ -15,12 +15,12 @@ export class Helpers {
    * @param {*} content
    * @param {*} message
    */
-  static success(content: any, message: string): any {
+  static success(content: any, message: string): ApiResponse {
     const data = {
       success: true,
       message,
       data: content,
-    };
+    } as ApiResponse;
     return data;
   }
 
@@ -30,12 +30,12 @@ export class Helpers {
    * @param {*} message
    * @param {*} status
    */
-  static error(message: string, status: string | HttpStatus): Response {
+  static error(message: string, status: string | HttpStatus): ApiResponse {
     const data = {
       success: false,
       message,
       data: {},
-    };
+    } as ApiResponse;
 
     throw new HttpException(data, HttpStatus[status]);
   }
@@ -107,7 +107,25 @@ export class Helpers {
 
   static getUniqueId(): Promise<string> {
     const id = uuidv4();
-    const businessId = id.split('-').join('');
-    return businessId.substring(0, 11).toUpperCase();
+    const uid = id.split('-').join('');
+    return uid.substring(0, 11).toLowerCase();
+  }
+
+  static getCode(): string {
+    return Math.floor(100000 + Math.random() * 900000).toString();
+  }
+
+  static validNin(nin: string): boolean {
+    if (nin.length < 11 || nin.length > 11) return false;
+    if (!nin.match(/^[0-9]+$/)) return false;
+    return true;
+  }
+
+  static validPhoneNumber(phoneNumber: string): boolean {
+    const result = phoneNumber.match(/^[0-9]+$/);
+    if (result && phoneNumber.length == 11) {
+      return true;
+    }
+    return false;
   }
 }
