@@ -1,4 +1,4 @@
-import { CacheModule, Module } from '@nestjs/common';
+import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { MongooseModule } from '@nestjs/mongoose';
 import config from './config/config';
@@ -21,10 +21,10 @@ import {
 import { ResourceController } from './api/v1/resource/resource.controller';
 import { ResourceService } from './services/resource/resource.service';
 import { Resource, ResourceSchema } from './schemas/resource.schema';
+import { SmsService } from './services/sms/sms.service';
 
 @Module({
   imports: [
-    CacheModule.register(),
     ConfigModule.forRoot({
       load: [config, databaseConfig],
     }),
@@ -57,6 +57,7 @@ import { Resource, ResourceSchema } from './schemas/resource.schema';
     CryptoService,
     BusinessTypeService,
     ResourceService,
+    SmsService,
   ],
 })
 export class AppModule {}

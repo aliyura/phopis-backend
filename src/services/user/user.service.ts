@@ -1,7 +1,8 @@
 import { Model } from 'mongoose';
-import { CACHE_MANAGER, Inject, Injectable } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { User, UserDocument } from 'src/schemas/user.schema';
 import { InjectModel } from '@nestjs/mongoose';
+
 import {
   UserDto,
   UserUpdateDto,
@@ -12,14 +13,16 @@ import { ApiResponse } from '../../dtos/ApiResponse.dto';
 import { CryptoService } from '../crypto/crypto.service';
 import { Helpers } from 'src/helpers';
 import { AccountType, Status, UserRole } from 'src/enums';
-import { Cache } from 'cache-manager';
+import { SmsService } from '../sms/sms.service';
+import * as NodeCache from 'node-cache';
 
 @Injectable()
 export class UserService {
+  cache = new NodeCache();
   constructor(
     @InjectModel(User.name) private user: Model<UserDocument>,
-    @Inject(CACHE_MANAGER) private cacheManager: Cache,
     private readonly cryptoService: CryptoService,
+    private readonly smsService: SmsService,
   ) {}
 
   async createUser(requestDto: UserDto): Promise<ApiResponse> {
@@ -61,10 +64,13 @@ export class UserService {
     } as any;
 
     const verificationOTP = Helpers.getCode();
-    await this.cacheManager.set(requestDto.phoneNumber, verificationOTP); //store OTP in memory
+    await this.cache.set(requestDto.phoneNumber, verificationOTP);
 
     //send otp to the user;
-    console.log('OTP', verificationOTP);
+    await this.smsService.sendMessage(
+      requestDto.phoneNumber,
+      'Your OTP is ' + verificationOTP,
+    );
 
     const savedAccount = await (await this.user.create(request)).save();
     return Helpers.success(savedAccount, 'Account Created Successfully');
@@ -92,11 +98,18 @@ export class UserService {
     const res = await this.findByPhone(requestDto.phoneNumber);
     if (res && res.success) {
       const verificationOTP = Helpers.getCode();
-      await this.cacheManager.set(requestDto.phoneNumber, verificationOTP); //store OTP in memory
-      //send otp to the user;
-      console.log('OTP', verificationOTP);
+      await this.cache.set(requestDto.phoneNumber, verificationOTP);
 
-      return Helpers.success(res.data, 'OTP sent to your phone number');
+      //send otp to the user;
+      await this.smsService.sendMessage(
+        requestDto.phoneNumber,
+        'Your OTP is ' + verificationOTP,
+      );
+
+      return Helpers.success(
+        requestDto.phoneNumber,
+        'OTP sent to your phone number',
+      );
     } else {
       return Helpers.error('User not found', 'BAD_REQUEST');
     }
@@ -105,7 +118,7 @@ export class UserService {
     const res = await this.findByPhone(requestDto.phoneNumber);
     if (res && res.success) {
       const userOtp = requestDto.otp;
-      const systemOtp = await this.cacheManager.get(requestDto.phoneNumber); //store OTP in memory
+      const systemOtp = await this.cache.get(requestDto.phoneNumber); //stored OTP in memory
       console.log(userOtp, systemOtp);
 
       if (userOtp === systemOtp) {
