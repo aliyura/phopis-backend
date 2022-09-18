@@ -23,6 +23,11 @@ export class VerifyUserDto {
   @IsString() otp: string;
 }
 
+export class AuthUserDto {
+  @IsString() username: string;
+  @IsString() sub: string;
+}
+
 export class UserUpdateDto {
   @IsOptional() name: string;
   @IsOptional() phoneNumber: string;

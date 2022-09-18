@@ -92,11 +92,7 @@ export class UserService {
     const res = await this.findByPhone(requestDto.phoneNumber);
     if (res && res.success) {
       const verificationOTP = Helpers.getCode();
-      const ress = await this.cacheManager.set(
-        requestDto.phoneNumber,
-        verificationOTP,
-      ); //store OTP in memory
-      console.log(ress);
+      await this.cacheManager.set(requestDto.phoneNumber, verificationOTP); //store OTP in memory
       //send otp to the user;
       console.log('OTP', verificationOTP);
 

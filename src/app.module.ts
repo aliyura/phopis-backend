@@ -18,6 +18,9 @@ import {
   BusinessType,
   BusinessTypeSchema,
 } from './schemas/business-type.schema';
+import { ResourceController } from './api/v1/resource/resource.controller';
+import { ResourceService } from './services/resource/resource.service';
+import { Resource, ResourceSchema } from './schemas/resource.schema';
 
 @Module({
   imports: [
@@ -32,20 +35,28 @@ import {
     MongooseModule.forFeature([
       { name: BusinessType.name, schema: BusinessTypeSchema },
     ]),
-
+    MongooseModule.forFeature([
+      { name: Resource.name, schema: ResourceSchema },
+    ]),
     JwtModule.register({
       secret: process.env.APP_SECRET,
       signOptions: { expiresIn: '10000s' },
     }),
     PassportModule,
   ],
-  controllers: [UserController, AuthController, BusinessTypeController],
+  controllers: [
+    UserController,
+    AuthController,
+    BusinessTypeController,
+    ResourceController,
+  ],
   providers: [
     UserService,
     AuthService,
     AuthStrategy,
     CryptoService,
     BusinessTypeService,
+    ResourceService,
   ],
 })
 export class AppModule {}

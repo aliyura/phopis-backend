@@ -7,6 +7,7 @@ export enum Status {
   ACTIVE = 'ACTIVE',
   INACTIVE = 'INACTIVE',
   SUSPENDED = 'SUSPENDED',
+  MISSING = 'MISSING',
 }
 
 export enum BusinessTarget {
