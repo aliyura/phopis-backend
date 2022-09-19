@@ -22,6 +22,12 @@ import { ResourceController } from './api/v1/resource/resource.controller';
 import { ResourceService } from './services/resource/resource.service';
 import { Resource, ResourceSchema } from './schemas/resource.schema';
 import { SmsService } from './services/sms/sms.service';
+import { ResourceTypeController } from './api/v1/resource-type/resource-type.controller';
+import { ResourceTypeService } from './services/resource-type/resource-type.service';
+import {
+  ResourceType,
+  ResourceTypeSchema,
+} from './schemas/resource-type.schema';
 
 @Module({
   imports: [
@@ -34,6 +40,9 @@ import { SmsService } from './services/sms/sms.service';
     MongooseModule.forFeature([{ name: User.name, schema: UserSchema }]),
     MongooseModule.forFeature([
       { name: BusinessType.name, schema: BusinessTypeSchema },
+    ]),
+    MongooseModule.forFeature([
+      { name: ResourceType.name, schema: ResourceTypeSchema },
     ]),
     MongooseModule.forFeature([
       { name: Resource.name, schema: ResourceSchema },
@@ -49,6 +58,7 @@ import { SmsService } from './services/sms/sms.service';
     AuthController,
     BusinessTypeController,
     ResourceController,
+    ResourceTypeController,
   ],
   providers: [
     UserService,
@@ -58,6 +68,7 @@ import { SmsService } from './services/sms/sms.service';
     BusinessTypeService,
     ResourceService,
     SmsService,
+    ResourceTypeService,
   ],
 })
 export class AppModule {}

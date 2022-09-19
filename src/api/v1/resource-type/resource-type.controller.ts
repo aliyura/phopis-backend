@@ -7,15 +7,15 @@ import {
   Redirect,
   UseGuards,
 } from '@nestjs/common';
-import { BusinessTypeService } from '../../../services/business-type/business-type.service';
-import { BusinessTypeDto } from '../../../dtos/business-type.dto';
-import { Helpers } from '../../../helpers/utitlity.helpers';
-import { AppGuard } from '../../../services/auth/app.guard';
-import { ApiResponse } from '../../../dtos/ApiResponse.dto';
+import { ApiResponse } from 'src/dtos/ApiResponse.dto';
+import { Helpers } from 'src/helpers';
+import { AppGuard } from 'src/services/auth/app.guard';
+import { ResourceTypeService } from 'src/services/resource-type/resource-type.service';
+import { ResourceTypeDto } from '../../../dtos/resource-type.dto';
 
-@Controller('business-type')
-export class BusinessTypeController {
-  constructor(private readonly businessTypeService: BusinessTypeService) {}
+@Controller('resource-type')
+export class ResourceTypeController {
+  constructor(private readonly resourceTypeService: ResourceTypeService) {}
 
   @Get('/docs')
   @Redirect('https://documenter.getpostman.com/view/10509620/VUqpsx5F')
@@ -24,11 +24,11 @@ export class BusinessTypeController {
 
   @UseGuards(AppGuard)
   @Post('/')
-  async createBusinessType(
-    @Body() requestDto: BusinessTypeDto,
+  async createResourceType(
+    @Body() requestDto: ResourceTypeDto,
   ): Promise<ApiResponse> {
     try {
-      return await this.businessTypeService.createBusinessType(requestDto);
+      return await this.resourceTypeService.createResourceType(requestDto);
     } catch (e) {
       const { message } = e;
       console.log(message);
@@ -37,12 +37,12 @@ export class BusinessTypeController {
   }
   // FInd Business Type
   @UseGuards(AppGuard)
-  @Get('/:businessType')
+  @Get('/:resourceType')
   async getBusinessType(
-    @Param('businessType') businessType: any,
+    @Param('resourceType') resourceType: any,
   ): Promise<ApiResponse> {
     try {
-      return await this.businessTypeService.findBusinessType(businessType);
+      return await this.resourceTypeService.findResourceType(resourceType);
     } catch (e) {
       const { message } = e;
       console.log(message);
@@ -50,11 +50,10 @@ export class BusinessTypeController {
     }
   }
   // FInd Business Type
-  // @UseGuards(AppGuard)
   @Get('/')
-  async allBusinessType(): Promise<ApiResponse> {
+  async allResourceType(): Promise<ApiResponse> {
     try {
-      return await this.businessTypeService.allBusinessType();
+      return await this.resourceTypeService.allResourceType();
     } catch (e) {
       const { message } = e;
       console.log(message);

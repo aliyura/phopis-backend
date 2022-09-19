@@ -31,12 +31,12 @@ export class BusinessTypeService {
       businessTypeId: `BTI${Helpers.getUniqueId()}`,
     } as BusinessType;
 
-    const saved = (await this.businessType.create(request)).save();
+    const saved = await this.businessType.create(request);
     return Helpers.success(saved, 'Created Successfully');
   }
 
   async findBusinessType(type: string): Promise<ApiResponse> {
-    const req = this.businessType.findOne({ title: type }).exec();
+    const req = await this.businessType.findOne({ businessTypeId: type });
     if (req) {
       return Helpers.success(req, 'Request SUccessful');
     }
@@ -44,7 +44,7 @@ export class BusinessTypeService {
   }
 
   async allBusinessType(): Promise<ApiResponse> {
-    const req = await this.businessType.find().exec();
+    const req = await this.businessType.find();
     if (req) {
       return Helpers.success(req, 'Request SUccessful');
     }
