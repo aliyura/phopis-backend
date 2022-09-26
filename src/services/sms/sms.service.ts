@@ -19,12 +19,13 @@ export class SmsService {
       console.log('SMS request:', req);
       const response = await axios.get(req);
       console.log(response);
-      if (response.status == HttpStatus.OK) return Helpers.yes(response.data);
+      if (response.status == HttpStatus.OK)
+        return Helpers.success(response.data);
 
-      return Helpers.no('Unable to send SMS');
+      return Helpers.fail('Unable to send SMS');
     } catch (ex) {
       console.log(Messages.ErrorOccurred, ex);
-      return Helpers.no(Messages.Exception);
+      return Helpers.fail(Messages.Exception);
     }
   }
 }

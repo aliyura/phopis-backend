@@ -35,7 +35,7 @@ export class Helpers {
     return data;
   }
 
-  static yes(content: any): ApiResponse {
+  static success(content: any): ApiResponse {
     const data = {
       success: true,
       message: Messages.RequestSuccessful,
@@ -44,7 +44,7 @@ export class Helpers {
     return data;
   }
 
-  static no(message: string): ApiResponse {
+  static fail(message: string): ApiResponse {
     const data = {
       success: false,
       message,

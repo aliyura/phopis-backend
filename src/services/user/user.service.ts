@@ -33,21 +33,21 @@ export class UserService {
         requestDto.emailAddress,
       );
 
-      if (res) return Helpers.no('Account already exist');
+      if (res) return Helpers.fail('Account already exist');
 
       //encrypt password
       const hash = await this.cryptoService.encrypt(requestDto.password);
       requestDto.password = hash;
 
       if (requestDto.accountType == AccountType.INDIVIDUAL) {
-        if (requestDto.nin == null) return Helpers.no('NIN is required');
+        if (requestDto.nin == null) return Helpers.fail('NIN is required');
 
         if (!Helpers.validNin(requestDto.nin))
-          return Helpers.no('NIN provided is not valid');
+          return Helpers.fail('NIN provided is not valid');
       }
 
       if (!Helpers.validPhoneNumber(requestDto.phoneNumber)) {
-        return Helpers.no('Phone Number provided is not valid');
+        return Helpers.fail('Phone Number provided is not valid');
       }
 
       const request = {
@@ -74,10 +74,10 @@ export class UserService {
       );
 
       const savedAccount = await (await this.user.create(request)).save();
-      return Helpers.yes(savedAccount);
+      return Helpers.success(savedAccount);
     } catch (ex) {
       console.log(Messages.ErrorOccurred, ex);
-      return Helpers.no(Messages.Exception);
+      return Helpers.fail(Messages.Exception);
     }
   }
 
@@ -90,15 +90,15 @@ export class UserService {
         );
 
         if (res && res.success) {
-          return Helpers.no('Business already exist with ');
+          return Helpers.fail('Business already exist with ');
         }
       }
 
       const saved = await this.user.updateOne({ userId }, requestDto);
-      return Helpers.yes(saved);
+      return Helpers.success(saved);
     } catch (ex) {
       console.log(Messages.ErrorOccurred, ex);
-      return Helpers.no(Messages.Exception);
+      return Helpers.fail(Messages.Exception);
     }
   }
 
@@ -115,13 +115,13 @@ export class UserService {
           'Your OTP is ' + verificationOTP,
         );
 
-        return Helpers.yes(requestDto.phoneNumber);
+        return Helpers.success(requestDto.phoneNumber);
       } else {
-        return Helpers.no(Messages.UserNotFound);
+        return Helpers.fail(Messages.UserNotFound);
       }
     } catch (ex) {
       console.log(Messages.ErrorOccurred, ex);
-      return Helpers.no(Messages.Exception);
+      return Helpers.fail(Messages.Exception);
     }
   }
   async verifyUser(requestDto: VerifyUserDto): Promise<ApiResponse> {
@@ -138,51 +138,51 @@ export class UserService {
             { $set: { status: Status.ACTIVE } },
           );
 
-          return Helpers.yes(res.data);
+          return Helpers.success(res.data);
         } else {
-          return Helpers.no('Invalid OTP');
+          return Helpers.fail('Invalid OTP');
         }
       } else {
-        return Helpers.no(Messages.UserNotFound);
+        return Helpers.fail(Messages.UserNotFound);
       }
     } catch (ex) {
       console.log(Messages.ErrorOccurred, ex);
-      return Helpers.no(Messages.Exception);
+      return Helpers.fail(Messages.Exception);
     }
   }
 
   async findByUserId(userId: string): Promise<ApiResponse> {
     try {
       const res = await this.user.findOne({ uuid: userId }).exec();
-      if (res) return Helpers.yes(res);
+      if (res) return Helpers.success(res);
 
-      return Helpers.no(Messages.UserNotFound);
+      return Helpers.fail(Messages.UserNotFound);
     } catch (ex) {
       console.log(Messages.ErrorOccurred, ex);
-      return Helpers.no(Messages.Exception);
+      return Helpers.fail(Messages.Exception);
     }
   }
 
   async findByPhone(phoneNumber: string): Promise<ApiResponse> {
     try {
       const res = await this.user.findOne({ phoneNumber }).exec();
-      if (res) return Helpers.yes(res);
+      if (res) return Helpers.success(res);
 
-      return Helpers.no(Messages.UserNotFound);
+      return Helpers.fail(Messages.UserNotFound);
     } catch (ex) {
       console.log(Messages.ErrorOccurred, ex);
-      return Helpers.no(Messages.Exception);
+      return Helpers.fail(Messages.Exception);
     }
   }
   async findByEmail(emailAddress: string): Promise<ApiResponse> {
     try {
       const res = await this.user.findOne({ emailAddress }).exec();
-      if (res) return Helpers.yes(res);
+      if (res) return Helpers.success(res);
 
-      return Helpers.no(Messages.UserNotFound);
+      return Helpers.fail(Messages.UserNotFound);
     } catch (ex) {
       console.log(Messages.ErrorOccurred, ex);
-      return Helpers.no(Messages.Exception);
+      return Helpers.fail(Messages.Exception);
     }
   }
   async findByPhoneOrEmail(
@@ -194,12 +194,12 @@ export class UserService {
       const phoneUser = await this.user.findOne({ phoneNumber }).exec();
       const result = emailUser ? emailUser : phoneUser;
 
-      if (result) return Helpers.yes(result);
+      if (result) return Helpers.success(result);
 
-      return Helpers.no(Messages.UserNotFound);
+      return Helpers.fail(Messages.UserNotFound);
     } catch (ex) {
       console.log(Messages.ErrorOccurred, ex);
-      return Helpers.no(Messages.Exception);
+      return Helpers.fail(Messages.Exception);
     }
   }
   async existByPhoneOrEmail(

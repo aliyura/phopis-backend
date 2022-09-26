@@ -24,7 +24,7 @@ export class BusinessTypeService {
         .findOne({ title: requestDto.title })
         .exec();
 
-      if (response) return Helpers.no('Business Type Already Exist');
+      if (response) return Helpers.fail('Business Type Already Exist');
 
       const request = {
         ...requestDto,
@@ -33,10 +33,10 @@ export class BusinessTypeService {
       } as BusinessType;
 
       const saved = await this.businessType.create(request);
-      return Helpers.yes(saved);
+      return Helpers.success(saved);
     } catch (ex) {
       console.log(Messages.ErrorOccurred, ex);
-      return Helpers.no(Messages.Exception);
+      return Helpers.fail(Messages.Exception);
     }
   }
 
@@ -44,12 +44,12 @@ export class BusinessTypeService {
     try {
       const req = await this.businessType.findOne({ businessTypeId: type });
       if (req) {
-        return Helpers.yes(req);
+        return Helpers.success(req);
       }
-      return Helpers.no(Messages.BusinessTypeNotFound);
+      return Helpers.fail(Messages.BusinessTypeNotFound);
     } catch (ex) {
       console.log(Messages.ErrorOccurred, ex);
-      return Helpers.no(Messages.Exception);
+      return Helpers.fail(Messages.Exception);
     }
   }
 
@@ -57,12 +57,12 @@ export class BusinessTypeService {
     try {
       const req = await this.businessType.find();
       if (req) {
-        return Helpers.yes(req);
+        return Helpers.success(req);
       }
-      return Helpers.no(Messages.BusinessTypeNotFound);
+      return Helpers.fail(Messages.BusinessTypeNotFound);
     } catch (ex) {
       console.log(Messages.ErrorOccurred, ex);
-      return Helpers.no(Messages.Exception);
+      return Helpers.fail(Messages.Exception);
     }
   }
 }

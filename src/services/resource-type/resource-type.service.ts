@@ -24,7 +24,7 @@ export class ResourceTypeService {
         .findOne({ title: requestDto.title })
         .exec();
 
-      if (response) return Helpers.no('Resource type already exist');
+      if (response) return Helpers.fail('Resource type already exist');
 
       const request = {
         ...requestDto,
@@ -33,10 +33,10 @@ export class ResourceTypeService {
       } as ResourceType;
 
       const saved = await this.resourceType.create(request);
-      return Helpers.yes(saved);
+      return Helpers.success(saved);
     } catch (ex) {
       console.log(Messages.ErrorOccurred, ex);
-      return Helpers.no(Messages.Exception);
+      return Helpers.fail(Messages.Exception);
     }
   }
 
@@ -44,12 +44,12 @@ export class ResourceTypeService {
     try {
       const req = await this.resourceType.findOne({ resourceTypeId: type });
       if (req) {
-        return Helpers.yes(req);
+        return Helpers.success(req);
       }
-      return Helpers.no(Messages.ResourceTypeNotFound);
+      return Helpers.fail(Messages.ResourceTypeNotFound);
     } catch (ex) {
       console.log(Messages.ErrorOccurred, ex);
-      return Helpers.no(Messages.Exception);
+      return Helpers.fail(Messages.Exception);
     }
   }
 
@@ -57,12 +57,12 @@ export class ResourceTypeService {
     try {
       const req = await this.resourceType.find();
       if (req) {
-        return Helpers.yes(req);
+        return Helpers.success(req);
       }
-      return Helpers.no(Messages.ResourceTypeNotFound);
+      return Helpers.fail(Messages.ResourceTypeNotFound);
     } catch (ex) {
       console.log(Messages.ErrorOccurred, ex);
-      return Helpers.no(Messages.Exception);
+      return Helpers.fail(Messages.Exception);
     }
   }
 }

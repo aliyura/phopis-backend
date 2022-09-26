@@ -32,17 +32,17 @@ export class AuthService {
             user.password,
             authRequest.password,
           );
-          if (yes) return Helpers.yes(user);
+          if (yes) return Helpers.success(user);
         } else {
-          return Helpers.no(
+          return Helpers.fail(
             'Account is InActive, Kindly activate your account',
           );
         }
       }
-      return Helpers.no(Messages.InvalidCredentials);
+      return Helpers.fail(Messages.InvalidCredentials);
     } catch (ex) {
       console.log(Messages.ErrorOccurred, ex);
-      return Helpers.no(Messages.Exception);
+      return Helpers.fail(Messages.Exception);
     }
   }
   async login(authRequest: UserAuthDto): Promise<ApiResponse> {
@@ -56,14 +56,14 @@ export class AuthService {
           access_token: this.jwtService.sign(payload),
           info: user,
         };
-        const result = Helpers.yes(token);
+        const result = Helpers.success(token);
         return result;
       } else {
-        return Helpers.no(Messages.InvalidCredentials);
+        return Helpers.fail(Messages.InvalidCredentials);
       }
     } catch (ex) {
       console.log(Messages.ErrorOccurred, ex);
-      return Helpers.no(Messages.Exception);
+      return Helpers.fail(Messages.Exception);
     }
   }
 }

@@ -41,16 +41,16 @@ export class ResourceService {
       });
 
       if (resourceExistByIdentity)
-        return Helpers.no('Resource identity you provide is already exist');
+        return Helpers.fail('Resource identity you provide is already exist');
 
       if (resourceExistBySerialNumber)
-        return Helpers.no('Resource serial you provide is already exist');
+        return Helpers.fail('Resource serial you provide is already exist');
 
       if (requestDto.catton) {
         if (!requestDto.cattonDetail || !requestDto.cattonDetail.serialNumber)
-          return Helpers.no('Serial number required');
+          return Helpers.fail('Serial number required');
         if (!requestDto.cattonDetail || !requestDto.cattonDetail.picture)
-          return Helpers.no('Catton picture required');
+          return Helpers.fail('Catton picture required');
       }
 
       const request = {
@@ -62,10 +62,10 @@ export class ResourceService {
       } as any;
 
       const saved = await (await this.resource.create(request)).save();
-      return Helpers.yes(saved);
+      return Helpers.success(saved);
     } catch (ex) {
       console.log(Messages.ErrorOccurred, ex);
-      return Helpers.no(Messages.Exception);
+      return Helpers.fail(Messages.Exception);
     }
   }
 
@@ -79,31 +79,31 @@ export class ResourceService {
         ruid: resourceId,
       });
 
-      if (!existingResource) return Helpers.no('Resource not found');
+      if (!existingResource) return Helpers.fail('Resource not found');
 
       const resourceOwner = await this.user.findOne({
         currentOwnerUuid: existingResource.currentOwnerUuid,
       });
 
-      if (!resourceOwner) return Helpers.no('Resource owner not found');
+      if (!resourceOwner) return Helpers.fail('Resource owner not found');
 
       const authenticatedUser = await this.user.findOne({
         phoneNumber: authUser.username,
       });
 
       if (resourceOwner.uuid != authenticatedUser.uuid) {
-        return Helpers.no('You do not permission to update this resource');
+        return Helpers.fail('You do not permission to update this resource');
       }
 
       await this.resource.updateOne({ ruid: resourceId }, { $set: requestDto });
-      return Helpers.yes(
+      return Helpers.success(
         await this.resource.findOne({
           ruid: resourceId,
         }),
       );
     } catch (ex) {
       console.log(Messages.ErrorOccurred, ex);
-      return Helpers.no(Messages.Exception);
+      return Helpers.fail(Messages.Exception);
     }
   }
 
@@ -118,27 +118,27 @@ export class ResourceService {
         ruid: resourceId,
       });
 
-      if (!existingResource) return Helpers.no('Resource not found');
+      if (!existingResource) return Helpers.fail('Resource not found');
 
       const resourceOwner = await this.user.findOne({
         currentOwnerUuid: existingResource.currentOwnerUuid,
       });
 
-      if (!resourceOwner) return Helpers.no('Resource owner not found');
+      if (!resourceOwner) return Helpers.fail('Resource owner not found');
 
       const authenticatedUser = await this.user.findOne({
         phoneNumber: authUser.username,
       });
 
       if (resourceOwner.uuid != authenticatedUser.uuid) {
-        return Helpers.no('You do not permission to update this resource');
+        return Helpers.fail('You do not permission to update this resource');
       }
 
       if (!Object.values(Status).includes(status))
-        return Helpers.no('Invalid status');
+        return Helpers.fail('Invalid status');
 
       if (status == Status.MISSING) {
-        if (!requestDto.date) return Helpers.no('Missing date required');
+        if (!requestDto.date) return Helpers.fail('Missing date required');
       }
 
       const request = { missingDetail: requestDto, status: status };
@@ -162,14 +162,14 @@ export class ResourceService {
         { upsert: true },
       );
 
-      return Helpers.yes(
+      return Helpers.success(
         await this.resource.findOne({
           ruid: resourceId,
         }),
       );
     } catch (ex) {
       console.log(Messages.ErrorOccurred, ex);
-      return Helpers.no(Messages.Exception);
+      return Helpers.fail(Messages.Exception);
     }
   }
 
@@ -183,7 +183,7 @@ export class ResourceService {
         ruid: resourceId,
       });
 
-      if (!existingResource) return Helpers.no('Resource not found');
+      if (!existingResource) return Helpers.fail('Resource not found');
 
       let resourceOwner = await this.user.findOne({
         uuid: requestDto.currentOwner,
@@ -202,7 +202,7 @@ export class ResourceService {
       console.log('resourceOwner', resourceOwner);
       console.log('existingResource', existingResource);
 
-      if (!resourceOwner) return Helpers.no('Resource owner not found');
+      if (!resourceOwner) return Helpers.fail('Resource owner not found');
 
       let newOwner = await this.user.findOne({
         uuid: requestDto.newOwner,
@@ -220,7 +220,7 @@ export class ResourceService {
 
       console.log('newOwner', newOwner);
 
-      if (!newOwner) return Helpers.no('New owner not found');
+      if (!newOwner) return Helpers.fail('New owner not found');
 
       const authenticatedUser = await this.user.findOne({
         phoneNumber: authUser.username,
@@ -230,12 +230,14 @@ export class ResourceService {
       console.log('resourceUser', existingResource.currentOwnerUuid);
 
       if (authenticatedUser.uuid != existingResource.currentOwnerUuid)
-        return Helpers.no(
+        return Helpers.fail(
           'You do not have rights to change ownership of this resource',
         );
 
       if (existingResource.status == Status.MISSING)
-        return Helpers.no("You can't change ownership of a missing resource ");
+        return Helpers.fail(
+          "You can't change ownership of a missing resource ",
+        );
 
       const request = {
         prevOwnerUuid: resourceOwner.uuid,
@@ -262,14 +264,14 @@ export class ResourceService {
         { upsert: true },
       );
 
-      return Helpers.yes(
+      return Helpers.success(
         await this.resource.findOne({
           ruid: resourceId,
         }),
       );
     } catch (ex) {
       console.log(Messages.ErrorOccurred, ex);
-      return Helpers.no(Messages.Exception);
+      return Helpers.fail(Messages.Exception);
     }
   }
 
@@ -279,17 +281,17 @@ export class ResourceService {
         uuid: authUser.sub,
       });
 
-      if (!resourceOwner) return Helpers.no('Resource owner not found');
+      if (!resourceOwner) return Helpers.fail('Resource owner not found');
 
       const resources = await this.resource.find({
         currentOwnerUuid: resourceOwner.uuid,
       });
-      if (resources && resources.length > 0) return Helpers.yes(resources);
+      if (resources && resources.length > 0) return Helpers.success(resources);
 
-      return Helpers.no('No Resource found');
+      return Helpers.fail('No Resource found');
     } catch (ex) {
       console.log(Messages.ErrorOccurred, ex);
-      return Helpers.no(Messages.Exception);
+      return Helpers.fail(Messages.Exception);
     }
   }
 
@@ -299,12 +301,12 @@ export class ResourceService {
   ): Promise<ApiResponse> {
     try {
       const resource = await this.resource.findOne({ ruid });
-      if (resource) return Helpers.yes(resource);
+      if (resource) return Helpers.success(resource);
 
-      return Helpers.no('Resource not found');
+      return Helpers.fail('Resource not found');
     } catch (ex) {
       console.log(Messages.ErrorOccurred, ex);
-      return Helpers.no(Messages.Exception);
+      return Helpers.fail(Messages.Exception);
     }
   }
 
@@ -314,12 +316,12 @@ export class ResourceService {
   ): Promise<ApiResponse> {
     try {
       const resource = await this.resource.findOne({ identityNumber });
-      if (resource) return Helpers.yes(resource);
+      if (resource) return Helpers.success(resource);
 
-      return Helpers.no('Resource not found');
+      return Helpers.fail('Resource not found');
     } catch (ex) {
       console.log(Messages.ErrorOccurred, ex);
-      return Helpers.no(Messages.Exception);
+      return Helpers.fail(Messages.Exception);
     }
   }
 
@@ -331,12 +333,12 @@ export class ResourceService {
       const resource = await this.resource.findOne({
         'cattonDetail.serialNumber': cattonSerialNumber,
       });
-      if (resource) return Helpers.yes(resource);
+      if (resource) return Helpers.success(resource);
 
-      return Helpers.no('Resource not found');
+      return Helpers.fail('Resource not found');
     } catch (ex) {
       console.log(Messages.ErrorOccurred, ex);
-      return Helpers.no(Messages.Exception);
+      return Helpers.fail(Messages.Exception);
     }
   }
 
@@ -346,12 +348,12 @@ export class ResourceService {
   ): Promise<ApiResponse> {
     try {
       const resource = await this.resource.findOne({ code });
-      if (resource) return Helpers.yes(resource);
+      if (resource) return Helpers.success(resource);
 
-      return Helpers.no('Resource not found');
+      return Helpers.fail('Resource not found');
     } catch (ex) {
       console.log(Messages.ErrorOccurred, ex);
-      return Helpers.no(Messages.Exception);
+      return Helpers.fail(Messages.Exception);
     }
   }
 }
