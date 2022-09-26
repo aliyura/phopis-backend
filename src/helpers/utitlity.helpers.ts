@@ -32,8 +32,7 @@ export class Helpers {
       message,
       data: {},
     } as ApiResponse;
-
-    throw new HttpException(data, HttpStatus[status]);
+    return data;
   }
 
   static yes(content: any): ApiResponse {

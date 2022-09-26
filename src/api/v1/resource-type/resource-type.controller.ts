@@ -28,24 +28,13 @@ export class ResourceTypeController {
   async createResourceType(
     @Body() requestDto: ResourceTypeDto,
   ): Promise<ApiResponse> {
-    try {
-      const response = await this.resourceTypeService.createResourceType(
-        requestDto,
-      );
-      if (response.success) {
-        return response;
-      }
-      return Helpers.failedHttpResponse(
-        response.message,
-        HttpStatus.BAD_REQUEST,
-      );
-    } catch (ex) {
-      console.log('An error occurred:', ex);
-      return Helpers.failedHttpResponse(
-        'Something went wrong',
-        'INTERNAL_SERVER_ERROR',
-      );
+    const response = await this.resourceTypeService.createResourceType(
+      requestDto,
+    );
+    if (response.success) {
+      return response;
     }
+    return Helpers.failedHttpResponse(response.message, HttpStatus.BAD_REQUEST);
   }
   // FInd Business Type
   @UseGuards(AppGuard)
@@ -53,43 +42,21 @@ export class ResourceTypeController {
   async getBusinessType(
     @Param('resourceType') resourceType: any,
   ): Promise<ApiResponse> {
-    try {
-      const response = await this.resourceTypeService.findResourceType(
-        resourceType,
-      );
-      if (response.success) {
-        return response;
-      }
-      return Helpers.failedHttpResponse(
-        response.message,
-        HttpStatus.BAD_REQUEST,
-      );
-    } catch (ex) {
-      console.log('An error occurred:', ex);
-      return Helpers.failedHttpResponse(
-        'Something went wrong',
-        'INTERNAL_SERVER_ERROR',
-      );
+    const response = await this.resourceTypeService.findResourceType(
+      resourceType,
+    );
+    if (response.success) {
+      return response;
     }
+    return Helpers.failedHttpResponse(response.message, HttpStatus.BAD_REQUEST);
   }
   // FInd Business Type
   @Get('/')
   async allResourceType(): Promise<ApiResponse> {
-    try {
-      const response = await this.resourceTypeService.allResourceType();
-      if (response.success) {
-        return response;
-      }
-      return Helpers.failedHttpResponse(
-        response.message,
-        HttpStatus.BAD_REQUEST,
-      );
-    } catch (ex) {
-      console.log('An error occurred:', ex);
-      return Helpers.failedHttpResponse(
-        'Something went wrong',
-        'INTERNAL_SERVER_ERROR',
-      );
+    const response = await this.resourceTypeService.allResourceType();
+    if (response.success) {
+      return response;
     }
+    return Helpers.failedHttpResponse(response.message, HttpStatus.BAD_REQUEST);
   }
 }

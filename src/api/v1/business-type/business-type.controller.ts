@@ -28,24 +28,13 @@ export class BusinessTypeController {
   async createBusinessType(
     @Body() requestDto: BusinessTypeDto,
   ): Promise<ApiResponse> {
-    try {
-      const response = await this.businessTypeService.createBusinessType(
-        requestDto,
-      );
-      if (response.success) {
-        return response;
-      }
-      return Helpers.failedHttpResponse(
-        response.message,
-        HttpStatus.BAD_REQUEST,
-      );
-    } catch (ex) {
-      console.log('An error occurred:', ex);
-      return Helpers.failedHttpResponse(
-        'Something went wrong',
-        'INTERNAL_SERVER_ERROR',
-      );
+    const response = await this.businessTypeService.createBusinessType(
+      requestDto,
+    );
+    if (response.success) {
+      return response;
     }
+    return Helpers.failedHttpResponse(response.message, HttpStatus.BAD_REQUEST);
   }
   // FInd Business Type
   @UseGuards(AppGuard)
@@ -53,44 +42,22 @@ export class BusinessTypeController {
   async getBusinessType(
     @Param('businessType') businessType: any,
   ): Promise<ApiResponse> {
-    try {
-      const response = await this.businessTypeService.findBusinessType(
-        businessType,
-      );
-      if (response.success) {
-        return response;
-      }
-      return Helpers.failedHttpResponse(
-        response.message,
-        HttpStatus.BAD_REQUEST,
-      );
-    } catch (ex) {
-      console.log('An error occurred:', ex);
-      return Helpers.failedHttpResponse(
-        'Something went wrong',
-        'INTERNAL_SERVER_ERROR',
-      );
+    const response = await this.businessTypeService.findBusinessType(
+      businessType,
+    );
+    if (response.success) {
+      return response;
     }
+    return Helpers.failedHttpResponse(response.message, HttpStatus.BAD_REQUEST);
   }
   // FInd Business Type
   // @UseGuards(AppGuard)
   @Get('/')
   async allBusinessType(): Promise<ApiResponse> {
-    try {
-      const response = await this.businessTypeService.allBusinessType();
-      if (response.success) {
-        return response;
-      }
-      return Helpers.failedHttpResponse(
-        response.message,
-        HttpStatus.BAD_REQUEST,
-      );
-    } catch (ex) {
-      console.log('An error occurred:', ex);
-      return Helpers.failedHttpResponse(
-        'Something went wrong',
-        'INTERNAL_SERVER_ERROR',
-      );
+    const response = await this.businessTypeService.allBusinessType();
+    if (response.success) {
+      return response;
     }
+    return Helpers.failedHttpResponse(response.message, HttpStatus.BAD_REQUEST);
   }
 }

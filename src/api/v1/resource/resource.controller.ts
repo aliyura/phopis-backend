@@ -42,28 +42,17 @@ export class ResourceController {
     @Headers('Authorization') token: string,
     @Body() requestDto: ResourceDto,
   ): Promise<ApiResponse> {
-    try {
-      const authToken = token.substring(7);
-      const user = (await this.jwtService.decode(authToken)) as AuthUserDto;
+    const authToken = token.substring(7);
+    const user = (await this.jwtService.decode(authToken)) as AuthUserDto;
 
-      const response = await this.resourceService.createResource(
-        user,
-        requestDto,
-      );
-      if (response.success) {
-        return response;
-      }
-      return Helpers.failedHttpResponse(
-        response.message,
-        HttpStatus.BAD_REQUEST,
-      );
-    } catch (ex) {
-      console.log('An error occurred:', ex);
-      return Helpers.failedHttpResponse(
-        'Something went wrong',
-        'INTERNAL_SERVER_ERROR',
-      );
+    const response = await this.resourceService.createResource(
+      user,
+      requestDto,
+    );
+    if (response.success) {
+      return response;
     }
+    return Helpers.failedHttpResponse(response.message, HttpStatus.BAD_REQUEST);
   }
 
   @UseGuards(AppGuard)
@@ -73,29 +62,18 @@ export class ResourceController {
     @Param('resourceId') resourceId: string,
     @Body() requestDto: UpdateResourceDto,
   ): Promise<ApiResponse> {
-    try {
-      const authToken = token.substring(7);
-      const user = (await this.jwtService.decode(authToken)) as AuthUserDto;
+    const authToken = token.substring(7);
+    const user = (await this.jwtService.decode(authToken)) as AuthUserDto;
 
-      const response = await this.resourceService.updateResource(
-        user,
-        resourceId,
-        requestDto,
-      );
-      if (response.success) {
-        return response;
-      }
-      return Helpers.failedHttpResponse(
-        response.message,
-        HttpStatus.BAD_REQUEST,
-      );
-    } catch (ex) {
-      console.log('An error occurred:', ex);
-      return Helpers.failedHttpResponse(
-        'Something went wrong',
-        'INTERNAL_SERVER_ERROR',
-      );
+    const response = await this.resourceService.updateResource(
+      user,
+      resourceId,
+      requestDto,
+    );
+    if (response.success) {
+      return response;
     }
+    return Helpers.failedHttpResponse(response.message, HttpStatus.BAD_REQUEST);
   }
 
   @UseGuards(AppGuard)
@@ -107,30 +85,19 @@ export class ResourceController {
 
     @Body() requestDto: ResourceStatusUpdateDto,
   ): Promise<ApiResponse> {
-    try {
-      const authToken = token.substring(7);
-      const user = (await this.jwtService.decode(authToken)) as AuthUserDto;
+    const authToken = token.substring(7);
+    const user = (await this.jwtService.decode(authToken)) as AuthUserDto;
 
-      const response = await this.resourceService.updateResourceStatus(
-        user,
-        resourceId,
-        status,
-        requestDto,
-      );
-      if (response.success) {
-        return response;
-      }
-      return Helpers.failedHttpResponse(
-        response.message,
-        HttpStatus.BAD_REQUEST,
-      );
-    } catch (ex) {
-      console.log('An error occurred:', ex);
-      return Helpers.failedHttpResponse(
-        'Something went wrong',
-        'INTERNAL_SERVER_ERROR',
-      );
+    const response = await this.resourceService.updateResourceStatus(
+      user,
+      resourceId,
+      status,
+      requestDto,
+    );
+    if (response.success) {
+      return response;
     }
+    return Helpers.failedHttpResponse(response.message, HttpStatus.BAD_REQUEST);
   }
 
   @UseGuards(AppGuard)
@@ -140,29 +107,18 @@ export class ResourceController {
     @Param('resourceId') resourceId: string,
     @Body() requestDto: ResourceOwnershipChangeDto,
   ): Promise<ApiResponse> {
-    try {
-      const authToken = token.substring(7);
-      const user = (await this.jwtService.decode(authToken)) as AuthUserDto;
+    const authToken = token.substring(7);
+    const user = (await this.jwtService.decode(authToken)) as AuthUserDto;
 
-      const response = await this.resourceService.changeResourceOwnership(
-        user,
-        resourceId,
-        requestDto,
-      );
-      if (response.success) {
-        return response;
-      }
-      return Helpers.failedHttpResponse(
-        response.message,
-        HttpStatus.BAD_REQUEST,
-      );
-    } catch (ex) {
-      console.log('An error occurred:', ex);
-      return Helpers.failedHttpResponse(
-        'Something went wrong',
-        'INTERNAL_SERVER_ERROR',
-      );
+    const response = await this.resourceService.changeResourceOwnership(
+      user,
+      resourceId,
+      requestDto,
+    );
+    if (response.success) {
+      return response;
     }
+    return Helpers.failedHttpResponse(response.message, HttpStatus.BAD_REQUEST);
   }
 
   @UseGuards(AppGuard)
@@ -170,25 +126,14 @@ export class ResourceController {
   async getMyResources(
     @Headers('Authorization') token: string,
   ): Promise<ApiResponse> {
-    try {
-      const authToken = token.substring(7);
-      const user = (await this.jwtService.decode(authToken)) as AuthUserDto;
+    const authToken = token.substring(7);
+    const user = (await this.jwtService.decode(authToken)) as AuthUserDto;
 
-      const response = await this.resourceService.getMyResources(user);
-      if (response.success) {
-        return response;
-      }
-      return Helpers.failedHttpResponse(
-        response.message,
-        HttpStatus.BAD_REQUEST,
-      );
-    } catch (ex) {
-      console.log('An error occurred:', ex);
-      return Helpers.failedHttpResponse(
-        'Something went wrong',
-        'INTERNAL_SERVER_ERROR',
-      );
+    const response = await this.resourceService.getMyResources(user);
+    if (response.success) {
+      return response;
     }
+    return Helpers.failedHttpResponse(response.message, HttpStatus.BAD_REQUEST);
   }
 
   @UseGuards(AppGuard)
@@ -197,25 +142,14 @@ export class ResourceController {
     @Headers('Authorization') token: string,
     @Param('ruid') ruid: string,
   ): Promise<ApiResponse> {
-    try {
-      const authToken = token.substring(7);
-      const user = (await this.jwtService.decode(authToken)) as AuthUserDto;
+    const authToken = token.substring(7);
+    const user = (await this.jwtService.decode(authToken)) as AuthUserDto;
 
-      const response = await this.resourceService.getResourceByRuid(user, ruid);
-      if (response.success) {
-        return response;
-      }
-      return Helpers.failedHttpResponse(
-        response.message,
-        HttpStatus.BAD_REQUEST,
-      );
-    } catch (ex) {
-      console.log('An error occurred:', ex);
-      return Helpers.failedHttpResponse(
-        'Something went wrong',
-        'INTERNAL_SERVER_ERROR',
-      );
+    const response = await this.resourceService.getResourceByRuid(user, ruid);
+    if (response.success) {
+      return response;
     }
+    return Helpers.failedHttpResponse(response.message, HttpStatus.BAD_REQUEST);
   }
 
   @UseGuards(AppGuard)
@@ -224,28 +158,17 @@ export class ResourceController {
     @Headers('Authorization') token: string,
     @Param('identityNumber') identityNumber: string,
   ): Promise<ApiResponse> {
-    try {
-      const authToken = token.substring(7);
-      const user = (await this.jwtService.decode(authToken)) as AuthUserDto;
+    const authToken = token.substring(7);
+    const user = (await this.jwtService.decode(authToken)) as AuthUserDto;
 
-      const response = await this.resourceService.getResourceByIdentityNumber(
-        user,
-        identityNumber,
-      );
-      if (response.success) {
-        return response;
-      }
-      return Helpers.failedHttpResponse(
-        response.message,
-        HttpStatus.BAD_REQUEST,
-      );
-    } catch (ex) {
-      console.log('An error occurred:', ex);
-      return Helpers.failedHttpResponse(
-        'Something went wrong',
-        'INTERNAL_SERVER_ERROR',
-      );
+    const response = await this.resourceService.getResourceByIdentityNumber(
+      user,
+      identityNumber,
+    );
+    if (response.success) {
+      return response;
     }
+    return Helpers.failedHttpResponse(response.message, HttpStatus.BAD_REQUEST);
   }
   @UseGuards(AppGuard)
   @Get('/search/byserial/:serialNumber')
@@ -253,28 +176,17 @@ export class ResourceController {
     @Headers('Authorization') token: string,
     @Param('serialNumber') serialNumber: string,
   ): Promise<ApiResponse> {
-    try {
-      const authToken = token.substring(7);
-      const user = (await this.jwtService.decode(authToken)) as AuthUserDto;
+    const authToken = token.substring(7);
+    const user = (await this.jwtService.decode(authToken)) as AuthUserDto;
 
-      const response = await this.resourceService.getResourceBySerialNumber(
-        user,
-        serialNumber,
-      );
-      if (response.success) {
-        return response;
-      }
-      return Helpers.failedHttpResponse(
-        response.message,
-        HttpStatus.BAD_REQUEST,
-      );
-    } catch (ex) {
-      console.log('An error occurred:', ex);
-      return Helpers.failedHttpResponse(
-        'Something went wrong',
-        'INTERNAL_SERVER_ERROR',
-      );
+    const response = await this.resourceService.getResourceBySerialNumber(
+      user,
+      serialNumber,
+    );
+    if (response.success) {
+      return response;
     }
+    return Helpers.failedHttpResponse(response.message, HttpStatus.BAD_REQUEST);
   }
 
   @UseGuards(AppGuard)
@@ -283,24 +195,13 @@ export class ResourceController {
     @Headers('Authorization') token: string,
     @Param('code') code: string,
   ): Promise<ApiResponse> {
-    try {
-      const authToken = token.substring(7);
-      const user = (await this.jwtService.decode(authToken)) as AuthUserDto;
+    const authToken = token.substring(7);
+    const user = (await this.jwtService.decode(authToken)) as AuthUserDto;
 
-      const response = await this.resourceService.getResourceByCode(user, code);
-      if (response.success) {
-        return response;
-      }
-      return Helpers.failedHttpResponse(
-        response.message,
-        HttpStatus.BAD_REQUEST,
-      );
-    } catch (ex) {
-      console.log('An error occurred:', ex);
-      return Helpers.failedHttpResponse(
-        'Something went wrong',
-        'INTERNAL_SERVER_ERROR',
-      );
+    const response = await this.resourceService.getResourceByCode(user, code);
+    if (response.success) {
+      return response;
     }
+    return Helpers.failedHttpResponse(response.message, HttpStatus.BAD_REQUEST);
   }
 }
