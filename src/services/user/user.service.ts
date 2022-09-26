@@ -15,6 +15,7 @@ import { Helpers } from 'src/helpers';
 import { AccountType, Status, UserRole } from 'src/enums';
 import { SmsService } from '../sms/sms.service';
 import * as NodeCache from 'node-cache';
+import { Messages } from 'src/utils/messages/messages';
 
 @Injectable()
 export class UserService {
@@ -26,77 +27,43 @@ export class UserService {
   ) {}
 
   async createUser(requestDto: UserDto): Promise<ApiResponse> {
-    const res = await this.existByPhoneOrEmail(
-      requestDto.phoneNumber,
-      requestDto.emailAddress,
-    );
-
-    if (res) return Helpers.error('Account already exist', 'BAD_REQUEST');
-
-    //encrypt password
-    const hash = await this.cryptoService.encrypt(requestDto.password);
-    requestDto.password = hash;
-
-    if (requestDto.accountType == AccountType.INDIVIDUAL) {
-      if (requestDto.nin == null)
-        return Helpers.error('NIN is required', 'BAD_REQUEST');
-
-      if (!Helpers.validNin(requestDto.nin))
-        return Helpers.error('NIN provided is not valid', 'BAD_REQUEST');
-    }
-
-    if (!Helpers.validPhoneNumber(requestDto.phoneNumber)) {
-      return Helpers.error('Phone Number provided is not valid', 'BAD_REQUEST');
-    }
-
-    const request = {
-      ...requestDto,
-      status: Status.INACTIVE,
-      role: UserRole.BUSINESS,
-      code:
-        requestDto.accountType == AccountType.BUSINESS
-          ? `B${Helpers.getCode()}`
-          : `I${Helpers.getCode()}`,
-      uuid:
-        requestDto.accountType == AccountType.BUSINESS
-          ? `bis${Helpers.getUniqueId()}`
-          : `ind${Helpers.getUniqueId()}`,
-    } as any;
-
-    const verificationOTP = Helpers.getCode();
-    await this.cache.set(requestDto.phoneNumber, verificationOTP);
-
-    //send otp to the user;
-    await this.smsService.sendMessage(
-      requestDto.phoneNumber,
-      'Your OTP is ' + verificationOTP,
-    );
-
-    const savedAccount = await (await this.user.create(request)).save();
-    return Helpers.success(savedAccount, 'Account Created Successfully');
-  }
-
-  async updateUser(userId: string, requestDto: UserUpdateDto): Promise<any> {
-    console.log('Updating user:', requestDto);
-
-    if (requestDto && (requestDto.emailAddress || requestDto.phoneNumber)) {
-      const res = await this.findByPhoneOrEmail(
+    try {
+      const res = await this.existByPhoneOrEmail(
         requestDto.phoneNumber,
         requestDto.emailAddress,
       );
 
-      if (res && res.success) {
-        return Helpers.error('Business already exist with ', 'BAD_REQUEST');
+      if (res) return Helpers.no('Account already exist');
+
+      //encrypt password
+      const hash = await this.cryptoService.encrypt(requestDto.password);
+      requestDto.password = hash;
+
+      if (requestDto.accountType == AccountType.INDIVIDUAL) {
+        if (requestDto.nin == null) return Helpers.no('NIN is required');
+
+        if (!Helpers.validNin(requestDto.nin))
+          return Helpers.no('NIN provided is not valid');
       }
-    }
 
-    const saved = await this.user.updateOne({ userId }, requestDto);
-    return Helpers.success(saved, 'Account updated Successfully');
-  }
+      if (!Helpers.validPhoneNumber(requestDto.phoneNumber)) {
+        return Helpers.no('Phone Number provided is not valid');
+      }
 
-  async validateUser(requestDto: ValidateUserDto): Promise<ApiResponse> {
-    const res = await this.findByPhone(requestDto.phoneNumber);
-    if (res && res.success) {
+      const request = {
+        ...requestDto,
+        status: Status.INACTIVE,
+        role: UserRole.BUSINESS,
+        code:
+          requestDto.accountType == AccountType.BUSINESS
+            ? `B${Helpers.getCode()}`
+            : `I${Helpers.getCode()}`,
+        uuid:
+          requestDto.accountType == AccountType.BUSINESS
+            ? `bis${Helpers.getUniqueId()}`
+            : `ind${Helpers.getUniqueId()}`,
+      } as any;
+
       const verificationOTP = Helpers.getCode();
       await this.cache.set(requestDto.phoneNumber, verificationOTP);
 
@@ -106,74 +73,150 @@ export class UserService {
         'Your OTP is ' + verificationOTP,
       );
 
-      return Helpers.success(
-        requestDto.phoneNumber,
-        'OTP sent to your phone number',
-      );
-    } else {
-      return Helpers.error('User not found', 'BAD_REQUEST');
+      const savedAccount = await (await this.user.create(request)).save();
+      return Helpers.yes(savedAccount);
+    } catch (ex) {
+      console.log(Messages.ErrorOccurred, ex);
+      return Helpers.no(Messages.Exception);
+    }
+  }
+
+  async updateUser(userId: string, requestDto: UserUpdateDto): Promise<any> {
+    try {
+      if (requestDto && (requestDto.emailAddress || requestDto.phoneNumber)) {
+        const res = await this.findByPhoneOrEmail(
+          requestDto.phoneNumber,
+          requestDto.emailAddress,
+        );
+
+        if (res && res.success) {
+          return Helpers.no('Business already exist with ');
+        }
+      }
+
+      const saved = await this.user.updateOne({ userId }, requestDto);
+      return Helpers.yes(saved);
+    } catch (ex) {
+      console.log(Messages.ErrorOccurred, ex);
+      return Helpers.no(Messages.Exception);
+    }
+  }
+
+  async validateUser(requestDto: ValidateUserDto): Promise<ApiResponse> {
+    try {
+      const res = await this.findByPhone(requestDto.phoneNumber);
+      if (res && res.success) {
+        const verificationOTP = Helpers.getCode();
+        await this.cache.set(requestDto.phoneNumber, verificationOTP);
+
+        //send otp to the user;
+        await this.smsService.sendMessage(
+          requestDto.phoneNumber,
+          'Your OTP is ' + verificationOTP,
+        );
+
+        return Helpers.yes(requestDto.phoneNumber);
+      } else {
+        return Helpers.no(Messages.UserNotFound);
+      }
+    } catch (ex) {
+      console.log(Messages.ErrorOccurred, ex);
+      return Helpers.no(Messages.Exception);
     }
   }
   async verifyUser(requestDto: VerifyUserDto): Promise<ApiResponse> {
-    const res = await this.findByPhone(requestDto.phoneNumber);
-    if (res && res.success) {
-      const userOtp = requestDto.otp;
-      const systemOtp = await this.cache.get(requestDto.phoneNumber); //stored OTP in memory
-      console.log(userOtp, systemOtp);
+    try {
+      const res = await this.findByPhone(requestDto.phoneNumber);
+      if (res && res.success) {
+        const userOtp = requestDto.otp;
+        const systemOtp = await this.cache.get(requestDto.phoneNumber); //stored OTP in memory
+        console.log(userOtp, systemOtp);
 
-      if (userOtp === systemOtp) {
-        await this.user.updateOne(
-          { uuid: res.data.uuid },
-          { $set: { status: Status.ACTIVE } },
-        );
+        if (userOtp === systemOtp) {
+          await this.user.updateOne(
+            { uuid: res.data.uuid },
+            { $set: { status: Status.ACTIVE } },
+          );
 
-        return Helpers.success(res.data, 'User Verified Successfully');
+          return Helpers.yes(res.data);
+        } else {
+          return Helpers.no('Invalid OTP');
+        }
       } else {
-        return Helpers.error('Invalid OTP', 'BAD_REQUEST');
+        return Helpers.no(Messages.UserNotFound);
       }
-    } else {
-      return Helpers.error('User not found', 'BAD_REQUEST');
+    } catch (ex) {
+      console.log(Messages.ErrorOccurred, ex);
+      return Helpers.no(Messages.Exception);
     }
   }
 
   async findByUserId(userId: string): Promise<ApiResponse> {
-    const res = await this.user.findOne({ uuid: userId }).exec();
-    if (res) return Helpers.success(res, 'Request Successful');
+    try {
+      const res = await this.user.findOne({ uuid: userId }).exec();
+      if (res) return Helpers.yes(res);
 
-    return Helpers.error('User not found', 'BAD_REQUEST');
+      return Helpers.no(Messages.UserNotFound);
+    } catch (ex) {
+      console.log(Messages.ErrorOccurred, ex);
+      return Helpers.no(Messages.Exception);
+    }
   }
 
   async findByPhone(phoneNumber: string): Promise<ApiResponse> {
-    const res = await this.user.findOne({ phoneNumber }).exec();
-    if (res) return Helpers.success(res, 'Request Successful');
+    try {
+      const res = await this.user.findOne({ phoneNumber }).exec();
+      if (res) return Helpers.yes(res);
 
-    return Helpers.error('User not found', 'BAD_REQUEST');
+      return Helpers.no(Messages.UserNotFound);
+    } catch (ex) {
+      console.log(Messages.ErrorOccurred, ex);
+      return Helpers.no(Messages.Exception);
+    }
   }
   async findByEmail(emailAddress: string): Promise<ApiResponse> {
-    const res = await this.user.findOne({ emailAddress }).exec();
-    if (res) return Helpers.success(res, 'Request Successful');
+    try {
+      const res = await this.user.findOne({ emailAddress }).exec();
+      if (res) return Helpers.yes(res);
 
-    return Helpers.error('User not found', 'BAD_REQUEST');
+      return Helpers.no(Messages.UserNotFound);
+    } catch (ex) {
+      console.log(Messages.ErrorOccurred, ex);
+      return Helpers.no(Messages.Exception);
+    }
   }
-  async findByPhoneOrEmail(phone: string, email: string): Promise<ApiResponse> {
-    const emailUser = await this.user.findOne({ email }).exec();
-    const phoneUser = await this.user.findOne({ phone }).exec();
-    const result = emailUser ? emailUser : phoneUser;
+  async findByPhoneOrEmail(
+    phoneNumber: string,
+    emailAddress: string,
+  ): Promise<ApiResponse> {
+    try {
+      const emailUser = await this.user.findOne({ emailAddress }).exec();
+      const phoneUser = await this.user.findOne({ phoneNumber }).exec();
+      const result = emailUser ? emailUser : phoneUser;
 
-    if (result) return Helpers.success(result, 'Request Successful');
+      if (result) return Helpers.yes(result);
 
-    return Helpers.error('User not found', 'BAD_REQUEST');
+      return Helpers.no(Messages.UserNotFound);
+    } catch (ex) {
+      console.log(Messages.ErrorOccurred, ex);
+      return Helpers.no(Messages.Exception);
+    }
   }
   async existByPhoneOrEmail(
     phoneNumber: string,
     emailAddress: string,
   ): Promise<boolean> {
-    const res = await this.user
-      .findOne({
-        $or: [{ phoneNumber, emailAddress }],
-      })
-      .exec();
-    if (res) return true;
-    return false;
+    try {
+      const res = await this.user
+        .findOne({
+          $or: [{ phoneNumber, emailAddress }],
+        })
+        .exec();
+      if (res) return true;
+      return false;
+    } catch (ex) {
+      console.log(Messages.ErrorOccurred, ex);
+      return false;
+    }
   }
 }

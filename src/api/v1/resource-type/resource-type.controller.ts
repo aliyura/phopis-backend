@@ -2,6 +2,7 @@ import {
   Body,
   Controller,
   Get,
+  HttpStatus,
   Param,
   Post,
   Redirect,
@@ -28,11 +29,22 @@ export class ResourceTypeController {
     @Body() requestDto: ResourceTypeDto,
   ): Promise<ApiResponse> {
     try {
-      return await this.resourceTypeService.createResourceType(requestDto);
-    } catch (e) {
-      const { message } = e;
-      console.log(message);
-      return Helpers.error(message, 'INTERNAL_SERVER_ERROR');
+      const response = await this.resourceTypeService.createResourceType(
+        requestDto,
+      );
+      if (response.success) {
+        return response;
+      }
+      return Helpers.failedHttpResponse(
+        response.message,
+        HttpStatus.BAD_REQUEST,
+      );
+    } catch (ex) {
+      console.log('An error occurred:', ex);
+      return Helpers.failedHttpResponse(
+        'Something went wrong',
+        'INTERNAL_SERVER_ERROR',
+      );
     }
   }
   // FInd Business Type
@@ -42,22 +54,42 @@ export class ResourceTypeController {
     @Param('resourceType') resourceType: any,
   ): Promise<ApiResponse> {
     try {
-      return await this.resourceTypeService.findResourceType(resourceType);
-    } catch (e) {
-      const { message } = e;
-      console.log(message);
-      return Helpers.error(message, 'INTERNAL_SERVER_ERROR');
+      const response = await this.resourceTypeService.findResourceType(
+        resourceType,
+      );
+      if (response.success) {
+        return response;
+      }
+      return Helpers.failedHttpResponse(
+        response.message,
+        HttpStatus.BAD_REQUEST,
+      );
+    } catch (ex) {
+      console.log('An error occurred:', ex);
+      return Helpers.failedHttpResponse(
+        'Something went wrong',
+        'INTERNAL_SERVER_ERROR',
+      );
     }
   }
   // FInd Business Type
   @Get('/')
   async allResourceType(): Promise<ApiResponse> {
     try {
-      return await this.resourceTypeService.allResourceType();
-    } catch (e) {
-      const { message } = e;
-      console.log(message);
-      return Helpers.error(message, 'INTERNAL_SERVER_ERROR');
+      const response = await this.resourceTypeService.allResourceType();
+      if (response.success) {
+        return response;
+      }
+      return Helpers.failedHttpResponse(
+        response.message,
+        HttpStatus.BAD_REQUEST,
+      );
+    } catch (ex) {
+      console.log('An error occurred:', ex);
+      return Helpers.failedHttpResponse(
+        'Something went wrong',
+        'INTERNAL_SERVER_ERROR',
+      );
     }
   }
 }

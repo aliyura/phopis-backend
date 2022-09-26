@@ -7,6 +7,7 @@ import { UserAuthDto } from '../../dtos/user.dto';
 import { ApiResponse } from '../../dtos/ApiResponse.dto';
 import { Helpers } from '../../helpers/utitlity.helpers';
 import { Status } from 'src/enums';
+import { Messages } from 'src/utils/messages/messages';
 
 @Injectable()
 export class AuthService {
@@ -17,42 +18,52 @@ export class AuthService {
   ) {}
 
   async validateUser(authRequest: UserAuthDto): Promise<ApiResponse> {
-    const res = await this.userService.findByPhoneOrEmail(
-      authRequest.username,
-      authRequest.username,
-    );
+    try {
+      const res = await this.userService.findByPhoneOrEmail(
+        authRequest.username,
+        authRequest.username,
+      );
 
-    if (res) {
-      const user = res.data as User;
+      if (res.success) {
+        const user = res.data as User;
 
-      if (user.status == Status.ACTIVE) {
-        const yes = await this.cryptoService.compare(
-          user.password,
-          authRequest.password,
-        );
-        if (yes) return Helpers.success(user, 'User Authenticated');
-      } else {
-        return Helpers.error(
-          'Account is InActive, Kindly activate your account',
-          'UNAUTHORIZED',
-        );
+        if (user.status == Status.ACTIVE) {
+          const yes = await this.cryptoService.compare(
+            user.password,
+            authRequest.password,
+          );
+          if (yes) return Helpers.yes(user);
+        } else {
+          return Helpers.no(
+            'Account is InActive, Kindly activate your account',
+          );
+        }
       }
+      return Helpers.no(Messages.InvalidCredentials);
+    } catch (ex) {
+      console.log(Messages.ErrorOccurred, ex);
+      return Helpers.no(Messages.Exception);
     }
-    return Helpers.error('Invalid Username or Password', 'UNAUTHORIZED');
   }
   async login(authRequest: UserAuthDto): Promise<ApiResponse> {
-    const res = await this.validateUser(authRequest);
-    if (res.success) {
-      const user = res.data as User;
-      const payload = { username: user.phoneNumber, sub: user.uuid };
-      delete user.password;
-      const token = {
-        access_token: this.jwtService.sign(payload),
-        info: user,
-      };
-      return Helpers.success(token, 'Authentication Successful');
-    } else {
-      return Helpers.error(res.message, 'UNAUTHORIZED');
+    try {
+      const res = await this.validateUser(authRequest);
+      if (res.success) {
+        const user = res.data as User;
+        const payload = { username: user.phoneNumber, sub: user.uuid };
+        delete user.password;
+        const token = {
+          access_token: this.jwtService.sign(payload),
+          info: user,
+        };
+        const result = Helpers.yes(token);
+        return result;
+      } else {
+        return Helpers.no(Messages.InvalidCredentials);
+      }
+    } catch (ex) {
+      console.log(Messages.ErrorOccurred, ex);
+      return Helpers.no(Messages.Exception);
     }
   }
 }

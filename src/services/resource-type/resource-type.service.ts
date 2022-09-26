@@ -9,6 +9,7 @@ import {
   ResourceType,
   ResourceTypeDocument,
 } from '../../schemas/resource-type.schema';
+import { Messages } from 'src/utils/messages/messages';
 
 @Injectable()
 export class ResourceTypeService {
@@ -18,36 +19,50 @@ export class ResourceTypeService {
   ) {}
 
   async createResourceType(requestDto: ResourceTypeDto): Promise<ApiResponse> {
-    const response = await this.resourceType
-      .findOne({ title: requestDto.title })
-      .exec();
+    try {
+      const response = await this.resourceType
+        .findOne({ title: requestDto.title })
+        .exec();
 
-    if (response)
-      return Helpers.error('Resource type already exist', 'BAD_REQUEST');
+      if (response) return Helpers.no('Resource type already exist');
 
-    const request = {
-      ...requestDto,
-      status: Status.ACTIVE,
-      resourceTypeId: `RTI${Helpers.getUniqueId()}`,
-    } as ResourceType;
+      const request = {
+        ...requestDto,
+        status: Status.ACTIVE,
+        resourceTypeId: `RTI${Helpers.getUniqueId()}`,
+      } as ResourceType;
 
-    const saved = await this.resourceType.create(request);
-    return Helpers.success(saved, 'Created Successfully');
+      const saved = await this.resourceType.create(request);
+      return Helpers.yes(saved);
+    } catch (ex) {
+      console.log(Messages.ErrorOccurred, ex);
+      return Helpers.no(Messages.Exception);
+    }
   }
 
   async findResourceType(type: string): Promise<ApiResponse> {
-    const req = await this.resourceType.findOne({ resourceTypeId: type });
-    if (req) {
-      return Helpers.success(req, 'Request SUccessful');
+    try {
+      const req = await this.resourceType.findOne({ resourceTypeId: type });
+      if (req) {
+        return Helpers.yes(req);
+      }
+      return Helpers.no(Messages.ResourceTypeNotFound);
+    } catch (ex) {
+      console.log(Messages.ErrorOccurred, ex);
+      return Helpers.no(Messages.Exception);
     }
-    return Helpers.error('Resource type not found', 'NOT_FOUND');
   }
 
   async allResourceType(): Promise<ApiResponse> {
-    const req = await this.resourceType.find();
-    if (req) {
-      return Helpers.success(req, 'Request SUccessful');
+    try {
+      const req = await this.resourceType.find();
+      if (req) {
+        return Helpers.yes(req);
+      }
+      return Helpers.no(Messages.ResourceTypeNotFound);
+    } catch (ex) {
+      console.log(Messages.ErrorOccurred, ex);
+      return Helpers.no(Messages.Exception);
     }
-    return Helpers.error('Resource types not found', 'NOT_FOUND');
   }
 }

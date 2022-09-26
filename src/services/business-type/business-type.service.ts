@@ -9,6 +9,7 @@ import { Helpers } from '../../helpers/utitlity.helpers';
 import { Model } from 'mongoose';
 import { InjectModel } from '@nestjs/mongoose';
 import { ApiResponse } from '../../dtos/ApiResponse.dto';
+import { Messages } from 'src/utils/messages/messages';
 
 @Injectable()
 export class BusinessTypeService {
@@ -18,36 +19,50 @@ export class BusinessTypeService {
   ) {}
 
   async createBusinessType(requestDto: BusinessTypeDto): Promise<ApiResponse> {
-    const response = await this.businessType
-      .findOne({ title: requestDto.title })
-      .exec();
+    try {
+      const response = await this.businessType
+        .findOne({ title: requestDto.title })
+        .exec();
 
-    if (response)
-      return Helpers.error('Business Type Already Exist', 'BAD_REQUEST');
+      if (response) return Helpers.no('Business Type Already Exist');
 
-    const request = {
-      ...requestDto,
-      status: Status.ACTIVE,
-      businessTypeId: `BTI${Helpers.getUniqueId()}`,
-    } as BusinessType;
+      const request = {
+        ...requestDto,
+        status: Status.ACTIVE,
+        businessTypeId: `BTI${Helpers.getUniqueId()}`,
+      } as BusinessType;
 
-    const saved = await this.businessType.create(request);
-    return Helpers.success(saved, 'Created Successfully');
+      const saved = await this.businessType.create(request);
+      return Helpers.yes(saved);
+    } catch (ex) {
+      console.log(Messages.ErrorOccurred, ex);
+      return Helpers.no(Messages.Exception);
+    }
   }
 
   async findBusinessType(type: string): Promise<ApiResponse> {
-    const req = await this.businessType.findOne({ businessTypeId: type });
-    if (req) {
-      return Helpers.success(req, 'Request SUccessful');
+    try {
+      const req = await this.businessType.findOne({ businessTypeId: type });
+      if (req) {
+        return Helpers.yes(req);
+      }
+      return Helpers.no(Messages.BusinessTypeNotFound);
+    } catch (ex) {
+      console.log(Messages.ErrorOccurred, ex);
+      return Helpers.no(Messages.Exception);
     }
-    return Helpers.error('Business type not found', 'NOT_FOUND');
   }
 
   async allBusinessType(): Promise<ApiResponse> {
-    const req = await this.businessType.find();
-    if (req) {
-      return Helpers.success(req, 'Request SUccessful');
+    try {
+      const req = await this.businessType.find();
+      if (req) {
+        return Helpers.yes(req);
+      }
+      return Helpers.no(Messages.BusinessTypeNotFound);
+    } catch (ex) {
+      console.log(Messages.ErrorOccurred, ex);
+      return Helpers.no(Messages.Exception);
     }
-    return Helpers.error('Business types not found', 'NOT_FOUND');
   }
 }

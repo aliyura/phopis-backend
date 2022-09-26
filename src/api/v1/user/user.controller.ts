@@ -2,6 +2,7 @@ import {
   Body,
   Controller,
   Get,
+  HttpStatus,
   Param,
   Post,
   Put,
@@ -30,37 +31,31 @@ export class UserController {
 
   @Post('/')
   async createUser(@Body() requestDto: UserDto): Promise<ApiResponse> {
-    try {
-      return await this.userService.createUser(requestDto);
-    } catch (e) {
-      const { message } = e;
-      console.log(message);
-      return Helpers.error(message, 'INTERNAL_SERVER_ERROR');
+    const response = await this.userService.createUser(requestDto);
+    if (response.success) {
+      return response;
     }
+    return Helpers.failedHttpResponse(response.message, HttpStatus.BAD_REQUEST);
   }
 
   @Post('/validate')
   async validateUser(
     @Body() requestDto: ValidateUserDto,
   ): Promise<ApiResponse> {
-    try {
-      return await this.userService.validateUser(requestDto);
-    } catch (e) {
-      const { message } = e;
-      console.log(message);
-      return Helpers.error(message, 'INTERNAL_SERVER_ERROR');
+    const response = await this.userService.validateUser(requestDto);
+    if (response.success) {
+      return response;
     }
+    return Helpers.failedHttpResponse(response.message, HttpStatus.BAD_REQUEST);
   }
 
   @Post('/verify')
   async verifyUser(@Body() requestDto: VerifyUserDto): Promise<ApiResponse> {
-    try {
-      return await this.userService.verifyUser(requestDto);
-    } catch (e) {
-      const { message } = e;
-      console.log(message);
-      return Helpers.error(message, 'INTERNAL_SERVER_ERROR');
+    const response = await this.userService.verifyUser(requestDto);
+    if (response.success) {
+      return response;
     }
+    return Helpers.failedHttpResponse(response.message, HttpStatus.BAD_REQUEST);
   }
 
   @UseGuards(AppGuard)
@@ -69,24 +64,20 @@ export class UserController {
     @Body() requestDto: UserUpdateDto,
     @Param('userId') userId: string,
   ): Promise<ApiResponse> {
-    try {
-      return this.userService.updateUser(userId, requestDto);
-    } catch (e) {
-      const { message } = e;
-      console.log(message);
-      return Helpers.error(message, 'BAD_REQUEST');
+    const response = await this.userService.updateUser(userId, requestDto);
+    if (response.success) {
+      return response;
     }
+    return Helpers.failedHttpResponse(response.message, HttpStatus.BAD_REQUEST);
   }
 
   @UseGuards(AppGuard)
   @Get('/:userId')
   async getUser(@Param('userId') userId: string): Promise<ApiResponse> {
-    try {
-      return await this.userService.findByUserId(userId);
-    } catch (e) {
-      const { message } = e;
-      console.log(message);
-      return Helpers.error(message, 'BAD_REQUEST');
+    const response = await this.userService.findByUserId(userId);
+    if (response.success) {
+      return response;
     }
+    return Helpers.failedHttpResponse(response.message, HttpStatus.BAD_REQUEST);
   }
 }

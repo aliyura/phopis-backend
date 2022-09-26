@@ -3,6 +3,7 @@ import {
   Controller,
   Get,
   Headers,
+  HttpStatus,
   Param,
   Post,
   Put,
@@ -45,11 +46,23 @@ export class ResourceController {
       const authToken = token.substring(7);
       const user = (await this.jwtService.decode(authToken)) as AuthUserDto;
 
-      return await this.resourceService.createResource(user, requestDto);
-    } catch (e) {
-      const { message } = e;
-      console.log(message);
-      return Helpers.error(message, 'INTERNAL_SERVER_ERROR');
+      const response = await this.resourceService.createResource(
+        user,
+        requestDto,
+      );
+      if (response.success) {
+        return response;
+      }
+      return Helpers.failedHttpResponse(
+        response.message,
+        HttpStatus.BAD_REQUEST,
+      );
+    } catch (ex) {
+      console.log('An error occurred:', ex);
+      return Helpers.failedHttpResponse(
+        'Something went wrong',
+        'INTERNAL_SERVER_ERROR',
+      );
     }
   }
 
@@ -64,15 +77,24 @@ export class ResourceController {
       const authToken = token.substring(7);
       const user = (await this.jwtService.decode(authToken)) as AuthUserDto;
 
-      return await this.resourceService.updateResource(
+      const response = await this.resourceService.updateResource(
         user,
         resourceId,
         requestDto,
       );
-    } catch (e) {
-      const { message } = e;
-      console.log(message);
-      return Helpers.error(message, 'INTERNAL_SERVER_ERROR');
+      if (response.success) {
+        return response;
+      }
+      return Helpers.failedHttpResponse(
+        response.message,
+        HttpStatus.BAD_REQUEST,
+      );
+    } catch (ex) {
+      console.log('An error occurred:', ex);
+      return Helpers.failedHttpResponse(
+        'Something went wrong',
+        'INTERNAL_SERVER_ERROR',
+      );
     }
   }
 
@@ -89,16 +111,25 @@ export class ResourceController {
       const authToken = token.substring(7);
       const user = (await this.jwtService.decode(authToken)) as AuthUserDto;
 
-      return await this.resourceService.updateResourceStatus(
+      const response = await this.resourceService.updateResourceStatus(
         user,
         resourceId,
         status,
         requestDto,
       );
-    } catch (e) {
-      const { message } = e;
-      console.log(message);
-      return Helpers.error(message, 'INTERNAL_SERVER_ERROR');
+      if (response.success) {
+        return response;
+      }
+      return Helpers.failedHttpResponse(
+        response.message,
+        HttpStatus.BAD_REQUEST,
+      );
+    } catch (ex) {
+      console.log('An error occurred:', ex);
+      return Helpers.failedHttpResponse(
+        'Something went wrong',
+        'INTERNAL_SERVER_ERROR',
+      );
     }
   }
 
@@ -113,15 +144,24 @@ export class ResourceController {
       const authToken = token.substring(7);
       const user = (await this.jwtService.decode(authToken)) as AuthUserDto;
 
-      return await this.resourceService.changeResourceOwnership(
+      const response = await this.resourceService.changeResourceOwnership(
         user,
         resourceId,
         requestDto,
       );
-    } catch (e) {
-      const { message } = e;
-      console.log(message);
-      return Helpers.error(message, 'INTERNAL_SERVER_ERROR');
+      if (response.success) {
+        return response;
+      }
+      return Helpers.failedHttpResponse(
+        response.message,
+        HttpStatus.BAD_REQUEST,
+      );
+    } catch (ex) {
+      console.log('An error occurred:', ex);
+      return Helpers.failedHttpResponse(
+        'Something went wrong',
+        'INTERNAL_SERVER_ERROR',
+      );
     }
   }
 
@@ -134,11 +174,20 @@ export class ResourceController {
       const authToken = token.substring(7);
       const user = (await this.jwtService.decode(authToken)) as AuthUserDto;
 
-      return await this.resourceService.getMyResources(user);
-    } catch (e) {
-      const { message } = e;
-      console.log(message);
-      return Helpers.error(message, 'INTERNAL_SERVER_ERROR');
+      const response = await this.resourceService.getMyResources(user);
+      if (response.success) {
+        return response;
+      }
+      return Helpers.failedHttpResponse(
+        response.message,
+        HttpStatus.BAD_REQUEST,
+      );
+    } catch (ex) {
+      console.log('An error occurred:', ex);
+      return Helpers.failedHttpResponse(
+        'Something went wrong',
+        'INTERNAL_SERVER_ERROR',
+      );
     }
   }
 
@@ -152,11 +201,20 @@ export class ResourceController {
       const authToken = token.substring(7);
       const user = (await this.jwtService.decode(authToken)) as AuthUserDto;
 
-      return await this.resourceService.getResourceByRuid(user, ruid);
-    } catch (e) {
-      const { message } = e;
-      console.log(message);
-      return Helpers.error(message, 'INTERNAL_SERVER_ERROR');
+      const response = await this.resourceService.getResourceByRuid(user, ruid);
+      if (response.success) {
+        return response;
+      }
+      return Helpers.failedHttpResponse(
+        response.message,
+        HttpStatus.BAD_REQUEST,
+      );
+    } catch (ex) {
+      console.log('An error occurred:', ex);
+      return Helpers.failedHttpResponse(
+        'Something went wrong',
+        'INTERNAL_SERVER_ERROR',
+      );
     }
   }
 
@@ -170,14 +228,23 @@ export class ResourceController {
       const authToken = token.substring(7);
       const user = (await this.jwtService.decode(authToken)) as AuthUserDto;
 
-      return await this.resourceService.getResourceByIdentityNumber(
+      const response = await this.resourceService.getResourceByIdentityNumber(
         user,
         identityNumber,
       );
-    } catch (e) {
-      const { message } = e;
-      console.log(message);
-      return Helpers.error(message, 'INTERNAL_SERVER_ERROR');
+      if (response.success) {
+        return response;
+      }
+      return Helpers.failedHttpResponse(
+        response.message,
+        HttpStatus.BAD_REQUEST,
+      );
+    } catch (ex) {
+      console.log('An error occurred:', ex);
+      return Helpers.failedHttpResponse(
+        'Something went wrong',
+        'INTERNAL_SERVER_ERROR',
+      );
     }
   }
   @UseGuards(AppGuard)
@@ -190,14 +257,23 @@ export class ResourceController {
       const authToken = token.substring(7);
       const user = (await this.jwtService.decode(authToken)) as AuthUserDto;
 
-      return await this.resourceService.getResourceBySerialNumber(
+      const response = await this.resourceService.getResourceBySerialNumber(
         user,
         serialNumber,
       );
-    } catch (e) {
-      const { message } = e;
-      console.log(message);
-      return Helpers.error(message, 'INTERNAL_SERVER_ERROR');
+      if (response.success) {
+        return response;
+      }
+      return Helpers.failedHttpResponse(
+        response.message,
+        HttpStatus.BAD_REQUEST,
+      );
+    } catch (ex) {
+      console.log('An error occurred:', ex);
+      return Helpers.failedHttpResponse(
+        'Something went wrong',
+        'INTERNAL_SERVER_ERROR',
+      );
     }
   }
 
@@ -211,11 +287,20 @@ export class ResourceController {
       const authToken = token.substring(7);
       const user = (await this.jwtService.decode(authToken)) as AuthUserDto;
 
-      return await this.resourceService.getResourceByCode(user, code);
-    } catch (e) {
-      const { message } = e;
-      console.log(message);
-      return Helpers.error(message, 'INTERNAL_SERVER_ERROR');
+      const response = await this.resourceService.getResourceByCode(user, code);
+      if (response.success) {
+        return response;
+      }
+      return Helpers.failedHttpResponse(
+        response.message,
+        HttpStatus.BAD_REQUEST,
+      );
+    } catch (ex) {
+      console.log('An error occurred:', ex);
+      return Helpers.failedHttpResponse(
+        'Something went wrong',
+        'INTERNAL_SERVER_ERROR',
+      );
     }
   }
 }

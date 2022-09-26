@@ -17,12 +17,10 @@ export class AuthController {
   async authenticateUser(
     @Body() requestDto: UserAuthDto,
   ): Promise<ApiResponse> {
-    try {
-      return await this.authService.login(requestDto);
-    } catch (e) {
-      const { message } = e;
-      console.log(message);
-      return Helpers.error(message, 'INTERNAL_SERVER_ERROR');
+    const response = await this.authService.login(requestDto);
+    if (response.success) {
+      return response;
     }
+    return Helpers.failedHttpResponse(response.message, 'UNAUTHORIZED');
   }
 }

@@ -2,6 +2,7 @@ import { HttpException, HttpStatus } from '@nestjs/common';
 import axios from 'axios';
 import { v4 as uuidv4 } from 'uuid';
 import { ApiResponse } from '../dtos/ApiResponse.dto';
+import { Messages } from '../utils/messages/messages';
 export type HttpClient = (
   path: string,
   queryParam: { [key: string]: string | number | boolean },
@@ -15,14 +16,6 @@ export class Helpers {
    * @param {*} content
    * @param {*} message
    */
-  static success(content: any, message: string): ApiResponse {
-    const data = {
-      success: true,
-      message,
-      data: content,
-    } as ApiResponse;
-    return data;
-  }
 
   /**
    * Sends error resonse to client
@@ -30,7 +23,10 @@ export class Helpers {
    * @param {*} message
    * @param {*} status
    */
-  static error(message: string, status: string | HttpStatus): ApiResponse {
+  static failedHttpResponse(
+    message: string,
+    status: string | HttpStatus,
+  ): ApiResponse {
     const data = {
       success: false,
       message,
@@ -38,6 +34,24 @@ export class Helpers {
     } as ApiResponse;
 
     throw new HttpException(data, HttpStatus[status]);
+  }
+
+  static yes(content: any): ApiResponse {
+    const data = {
+      success: true,
+      message: Messages.RequestSuccessful,
+      data: content,
+    } as ApiResponse;
+    return data;
+  }
+
+  static no(message: string): ApiResponse {
+    const data = {
+      success: false,
+      message,
+      data: {},
+    } as ApiResponse;
+    return data;
   }
 
   /**
