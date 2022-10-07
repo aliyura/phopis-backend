@@ -15,10 +15,10 @@ export class UserDto {
 }
 
 export class ValidateUserDto {
-  @IsString() phoneNumber: string;
+  @IsString() username: string;
 }
 export class VerifyUserDto {
-  @IsString() phoneNumber: string;
+  @IsString() username: string;
   @IsString() otp: string;
 }
 
@@ -32,7 +32,7 @@ export class UserUpdateDto {
   @IsOptional() phoneNumber: string;
   @IsOptional() state: string;
   @IsOptional() lga: string;
-  @IsOptional() street: string;
+  @IsOptional() address: string;
   @IsOptional() regNumber: string;
   @IsOptional() businessTarget: string;
 }

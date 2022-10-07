@@ -115,7 +115,7 @@ export class UserService {
         const res = await this.findByPhoneNumber(requestDto.phoneNumber);
 
         if (res && res.success) {
-          return Helpers.fail('Business already exist with ');
+          return Helpers.fail('Business already exist with this phone number ');
         }
       }
 
@@ -129,18 +129,19 @@ export class UserService {
 
   async validateUser(requestDto: ValidateUserDto): Promise<ApiResponse> {
     try {
-      const res = await this.findByPhoneNumber(requestDto.phoneNumber);
+      const res = await this.findByPhoneNumberOrNin(requestDto.username);
       if (res && res.success) {
+        const user = res.data as User;
         const verificationOTP = Helpers.getCode();
-        await this.cache.set(requestDto.phoneNumber, verificationOTP);
+        await this.cache.set(requestDto.username, verificationOTP);
 
         //send otp to the user;
         await this.smsService.sendMessage(
-          requestDto.phoneNumber,
+          user.phoneNumber,
           'Your OTP is ' + verificationOTP,
         );
 
-        return Helpers.success(requestDto.phoneNumber);
+        return Helpers.success(user.phoneNumber);
       } else {
         return Helpers.fail(Messages.UserNotFound);
       }
@@ -151,10 +152,10 @@ export class UserService {
   }
   async verifyUser(requestDto: VerifyUserDto): Promise<ApiResponse> {
     try {
-      const res = await this.findByPhoneNumber(requestDto.phoneNumber);
+      const res = await this.findByPhoneNumberOrNin(requestDto.username);
       if (res && res.success) {
         const userOtp = requestDto.otp;
-        const systemOtp = await this.cache.get(requestDto.phoneNumber); //stored OTP in memory
+        const systemOtp = await this.cache.get(requestDto.username); //stored OTP in memory
         console.log(userOtp, systemOtp);
 
         if (userOtp === systemOtp) {
