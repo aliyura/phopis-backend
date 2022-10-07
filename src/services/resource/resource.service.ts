@@ -30,7 +30,7 @@ export class ResourceService {
         identityNumber: requestDto.identityNumber,
       });
       const resourceExistBySerialNumber = await this.resource.findOne({
-        cattonSerialNumber: requestDto.cattonDetail.serialNumber,
+        'cartonDetail.serialNumber': requestDto.cartonDetail.serialNumber,
       });
 
       console.log('resourceByExistByIdentity', resourceExistByIdentity);
@@ -46,11 +46,11 @@ export class ResourceService {
       if (resourceExistBySerialNumber)
         return Helpers.fail('Resource serial you provide is already exist');
 
-      if (requestDto.catton) {
-        if (!requestDto.cattonDetail || !requestDto.cattonDetail.serialNumber)
+      if (requestDto.carton) {
+        if (!requestDto.cartonDetail || !requestDto.cartonDetail.serialNumber)
           return Helpers.fail('Serial number required');
-        if (!requestDto.cattonDetail || !requestDto.cattonDetail.picture)
-          return Helpers.fail('Catton picture required');
+        if (!requestDto.cartonDetail || !requestDto.cartonDetail.picture)
+          return Helpers.fail('carton picture required');
       }
 
       const request = {
@@ -331,7 +331,7 @@ export class ResourceService {
   ): Promise<ApiResponse> {
     try {
       const resource = await this.resource.findOne({
-        'cattonDetail.serialNumber': cattonSerialNumber,
+        'cartonDetail.serialNumber': cattonSerialNumber,
       });
       if (resource) return Helpers.success(resource);
 

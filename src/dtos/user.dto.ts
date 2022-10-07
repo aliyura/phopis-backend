@@ -1,14 +1,13 @@
-import { IsOptional, IsString, IsUppercase } from 'class-validator';
+import { IsOptional, IsString } from 'class-validator';
 
 export class UserDto {
   @IsOptional() name: string;
   @IsString() accountType: string;
   @IsString() phoneNumber: string;
-  @IsOptional() @IsString() emailAddress: string;
   @IsOptional() @IsString() businessType: string;
   @IsOptional() @IsString() state: string;
   @IsOptional() @IsString() lga: string;
-  @IsOptional() @IsString() street: string;
+  @IsOptional() @IsString() address: string;
   @IsOptional() @IsString() regNumber: string;
   @IsOptional() @IsString() nin: string;
   @IsOptional() @IsString() businessTarget: string;
@@ -31,7 +30,6 @@ export class AuthUserDto {
 export class UserUpdateDto {
   @IsOptional() name: string;
   @IsOptional() phoneNumber: string;
-  @IsOptional() emailAddress: string;
   @IsOptional() state: string;
   @IsOptional() lga: string;
   @IsOptional() street: string;

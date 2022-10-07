@@ -1,6 +1,6 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { Document, Types } from 'mongoose';
-import { CattonDetailDto, ResourceStatusUpdateDto } from '../dtos/resource.dto';
+import { CartonDetailDto, ResourceStatusUpdateDto } from '../dtos/resource.dto';
 
 export type ResourceDocument = Resource & Document;
 
@@ -12,7 +12,7 @@ export class Resource {
   @Prop({ required: true })
   name: string;
 
-  @Prop({ required: true, unique: true })
+  @Prop({ required: true })
   currentOwnerUuid: string;
 
   @Prop()
@@ -33,14 +33,14 @@ export class Resource {
   @Prop()
   description: string;
 
-  @Prop()
+  @Prop({ required: true })
   identityNumber: string;
 
   @Prop()
-  catton: boolean;
+  carton: boolean;
 
   @Prop()
-  cattonDetail: CattonDetailDto;
+  cartonDetail: CartonDetailDto;
 
   @Prop()
   missingDetail: ResourceStatusUpdateDto;

@@ -21,8 +21,11 @@ export class VerificationService {
 
       console.log('NIN Verification request:', req);
       const response = await axios.get(req, { httpsAgent });
-      console.log(response);
-      if (response.status == HttpStatus.OK)
+      console.log('response:', response.data);
+      if (
+        response.status == HttpStatus.OK &&
+        response.data.response !== 'norecord'
+      )
         return Helpers.success(response.data);
 
       return Helpers.fail('NIN Verification failed');

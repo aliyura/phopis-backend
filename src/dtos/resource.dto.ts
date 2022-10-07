@@ -1,6 +1,6 @@
 import { IsOptional, IsString } from 'class-validator';
 
-export class CattonDetailDto {
+export class CartonDetailDto {
   @IsString() serialNumber: string;
   @IsString() picture: string;
 }
@@ -11,8 +11,8 @@ export class ResourceDto {
   @IsString() color: string;
   @IsOptional() description: string;
   @IsString() identityNumber: string;
-  @IsOptional() catton: boolean;
-  @IsOptional() cattonDetail: CattonDetailDto;
+  @IsOptional() carton: boolean;
+  @IsOptional() cartonDetail: CartonDetailDto;
   @IsOptional() type: string;
   @IsString() picture: string;
 }

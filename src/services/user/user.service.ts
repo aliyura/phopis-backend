@@ -31,19 +31,22 @@ export class UserService {
 
   async createUser(requestDto: UserDto): Promise<ApiResponse> {
     try {
-      const res = await this.existByPhoneOrEmail(
+      const alreadyExistByPhone = await this.existByPhoneNumber(
         requestDto.phoneNumber,
-        requestDto.emailAddress,
       );
-
-      if (res) return Helpers.fail('Account already exist');
+      if (alreadyExistByPhone) return Helpers.fail('Account already exist');
 
       if (requestDto.accountType == AccountType.INDIVIDUAL) {
         if (!requestDto.nin) return Helpers.fail('User NIN is required');
 
+        const alreadyExistByNin = await this.existByNIN(requestDto.nin);
+        if (alreadyExistByNin) return Helpers.fail('Account already exist');
+
         const ninResponse = await this.verificationService.verifyNIN(
           requestDto.nin,
         );
+
+        console.log('Nin details:', ninResponse.data);
 
         if (ninResponse.success) {
           const ninDetails = ninResponse.data;
@@ -53,7 +56,7 @@ export class UserService {
           requestDto.name = capitalize(name);
           requestDto.lga = capitalize(ninDetails.residence_lga);
           requestDto.state = capitalize(ninDetails.residence_state);
-          requestDto.street = capitalize(address);
+          requestDto.address = capitalize(address);
         } else {
           return Helpers.fail(ninResponse.message);
         }
@@ -108,11 +111,8 @@ export class UserService {
 
   async updateUser(userId: string, requestDto: UserUpdateDto): Promise<any> {
     try {
-      if (requestDto && (requestDto.emailAddress || requestDto.phoneNumber)) {
-        const res = await this.findByPhoneOrEmail(
-          requestDto.phoneNumber,
-          requestDto.emailAddress,
-        );
+      if (requestDto && requestDto.phoneNumber) {
+        const res = await this.findByPhoneNumber(requestDto.phoneNumber);
 
         if (res && res.success) {
           return Helpers.fail('Business already exist with ');
@@ -129,7 +129,7 @@ export class UserService {
 
   async validateUser(requestDto: ValidateUserDto): Promise<ApiResponse> {
     try {
-      const res = await this.findByPhone(requestDto.phoneNumber);
+      const res = await this.findByPhoneNumber(requestDto.phoneNumber);
       if (res && res.success) {
         const verificationOTP = Helpers.getCode();
         await this.cache.set(requestDto.phoneNumber, verificationOTP);
@@ -151,7 +151,7 @@ export class UserService {
   }
   async verifyUser(requestDto: VerifyUserDto): Promise<ApiResponse> {
     try {
-      const res = await this.findByPhone(requestDto.phoneNumber);
+      const res = await this.findByPhoneNumber(requestDto.phoneNumber);
       if (res && res.success) {
         const userOtp = requestDto.otp;
         const systemOtp = await this.cache.get(requestDto.phoneNumber); //stored OTP in memory
@@ -187,56 +187,46 @@ export class UserService {
       return Helpers.fail(Messages.Exception);
     }
   }
+  async findByPhoneNumber(phoneNumber: string): Promise<ApiResponse> {
+    try {
+      const user = await this.user.findOne({ phoneNumber }).exec();
 
-  async findByPhone(phoneNumber: string): Promise<ApiResponse> {
+      if (user) return Helpers.success(user);
+
+      return Helpers.fail(Messages.UserNotFound);
+    } catch (ex) {
+      console.log(Messages.ErrorOccurred, ex);
+      return Helpers.fail(Messages.Exception);
+    }
+  }
+  async findByPhoneNumberOrNin(request: string): Promise<ApiResponse> {
+    try {
+      const user = await this.user
+        .findOne({ $or: [{ phoneNumber: request }, { nin: request }] })
+        .exec();
+
+      if (user) return Helpers.success(user);
+
+      return Helpers.fail(Messages.UserNotFound);
+    } catch (ex) {
+      console.log(Messages.ErrorOccurred, ex);
+      return Helpers.fail(Messages.Exception);
+    }
+  }
+  async existByPhoneNumber(phoneNumber: string): Promise<boolean> {
     try {
       const res = await this.user.findOne({ phoneNumber }).exec();
-      if (res) return Helpers.success(res);
-
-      return Helpers.fail(Messages.UserNotFound);
+      if (res) return true;
+      return false;
     } catch (ex) {
       console.log(Messages.ErrorOccurred, ex);
-      return Helpers.fail(Messages.Exception);
+      return false;
     }
   }
-  async findByEmail(emailAddress: string): Promise<ApiResponse> {
-    try {
-      const res = await this.user.findOne({ emailAddress }).exec();
-      if (res) return Helpers.success(res);
 
-      return Helpers.fail(Messages.UserNotFound);
-    } catch (ex) {
-      console.log(Messages.ErrorOccurred, ex);
-      return Helpers.fail(Messages.Exception);
-    }
-  }
-  async findByPhoneOrEmail(
-    phoneNumber: string,
-    emailAddress: string,
-  ): Promise<ApiResponse> {
+  async existByNIN(nin: string): Promise<boolean> {
     try {
-      const emailUser = await this.user.findOne({ emailAddress }).exec();
-      const phoneUser = await this.user.findOne({ phoneNumber }).exec();
-      const result = emailUser ? emailUser : phoneUser;
-
-      if (result) return Helpers.success(result);
-
-      return Helpers.fail(Messages.UserNotFound);
-    } catch (ex) {
-      console.log(Messages.ErrorOccurred, ex);
-      return Helpers.fail(Messages.Exception);
-    }
-  }
-  async existByPhoneOrEmail(
-    phoneNumber: string,
-    emailAddress: string,
-  ): Promise<boolean> {
-    try {
-      const res = await this.user
-        .findOne({
-          $or: [{ phoneNumber, emailAddress }],
-        })
-        .exec();
+      const res = await this.user.findOne({ nin }).exec();
       if (res) return true;
       return false;
     } catch (ex) {

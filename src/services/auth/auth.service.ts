@@ -19,8 +19,7 @@ export class AuthService {
 
   async validateUser(authRequest: UserAuthDto): Promise<ApiResponse> {
     try {
-      const res = await this.userService.findByPhoneOrEmail(
-        authRequest.username,
+      const res = await this.userService.findByPhoneNumberOrNin(
         authRequest.username,
       );
 
@@ -48,6 +47,7 @@ export class AuthService {
   async login(authRequest: UserAuthDto): Promise<ApiResponse> {
     try {
       const res = await this.validateUser(authRequest);
+      console.log(res);
       if (res.success) {
         const user = res.data as User;
         const payload = { username: user.phoneNumber, sub: user.uuid };
@@ -59,7 +59,7 @@ export class AuthService {
         const result = Helpers.success(token);
         return result;
       } else {
-        return Helpers.fail(Messages.InvalidCredentials);
+        return Helpers.fail(res.message);
       }
     } catch (ex) {
       console.log(Messages.ErrorOccurred, ex);
