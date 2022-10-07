@@ -1,7 +1,7 @@
 import { IsOptional, IsString, IsUppercase } from 'class-validator';
 
 export class UserDto {
-  @IsString() name: string;
+  @IsOptional() name: string;
   @IsString() accountType: string;
   @IsString() phoneNumber: string;
   @IsOptional() @IsString() emailAddress: string;

@@ -15,7 +15,9 @@ import { Helpers } from 'src/helpers';
 import { AccountType, Status, UserRole } from 'src/enums';
 import { SmsService } from '../sms/sms.service';
 import * as NodeCache from 'node-cache';
+import * as capitalize from 'string-capitalize';
 import { Messages } from 'src/utils/messages/messages';
+import { VerificationService } from '../verification/verification.service';
 
 @Injectable()
 export class UserService {
@@ -24,6 +26,7 @@ export class UserService {
     @InjectModel(User.name) private user: Model<UserDocument>,
     private readonly cryptoService: CryptoService,
     private readonly smsService: SmsService,
+    private readonly verificationService: VerificationService,
   ) {}
 
   async createUser(requestDto: UserDto): Promise<ApiResponse> {
@@ -35,6 +38,26 @@ export class UserService {
 
       if (res) return Helpers.fail('Account already exist');
 
+      if (requestDto.accountType == AccountType.INDIVIDUAL) {
+        if (!requestDto.nin) return Helpers.fail('User NIN is required');
+
+        const ninResponse = await this.verificationService.verifyNIN(
+          requestDto.nin,
+        );
+
+        if (ninResponse.success) {
+          const ninDetails = ninResponse.data;
+          const name = `${ninDetails.firstname} ${ninDetails.middlename} ${ninDetails.surname}`;
+          const address = `${ninDetails.residence_AdressLine1} ${ninDetails.residence_Town} `;
+
+          requestDto.name = capitalize(name);
+          requestDto.lga = capitalize(ninDetails.residence_lga);
+          requestDto.state = capitalize(ninDetails.residence_state);
+          requestDto.street = capitalize(address);
+        } else {
+          return Helpers.fail(ninResponse.message);
+        }
+      }
       //encrypt password
       const hash = await this.cryptoService.encrypt(requestDto.password);
       requestDto.password = hash;
@@ -72,6 +95,8 @@ export class UserService {
         requestDto.phoneNumber,
         'Your OTP is ' + verificationOTP,
       );
+
+      console.log('Request:', request);
 
       const savedAccount = await (await this.user.create(request)).save();
       return Helpers.success(savedAccount);

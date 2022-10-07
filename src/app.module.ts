@@ -28,6 +28,7 @@ import {
   ResourceType,
   ResourceTypeSchema,
 } from './schemas/resource-type.schema';
+import { VerificationService } from './services/verification/verification.service';
 
 @Module({
   imports: [
@@ -69,6 +70,7 @@ import {
     ResourceService,
     SmsService,
     ResourceTypeService,
+    VerificationService,
   ],
 })
 export class AppModule {}
