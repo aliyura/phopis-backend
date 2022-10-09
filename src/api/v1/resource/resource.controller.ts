@@ -8,7 +8,6 @@ import {
   Post,
   Put,
   Query,
-  Redirect,
   UseGuards,
 } from '@nestjs/common';
 import { ApiResponse } from 'src/dtos/ApiResponse.dto';
@@ -30,11 +29,6 @@ export class ResourceController {
     private resourceService: ResourceService,
     private jwtService: JwtService,
   ) {}
-
-  @Get('/docs')
-  @Redirect('https://documenter.getpostman.com/view/10509620/VUqpsx5F')
-  // eslint-disable-next-line @typescript-eslint/no-empty-function
-  getDocs(): void {}
 
   @UseGuards(AppGuard)
   @Post('/')

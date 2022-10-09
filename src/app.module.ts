@@ -29,6 +29,12 @@ import {
   ResourceTypeSchema,
 } from './schemas/resource-type.schema';
 import { VerificationService } from './services/verification/verification.service';
+import { Wallet, WalletSchema } from './schemas/wallet.schema';
+import { WalletService } from './services/wallet/wallet.service';
+import { WalletController } from './api/v1/wallet/wallet.controller';
+import { AppController } from './api/v1/app/app.controller';
+import { LogsService } from './services/logs/logs.service';
+import { WalletLog, WalletLogSchema } from './schemas/wallet-logs.schema';
 
 @Module({
   imports: [
@@ -48,6 +54,10 @@ import { VerificationService } from './services/verification/verification.servic
     MongooseModule.forFeature([
       { name: Resource.name, schema: ResourceSchema },
     ]),
+    MongooseModule.forFeature([{ name: Wallet.name, schema: WalletSchema }]),
+    MongooseModule.forFeature([
+      { name: WalletLog.name, schema: WalletLogSchema },
+    ]),
     JwtModule.register({
       secret: process.env.APP_SECRET,
       signOptions: { expiresIn: '10000s' },
@@ -60,6 +70,8 @@ import { VerificationService } from './services/verification/verification.servic
     BusinessTypeController,
     ResourceController,
     ResourceTypeController,
+    WalletController,
+    AppController,
   ],
   providers: [
     UserService,
@@ -71,6 +83,8 @@ import { VerificationService } from './services/verification/verification.servic
     SmsService,
     ResourceTypeService,
     VerificationService,
+    WalletService,
+    LogsService,
   ],
 })
 export class AppModule {}

@@ -56,7 +56,7 @@ export class ResourceService {
       const request = {
         ...requestDto,
         status: Status.ACTIVE,
-        code: `R${Helpers.getCode()}`,
+        code: Helpers.getCode(),
         ruid: `res${Helpers.getUniqueId()}`,
         currentOwnerUuid: authenticatedUser.uuid,
       } as any;

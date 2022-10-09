@@ -3,6 +3,7 @@ import axios from 'axios';
 import { v4 as uuidv4 } from 'uuid';
 import { ApiResponse } from '../dtos/ApiResponse.dto';
 import { Messages } from '../utils/messages/messages';
+import * as formatCurrency from 'format-currency';
 export type HttpClient = (
   path: string,
   queryParam: { [key: string]: string | number | boolean },
@@ -23,16 +24,13 @@ export class Helpers {
    * @param {*} message
    * @param {*} status
    */
-  static failedHttpResponse(
-    message: string,
-    status: string | HttpStatus,
-  ): ApiResponse {
+  static failedHttpResponse(message: string, status: HttpStatus): ApiResponse {
     const data = {
       success: false,
       message,
       data: {},
     } as ApiResponse;
-    return data;
+    throw new HttpException(data, status);
   }
 
   static success(content: any): ApiResponse {
@@ -53,79 +51,19 @@ export class Helpers {
     return data;
   }
 
-  /**
-   * Axios wrapper for get requests
-   * @param {string} path
-   * @param queryParam
-   * @param headers
-   * @returns {Promise<T>}
-   */
-  static get<T>(
-    path: string,
-    queryParam: { [key: string]: string | number | boolean },
-    headers: { [key: string]: string | number | boolean },
-  ): Promise<T> {
-    return axios
-      .get<T>(path, {
-        params: queryParam,
-        headers,
-      })
-      .then((res) => res.data);
-  }
-
-  /**
-   * Axios wrapper for post requests
-   * @param {string} path
-   * @param data
-   * @param queryParam
-   * @param headers
-   * @returns {Promise<T>}
-   */
-  static post<T>(
-    path: string,
-    data: any,
-    queryParam?: { [key: string]: string | number | boolean },
-    headers?: { [key: string]: string | number | boolean },
-  ): Promise<T> {
-    return axios
-      .post<T>(path, {
-        params: queryParam,
-        headers,
-        data,
-      })
-      .then((res) => res.data);
-  }
-  /**
-   * Axios wrapper for post requests
-   * @param {string} path
-   * @param data
-   * @param queryParam
-   * @param headers
-   * @returns {Promise<T>}
-   */
-  static put<T>(
-    path: string,
-    data: any,
-    queryParam?: { [key: string]: string | number | boolean },
-    headers?: { [key: string]: string | number | boolean },
-  ): Promise<T> {
-    return axios
-      .put<T>(path, {
-        params: queryParam,
-        headers,
-        data,
-      })
-      .then((res) => res.data);
-  }
-
   static getUniqueId(): Promise<string> {
     const id = uuidv4();
     const uid = id.split('-').join('');
     return uid.substring(0, 11).toLowerCase();
   }
 
-  static getCode(): string {
-    return Math.floor(100000 + Math.random() * 900000).toString();
+  static getCode(): number {
+    return Math.floor(100000 + Math.random() * 900000);
+  }
+
+  static convertToMoney(num: number): number {
+    const opts = { format: '%v %c', code: 'NGN' };
+    return formatCurrency(num, opts);
   }
 
   static validNin(nin: string): boolean {

@@ -8,8 +8,14 @@ export enum Status {
   INACTIVE = 'INACTIVE',
   SUSPENDED = 'SUSPENDED',
   MISSING = 'MISSING',
+  FAILED = 'FAILED',
+  SUCCESSFUL = 'SUCCESSFUL',
 }
 
+export enum WalletActivity {
+  DEBIT = 'DEBIT',
+  CREDIT = 'CREDIT',
+}
 export enum BusinessTarget {
   MANY = 'MANY',
   PRODUCT = 'PRODUCT',

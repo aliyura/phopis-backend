@@ -19,7 +19,7 @@ export class Resource {
   prevOwnerUuid: string;
 
   @Prop({ required: true, nique: true })
-  code: string;
+  code: number;
 
   @Prop({ required: true, unique: true })
   ruid: string;

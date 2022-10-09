@@ -5,7 +5,6 @@ import {
   HttpStatus,
   Param,
   Post,
-  Redirect,
   UseGuards,
 } from '@nestjs/common';
 import { BusinessTypeService } from '../../../services/business-type/business-type.service';
@@ -17,11 +16,6 @@ import { ApiResponse } from '../../../dtos/ApiResponse.dto';
 @Controller('business-type')
 export class BusinessTypeController {
   constructor(private readonly businessTypeService: BusinessTypeService) {}
-
-  @Get('/docs')
-  @Redirect('https://documenter.getpostman.com/view/10509620/VUqpsx5F')
-  // eslint-disable-next-line @typescript-eslint/no-empty-function
-  getDocs(): void {}
 
   @UseGuards(AppGuard)
   @Post('/')

@@ -21,7 +21,7 @@ export class User {
   uuid: string;
 
   @Prop({ required: true, unique: true })
-  code: string;
+  code: number;
 
   @Prop()
   businessType: string;
@@ -34,6 +34,12 @@ export class User {
 
   @Prop()
   address: string;
+
+  @Prop()
+  walletAddress: string;
+
+  @Prop()
+  walletCode: string;
 
   @Prop()
   nin: string;

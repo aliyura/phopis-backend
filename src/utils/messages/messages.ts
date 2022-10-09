@@ -4,6 +4,7 @@ export enum Messages {
   RequestSuccessful = 'Request successful',
   InvalidCredentials = 'Invalid Username or Password',
   UserNotFound = 'User not found',
+  WalletNotFound = 'Wallet not found',
   ResourceNotFound = 'Resource not found',
   ResourceTypeNotFound = 'Resource type not found',
   BusinessTypeNotFound = 'Business type not found',

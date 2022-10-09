@@ -3,10 +3,9 @@ import {
   Controller,
   Get,
   HttpStatus,
-  Param,
+  Headers,
   Post,
   Put,
-  Redirect,
   UseGuards,
 } from '@nestjs/common';
 import { UserDto } from 'src/dtos';
@@ -23,11 +22,6 @@ import { ApiResponse } from '../../../dtos/ApiResponse.dto';
 @Controller('user')
 export class UserController {
   constructor(private userService: UserService) {}
-
-  @Get('/docs')
-  @Redirect('https://documenter.getpostman.com/view/10509620/VUqpsx5F')
-  // eslint-disable-next-line @typescript-eslint/no-empty-function
-  getDocs(): void {}
 
   @Post('/')
   async createUser(@Body() requestDto: UserDto): Promise<ApiResponse> {
@@ -59,12 +53,23 @@ export class UserController {
   }
 
   @UseGuards(AppGuard)
-  @Put('/:userId')
+  @Put('/')
   async updateUser(
     @Body() requestDto: UserUpdateDto,
-    @Param('userId') userId: string,
+    @Headers('Authorization') token: string,
   ): Promise<ApiResponse> {
-    const response = await this.userService.updateUser(userId, requestDto);
+    const authToken = token.substring(7);
+    const userResponse = await this.userService.findByUserToken(authToken);
+    if (!userResponse.success)
+      return Helpers.failedHttpResponse(
+        userResponse.message,
+        HttpStatus.UNAUTHORIZED,
+      );
+
+    if (!userResponse.success) return Helpers.fail(userResponse.message);
+    const user = userResponse.data;
+
+    const response = await this.userService.updateUser(user.uuid, requestDto);
     if (response.success) {
       return response;
     }
@@ -72,12 +77,21 @@ export class UserController {
   }
 
   @UseGuards(AppGuard)
-  @Get('/:userId')
-  async getUser(@Param('userId') userId: string): Promise<ApiResponse> {
-    const response = await this.userService.findByUserId(userId);
-    if (response.success) {
-      return response;
-    }
-    return Helpers.failedHttpResponse(response.message, HttpStatus.BAD_REQUEST);
+  @Get('/')
+  async getUser(@Headers('Authorization') token: string): Promise<ApiResponse> {
+    const authToken = token.substring(7);
+    const userResponse = await this.userService.findByUserToken(authToken);
+    if (!userResponse.success)
+      return Helpers.failedHttpResponse(
+        userResponse.message,
+        HttpStatus.UNAUTHORIZED,
+      );
+
+    if (userResponse.success) return userResponse;
+
+    return Helpers.failedHttpResponse(
+      userResponse.message,
+      HttpStatus.BAD_REQUEST,
+    );
   }
 }

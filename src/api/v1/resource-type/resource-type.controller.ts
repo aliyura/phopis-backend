@@ -5,7 +5,6 @@ import {
   HttpStatus,
   Param,
   Post,
-  Redirect,
   UseGuards,
 } from '@nestjs/common';
 import { ApiResponse } from 'src/dtos/ApiResponse.dto';
@@ -17,12 +16,6 @@ import { ResourceTypeDto } from '../../../dtos/resource-type.dto';
 @Controller('resource-type')
 export class ResourceTypeController {
   constructor(private readonly resourceTypeService: ResourceTypeService) {}
-
-  @Get('/docs')
-  @Redirect('https://documenter.getpostman.com/view/10509620/VUqpsx5F')
-  // eslint-disable-next-line @typescript-eslint/no-empty-function
-  getDocs(): void {}
-
   @UseGuards(AppGuard)
   @Post('/')
   async createResourceType(

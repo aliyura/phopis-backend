@@ -4,6 +4,7 @@ import { User, UserDocument } from 'src/schemas/user.schema';
 import { InjectModel } from '@nestjs/mongoose';
 
 import {
+  AuthUserDto,
   UserDto,
   UserUpdateDto,
   ValidateUserDto,
@@ -18,6 +19,8 @@ import * as NodeCache from 'node-cache';
 import * as capitalize from 'string-capitalize';
 import { Messages } from 'src/utils/messages/messages';
 import { VerificationService } from '../verification/verification.service';
+import { WalletService } from '../wallet/wallet.service';
+import { JwtService } from '@nestjs/jwt';
 
 @Injectable()
 export class UserService {
@@ -27,6 +30,8 @@ export class UserService {
     private readonly cryptoService: CryptoService,
     private readonly smsService: SmsService,
     private readonly verificationService: VerificationService,
+    private readonly walletService: WalletService,
+    private readonly jwtService: JwtService,
   ) {}
 
   async createUser(requestDto: UserDto): Promise<ApiResponse> {
@@ -80,36 +85,56 @@ export class UserService {
         ...requestDto,
         status: Status.INACTIVE,
         role: UserRole.BUSINESS,
-        code:
-          requestDto.accountType == AccountType.BUSINESS
-            ? `B${Helpers.getCode()}`
-            : `I${Helpers.getCode()}`,
+        code: Helpers.getCode(),
         uuid:
           requestDto.accountType == AccountType.BUSINESS
             ? `bis${Helpers.getUniqueId()}`
             : `ind${Helpers.getUniqueId()}`,
       } as any;
 
-      const verificationOTP = Helpers.getCode();
-      await this.cache.set(requestDto.phoneNumber, verificationOTP);
+      const account = await (await this.user.create(request)).save();
+      if (account) {
+        const walletResponse = await this.walletService.createWallet(
+          account.uuid,
+          account.code,
+        );
 
-      //send otp to the user;
-      await this.smsService.sendMessage(
-        requestDto.phoneNumber,
-        'Your OTP is ' + verificationOTP,
-      );
+        if (walletResponse.success) {
+          //update user with wallet information
+          const wallet = walletResponse.data;
+          const nData = {
+            walletAddress: wallet.address,
+            walletCode: wallet.code,
+          };
 
-      console.log('Request:', request);
+          await this.user.updateOne({ uuid: account.uuid }, nData);
 
-      const savedAccount = await (await this.user.create(request)).save();
-      return Helpers.success(savedAccount);
+          const verificationOTP = Helpers.getCode();
+          await this.cache.set(requestDto.phoneNumber, verificationOTP);
+
+          //send otp to the user;
+          await this.smsService.sendMessage(
+            requestDto.phoneNumber,
+            'Your OTP is ' + verificationOTP,
+          );
+
+          const createdUser = await this.findByUserId(account.uuid);
+          return Helpers.success(createdUser);
+        } else {
+          //removed saved user if process fail somewhere
+          await this.user.deleteOne({ uuid: account.uuid });
+          return Helpers.fail(walletResponse.message);
+        }
+      } else {
+        return Helpers.fail('Unable to create your account');
+      }
     } catch (ex) {
       console.log(Messages.ErrorOccurred, ex);
       return Helpers.fail(Messages.Exception);
     }
   }
 
-  async updateUser(userId: string, requestDto: UserUpdateDto): Promise<any> {
+  async updateUser(uuid: string, requestDto: UserUpdateDto): Promise<any> {
     try {
       if (requestDto && requestDto.phoneNumber) {
         const res = await this.findByPhoneNumber(requestDto.phoneNumber);
@@ -119,7 +144,7 @@ export class UserService {
         }
       }
 
-      const saved = await this.user.updateOne({ userId }, requestDto);
+      const saved = await this.user.updateOne({ uuid }, requestDto);
       return Helpers.success(saved);
     } catch (ex) {
       console.log(Messages.ErrorOccurred, ex);
@@ -158,15 +183,16 @@ export class UserService {
         const systemOtp = await this.cache.get(requestDto.username); //stored OTP in memory
         console.log(userOtp, systemOtp);
 
-        if (userOtp === systemOtp) {
+        if (userOtp == systemOtp) {
           await this.user.updateOne(
             { uuid: res.data.uuid },
             { $set: { status: Status.ACTIVE } },
           );
 
-          return Helpers.success(res.data);
+          const updatedUser = await this.user.findOne({ uuid: res.data.uuid });
+          return Helpers.success(updatedUser);
         } else {
-          return Helpers.fail('Invalid OTP');
+          return Helpers.fail('Invalid OTP or expired');
         }
       } else {
         return Helpers.fail(Messages.UserNotFound);
@@ -177,10 +203,28 @@ export class UserService {
     }
   }
 
+  async findByUserToken(authToken: string): Promise<ApiResponse> {
+    try {
+      const user = (await this.jwtService.decode(authToken)) as AuthUserDto;
+      const response = await this.findByPhoneNumberOrNin(user.username);
+      if (response.success) {
+        const user = response.data as User;
+        if (user.status === Status.ACTIVE) {
+          return Helpers.success(user);
+        } else {
+          return Helpers.fail('User is InActive');
+        }
+      }
+      return Helpers.fail(Messages.UserNotFound);
+    } catch (ex) {
+      console.log(Messages.ErrorOccurred, ex);
+      return Helpers.fail(Messages.Exception);
+    }
+  }
   async findByUserId(userId: string): Promise<ApiResponse> {
     try {
-      const res = await this.user.findOne({ uuid: userId }).exec();
-      if (res) return Helpers.success(res);
+      const response = await this.user.findOne({ uuid: userId }).exec();
+      if (response) return Helpers.success(response);
 
       return Helpers.fail(Messages.UserNotFound);
     } catch (ex) {
@@ -188,11 +232,12 @@ export class UserService {
       return Helpers.fail(Messages.Exception);
     }
   }
+
   async findByPhoneNumber(phoneNumber: string): Promise<ApiResponse> {
     try {
-      const user = await this.user.findOne({ phoneNumber }).exec();
+      const response = await this.user.findOne({ phoneNumber }).exec();
 
-      if (user) return Helpers.success(user);
+      if (response) return Helpers.success(response);
 
       return Helpers.fail(Messages.UserNotFound);
     } catch (ex) {
@@ -202,11 +247,11 @@ export class UserService {
   }
   async findByPhoneNumberOrNin(request: string): Promise<ApiResponse> {
     try {
-      const user = await this.user
+      const response = await this.user
         .findOne({ $or: [{ phoneNumber: request }, { nin: request }] })
         .exec();
 
-      if (user) return Helpers.success(user);
+      if (response) return Helpers.success(response);
 
       return Helpers.fail(Messages.UserNotFound);
     } catch (ex) {
@@ -216,8 +261,8 @@ export class UserService {
   }
   async existByPhoneNumber(phoneNumber: string): Promise<boolean> {
     try {
-      const res = await this.user.findOne({ phoneNumber }).exec();
-      if (res) return true;
+      const response = await this.user.findOne({ phoneNumber }).exec();
+      if (response) return true;
       return false;
     } catch (ex) {
       console.log(Messages.ErrorOccurred, ex);
