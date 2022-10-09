@@ -3,6 +3,7 @@ import { v4 as uuidv4 } from 'uuid';
 import { ApiResponse } from '../dtos/ApiResponse.dto';
 import { Messages } from '../utils/messages/messages';
 import * as formatCurrency from 'format-currency';
+import path from 'path';
 export type HttpClient = (
   path: string,
   queryParam: { [key: string]: string | number | boolean },
@@ -60,6 +61,10 @@ export class Helpers {
     return Math.floor(100000 + Math.random() * 900000);
   }
 
+  static getExtension(filename: string) {
+    const i = filename.lastIndexOf('.');
+    return i < 0 ? '' : filename.substring(i);
+  }
   static convertToMoney(num: number): number {
     const opts = { format: '%v %c', code: 'NGN' };
     return formatCurrency(num, opts);

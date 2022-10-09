@@ -35,6 +35,8 @@ import { WalletController } from './api/v1/wallet/wallet.controller';
 import { AppController } from './api/v1/app/app.controller';
 import { LogsService } from './services/logs/logs.service';
 import { WalletLog, WalletLogSchema } from './schemas/wallet-logs.schema';
+import { FileService } from './services/file/file.service';
+import { FileController } from './api/v1/file/file.controller';
 
 @Module({
   imports: [
@@ -72,6 +74,7 @@ import { WalletLog, WalletLogSchema } from './schemas/wallet-logs.schema';
     ResourceTypeController,
     WalletController,
     AppController,
+    FileController,
   ],
   providers: [
     UserService,
@@ -85,6 +88,7 @@ import { WalletLog, WalletLogSchema } from './schemas/wallet-logs.schema';
     VerificationService,
     WalletService,
     LogsService,
+    FileService,
   ],
 })
 export class AppModule {}
