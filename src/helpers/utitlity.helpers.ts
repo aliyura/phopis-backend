@@ -1,5 +1,4 @@
 import { HttpException, HttpStatus } from '@nestjs/common';
-import axios from 'axios';
 import { v4 as uuidv4 } from 'uuid';
 import { ApiResponse } from '../dtos/ApiResponse.dto';
 import { Messages } from '../utils/messages/messages';
