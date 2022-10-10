@@ -22,6 +22,12 @@ export class VerifyUserDto {
   @IsString() otp: string;
 }
 
+export class ResetPasswordDto {
+  @IsString() username: string;
+  @IsString() password: string;
+  @IsString() otp: string;
+}
+
 export class AuthUserDto {
   @IsString() username: string;
   @IsString() sub: string;

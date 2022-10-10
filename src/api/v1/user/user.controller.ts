@@ -18,6 +18,7 @@ import {
 } from '../../../dtos/user.dto';
 import { AppGuard } from '../../../services/auth/app.guard';
 import { ApiResponse } from '../../../dtos/ApiResponse.dto';
+import { ResetPasswordDto } from '../../../dtos/user.dto';
 
 @Controller('user')
 export class UserController {
@@ -46,6 +47,17 @@ export class UserController {
   @Post('/verify')
   async verifyUser(@Body() requestDto: VerifyUserDto): Promise<ApiResponse> {
     const response = await this.userService.verifyUser(requestDto);
+    if (response.success) {
+      return response;
+    }
+    return Helpers.failedHttpResponse(response.message, HttpStatus.BAD_REQUEST);
+  }
+
+  @Post('/password-reset')
+  async resetPassword(
+    @Body() requestDto: ResetPasswordDto,
+  ): Promise<ApiResponse> {
+    const response = await this.userService.resetPassword(requestDto);
     if (response.success) {
       return response;
     }

@@ -5,6 +5,7 @@ import { InjectModel } from '@nestjs/mongoose';
 
 import {
   AuthUserDto,
+  ResetPasswordDto,
   UserDto,
   UserUpdateDto,
   ValidateUserDto,
@@ -189,10 +190,41 @@ export class UserService {
             { $set: { status: Status.ACTIVE } },
           );
 
+          this.cache.del(requestDto.username);
           const updatedUser = await this.user.findOne({ uuid: res.data.uuid });
           return Helpers.success(updatedUser);
         } else {
           return Helpers.fail('Invalid OTP or expired');
+        }
+      } else {
+        return Helpers.fail(Messages.UserNotFound);
+      }
+    } catch (ex) {
+      console.log(Messages.ErrorOccurred, ex);
+      return Helpers.fail(Messages.Exception);
+    }
+  }
+
+  async resetPassword(requestDto: ResetPasswordDto): Promise<ApiResponse> {
+    try {
+      const res = await this.findByPhoneNumberOrNin(requestDto.username);
+      if (res && res.success) {
+        const systemOtp = await this.cache.get(requestDto.username); //stored OTP in memory
+
+        if (requestDto.otp == systemOtp) {
+          const hashedPassword = await this.cryptoService.encrypt(
+            requestDto.password,
+          );
+
+          await this.user.updateOne(
+            { uuid: res.data.uuid },
+            { $set: { password: hashedPassword } },
+          );
+
+          this.cache.del(requestDto.username);
+          return Helpers.success(res.data);
+        } else {
+          return Helpers.fail('Invalid OTP or Expired');
         }
       } else {
         return Helpers.fail(Messages.UserNotFound);
