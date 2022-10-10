@@ -5,16 +5,33 @@ export class CartonDetailDto {
   @IsString() picture: string;
 }
 
+export class ResourceOwnershipProofDto {
+  @IsOptional() receipt: string;
+  @IsOptional() legalDocuments: any[];
+}
+
+export class ResourceLocationDetailDto {
+  @IsOptional() lga: string;
+  @IsOptional() state: string;
+  @IsOptional() address: string;
+  @IsOptional() landmark: string;
+}
+
 export class ResourceDto {
   @IsString() name: string;
-  @IsString() model: string;
-  @IsString() color: string;
-  @IsOptional() description: string;
   @IsString() identityNumber: string;
+  @IsOptional() model: string;
+  @IsOptional() color: string;
+  @IsOptional() description: string;
   @IsOptional() carton: boolean;
   @IsOptional() cartonDetail: CartonDetailDto;
   @IsOptional() type: string;
-  @IsString() picture: string;
+  @IsOptional() picture: string;
+  @IsOptional() ownershipProof: ResourceOwnershipProofDto;
+  @IsOptional() size: string;
+  @IsOptional() locationDetail: ResourceLocationDetailDto;
+  @IsOptional() witnesses: any[];
+  @IsOptional() ownedDate: string;
 }
 
 export class UpdateResourceDto {

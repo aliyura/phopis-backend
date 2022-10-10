@@ -3,7 +3,11 @@ import { v4 as uuidv4 } from 'uuid';
 import { ApiResponse } from '../dtos/ApiResponse.dto';
 import { Messages } from '../utils/messages/messages';
 import * as formatCurrency from 'format-currency';
-import path from 'path';
+import * as fs from 'fs';
+import { AwesomeQR } from 'awesome-qr';
+import { join } from 'path';
+import { FileService } from 'src/services/file/file.service';
+
 export type HttpClient = (
   path: string,
   queryParam: { [key: string]: string | number | boolean },
@@ -66,7 +70,7 @@ export class Helpers {
     return i < 0 ? '' : filename.substring(i);
   }
   static convertToMoney(num: number): number {
-    const opts = { format: '%v %c', code: 'NGN' };
+    const opts = { format: '%v %c' };
     return formatCurrency(num, opts);
   }
 
@@ -74,6 +78,30 @@ export class Helpers {
     if (nin.length < 11 || nin.length > 11) return false;
     if (!nin.match(/^[0-9]+$/)) return false;
     return true;
+  }
+  static async generateQR(value: string): Promise<ApiResponse> {
+    try {
+      const fileService = new FileService();
+      const background = fs.readFileSync(
+        join(process.cwd(), './public/logo.jpg'),
+      );
+      const buffer = await new AwesomeQR({
+        text: value,
+        size: 500,
+        backgroundImage: background,
+      }).draw();
+
+      const response = await fileService.uploadBuffer(buffer);
+      console.log(response);
+      if (response.success) {
+        const data = response.data;
+        return this.success(data.url);
+      }
+      return this.fail('Unable to upload QR code');
+    } catch (err) {
+      console.error(err);
+      return this.fail(err);
+    }
   }
 
   static validPhoneNumber(phoneNumber: string): boolean {

@@ -11,6 +11,7 @@ import * as compression from 'compression';
 import { AppModule } from './app.module';
 import { AllExceptionsFilter } from './helpers';
 import coreConfig from './config/config';
+import { join } from 'path';
 
 async function bootstrap() {
   const CONFIG = coreConfig();
@@ -30,6 +31,10 @@ async function bootstrap() {
     }),
   );
   // setup the logger
+  app.useStaticAssets(join(__dirname, '..', 'public'), {
+    index: false,
+    prefix: '/public',
+  });
   app.use(morgan('combined', { stream: accessLogStream }));
   app.use(morgan('combined'));
   app.use(compression());

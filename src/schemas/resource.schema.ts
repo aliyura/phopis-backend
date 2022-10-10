@@ -1,6 +1,11 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { Document, Types } from 'mongoose';
-import { CartonDetailDto, ResourceStatusUpdateDto } from '../dtos/resource.dto';
+import {
+  CartonDetailDto,
+  ResourceStatusUpdateDto,
+  ResourceOwnershipProofDto,
+  ResourceLocationDetailDto,
+} from '../dtos/resource.dto';
 
 export type ResourceDocument = Resource & Document;
 
@@ -39,6 +44,9 @@ export class Resource {
   @Prop()
   carton: boolean;
 
+  @Prop({ required: true })
+  qrCode: string;
+
   @Prop()
   cartonDetail: CartonDetailDto;
 
@@ -53,6 +61,21 @@ export class Resource {
 
   @Prop()
   ownershipHistory: any[];
+
+  @Prop()
+  ownershipProof: ResourceOwnershipProofDto;
+
+  @Prop()
+  size: string;
+
+  @Prop()
+  locationDetail: ResourceLocationDetailDto;
+
+  @Prop()
+  witnesses: any[];
+
+  @Prop()
+  ownedDate: string;
 
   @Prop()
   statusChangeHistory: any[];

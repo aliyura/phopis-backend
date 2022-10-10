@@ -33,9 +33,6 @@ export class ResourceService {
         'cartonDetail.serialNumber': requestDto.cartonDetail.serialNumber,
       });
 
-      console.log('resourceByExistByIdentity', resourceExistByIdentity);
-      console.log('resourceByExistBySerialNumber', resourceExistBySerialNumber);
-
       const authenticatedUser = await this.user.findOne({
         phoneNumber: authUser.username,
       });
@@ -53,11 +50,19 @@ export class ResourceService {
           return Helpers.fail('carton picture required');
       }
 
+      const code = Helpers.getCode();
+      const resourceId = `res${Helpers.getUniqueId()}`;
+      const qrCodeResponse = await Helpers.generateQR(code.toString());
+
+      if (!qrCodeResponse.success)
+        return Helpers.fail('Unable to generate QR code');
+
       const request = {
         ...requestDto,
         status: Status.ACTIVE,
-        code: Helpers.getCode(),
-        ruid: `res${Helpers.getUniqueId()}`,
+        code: code,
+        ruid: resourceId,
+        qrCode: qrCodeResponse.data,
         currentOwnerUuid: authenticatedUser.uuid,
       } as any;
 

@@ -13,7 +13,7 @@ export class FileService {
 
   async uploadFile(file): Promise<ApiResponse> {
     try {
-      if (!file) return Helpers.fail('No file detected');
+      if (!file) return Helpers.fail('File not found');
       const { originalname } = file;
       const filename = `${Helpers.getCode()}${new Date().getTime()}${Helpers.getExtension(
         originalname,
@@ -25,6 +25,24 @@ export class FileService {
         this.AWS_S3_BUCKET,
         filename,
         file.mimetype,
+      );
+    } catch (ex) {
+      console.log(ex);
+      return Helpers.fail('Unable to upload file');
+    }
+  }
+
+  async uploadBuffer(buffer): Promise<ApiResponse> {
+    try {
+      if (!buffer) return Helpers.fail('File not found');
+      const filename = `qr${Helpers.getCode()}${new Date().getTime()}.png`;
+
+      console.log('Uploading file', filename);
+      return await this.s3_upload(
+        buffer,
+        this.AWS_S3_BUCKET,
+        filename,
+        'image/png',
       );
     } catch (ex) {
       console.log(ex);
