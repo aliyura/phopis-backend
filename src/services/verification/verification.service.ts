@@ -4,6 +4,7 @@ import axios from 'axios';
 import { Helpers } from 'src/helpers';
 import { Messages } from 'src/utils/messages/messages';
 import * as https from 'https';
+import * as Flutterwave from 'flutterwave-node-v3';
 
 @Injectable()
 export class VerificationService {
@@ -29,6 +30,34 @@ export class VerificationService {
         return Helpers.success(response.data);
 
       return Helpers.fail('NIN Verification failed');
+    } catch (ex) {
+      console.log(Messages.ErrorOccurred, ex);
+      return Helpers.fail(Messages.Exception);
+    }
+  }
+
+  async verifyTransaction(
+    transactionId: string,
+    expectedAmount: number,
+  ): Promise<ApiResponse> {
+    try {
+      if (!transactionId) return Helpers.fail('Transaction ref required');
+
+      const flw = new Flutterwave(
+        process.env.FLW_PUBLIC_KEY,
+        process.env.FLW_SECRET_KEY,
+      );
+      const response = await flw.Transaction.verify({ id: transactionId });
+      console.log('Flutterwave transaction verification:', response);
+      if (
+        response.data &&
+        response.data.status === 'successful' &&
+        response.data.amount === expectedAmount
+      ) {
+        return Helpers.success(response.data);
+      } else {
+        return Helpers.fail('Invalid payment ref');
+      }
     } catch (ex) {
       console.log(Messages.ErrorOccurred, ex);
       return Helpers.fail(Messages.Exception);

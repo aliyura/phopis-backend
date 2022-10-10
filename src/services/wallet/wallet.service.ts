@@ -11,6 +11,7 @@ import { FundWalletDto, FundsTransferDto } from '../../dtos/wallet.dto';
 import { WalletActivity } from '../../enums/enums';
 import { LogsService } from '../logs/logs.service';
 import { User, UserDocument } from '../../schemas/user.schema';
+import { VerificationService } from '../verification/verification.service';
 
 @Injectable()
 export class WalletService {
@@ -19,6 +20,7 @@ export class WalletService {
     @InjectModel(User.name) private user: Model<UserDocument>,
     private readonly logService: LogsService,
     private readonly smsService: SmsService,
+    private verificationService: VerificationService,
   ) {}
 
   async createWallet(uuid: string, code: number): Promise<ApiResponse> {
@@ -56,9 +58,14 @@ export class WalletService {
       if (!wallet) return Helpers.fail('Wallet not found');
       const user = await this.user.findOne({ uuid: wallet.uuid });
       if (!user) return Helpers.fail('User not found');
-      //verify payment
 
-      //end of verify payment ref
+      //verify payment
+      const result = await this.verificationService.verifyTransaction(
+        fundWalletDto.paymentRef,
+        fundWalletDto.amount,
+      );
+      if (!result.success) return Helpers.fail(result.message);
+
       const currentBalance = wallet.balance;
       let newBalance = currentBalance + fundWalletDto.amount;
       newBalance = Math.round(newBalance * 100) / 100; //two decimal
