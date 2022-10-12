@@ -3,10 +3,6 @@ import { v4 as uuidv4 } from 'uuid';
 import { ApiResponse } from '../dtos/ApiResponse.dto';
 import { Messages } from '../utils/messages/messages';
 import * as formatCurrency from 'format-currency';
-import * as fs from 'fs';
-import { AwesomeQR } from 'awesome-qr';
-import { join } from 'path';
-import { FileService } from 'src/services/file/file.service';
 
 export type HttpClient = (
   path: string,
@@ -81,23 +77,8 @@ export class Helpers {
   }
   static async generateQR(value: string): Promise<ApiResponse> {
     try {
-      const fileService = new FileService();
-      const background = fs.readFileSync(
-        join(process.cwd(), './public/logo.jpg'),
-      );
-      const buffer = await new AwesomeQR({
-        text: value,
-        size: 500,
-        backgroundImage: background,
-      }).draw();
-
-      const response = await fileService.uploadBuffer(buffer);
-      console.log(response);
-      if (response.success) {
-        const data = response.data;
-        return this.success(data.url);
-      }
-      return this.fail('Unable to upload QR code');
+      console.log(value);
+      return this.success('http://exanple.com/qr.png');
     } catch (err) {
       console.error(err);
       return this.fail(err);

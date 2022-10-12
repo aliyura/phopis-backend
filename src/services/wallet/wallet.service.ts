@@ -146,7 +146,7 @@ export class WalletService {
       } as any;
 
       const walletLog = {
-        activity: WalletActivity.CREDIT,
+        activity: WalletActivity.DEBIT,
         status: Status.SUCCESSFUL,
         uuid: wallet.uuid,
         sender: wallet.address,
