@@ -7,6 +7,7 @@ import {
   Post,
   Put,
   UseGuards,
+  Query,
 } from '@nestjs/common';
 import { UserDto } from 'src/dtos';
 import { Helpers } from 'src/helpers';
@@ -19,6 +20,7 @@ import {
 import { AppGuard } from '../../../services/auth/app.guard';
 import { ApiResponse } from '../../../dtos/ApiResponse.dto';
 import { ResetPasswordDto } from '../../../dtos/user.dto';
+import { UserRole } from '../../../enums/enums';
 
 @Controller('user')
 export class UserController {
@@ -105,5 +107,32 @@ export class UserController {
       userResponse.message,
       HttpStatus.BAD_REQUEST,
     );
+  }
+
+  @UseGuards(AppGuard)
+  @Get('/list')
+  async getAllUsers(
+    @Query('page') page: number,
+    @Query('status') status: string,
+    @Headers('Authorization') token: string,
+  ): Promise<ApiResponse> {
+    const authToken = token.substring(7);
+    const userResponse = await this.userService.findByUserToken(authToken);
+    if (!userResponse.success)
+      return Helpers.failedHttpResponse(
+        userResponse.message,
+        HttpStatus.UNAUTHORIZED,
+      );
+
+    if (userResponse.data.role === UserRole.BUSINESS) {
+      const users = await this.userService.findAllUsers(page, status);
+      if (users.success) return users;
+      return Helpers.failedHttpResponse(users.message, HttpStatus.BAD_REQUEST);
+    } else {
+      return Helpers.failedHttpResponse(
+        'You are not authorized user to perform this operation',
+        HttpStatus.UNAUTHORIZED,
+      );
+    }
   }
 }

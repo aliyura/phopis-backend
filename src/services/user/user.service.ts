@@ -85,13 +85,14 @@ export class UserService {
       const request = {
         ...requestDto,
         status: Status.INACTIVE,
-        role: UserRole.BUSINESS,
         code: Helpers.getCode(),
         uuid:
           requestDto.accountType == AccountType.BUSINESS
             ? `bis${Helpers.getUniqueId()}`
             : `ind${Helpers.getUniqueId()}`,
       } as any;
+
+      if (!requestDto.role) request.role = UserRole.USER;
 
       const account = await (await this.user.create(request)).save();
       if (account) {
@@ -291,6 +292,40 @@ export class UserService {
       return Helpers.fail(Messages.Exception);
     }
   }
+
+  async findAllUsers(page: number, status: string): Promise<ApiResponse> {
+    try {
+      const size = 20;
+      const skip = page || 0;
+
+      const count = await this.user.count(status ? { status } : {});
+      const result = await this.user
+        .find(status ? { status } : {})
+        .skip(skip * size)
+        .limit(size);
+
+      if (result) {
+        const totalPages = Math.round(count / size);
+        return Helpers.success({
+          page: result,
+          size: size,
+          currentPage: Number(skip),
+          totalPages:
+            totalPages > 0
+              ? totalPages
+              : count > 0 && result.length > 0
+              ? 1
+              : 0,
+        });
+      }
+
+      return Helpers.fail(Messages.NoUserFound);
+    } catch (ex) {
+      console.log(Messages.ErrorOccurred, ex);
+      return Helpers.fail(Messages.Exception);
+    }
+  }
+
   async existByPhoneNumber(phoneNumber: string): Promise<boolean> {
     try {
       const response = await this.user.findOne({ phoneNumber }).exec();

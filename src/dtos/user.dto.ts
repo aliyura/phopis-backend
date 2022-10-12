@@ -12,6 +12,7 @@ export class UserDto {
   @IsOptional() @IsString() nin: string;
   @IsOptional() @IsString() businessTarget: string;
   @IsString() password: string;
+  @IsOptional() @IsString() role: string;
 }
 
 export class ValidateUserDto {
