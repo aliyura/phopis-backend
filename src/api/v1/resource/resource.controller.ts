@@ -1,6 +1,7 @@
 import {
   Body,
   Controller,
+  Delete,
   Get,
   Headers,
   HttpStatus,
@@ -58,11 +59,28 @@ export class ResourceController {
   ): Promise<ApiResponse> {
     const authToken = token.substring(7);
     const user = (await this.jwtService.decode(authToken)) as AuthUserDto;
-
     const response = await this.resourceService.updateResource(
       user,
       resourceId,
       requestDto,
+    );
+    if (response.success) {
+      return response;
+    }
+    return Helpers.failedHttpResponse(response.message, HttpStatus.BAD_REQUEST);
+  }
+
+  @UseGuards(AppGuard)
+  @Delete('/:resourceId')
+  async deleteResource(
+    @Headers('Authorization') token: string,
+    @Param('resourceId') resourceId: string,
+  ): Promise<ApiResponse> {
+    const authToken = token.substring(7);
+    const user = (await this.jwtService.decode(authToken)) as AuthUserDto;
+    const response = await this.resourceService.deleteResource(
+      user,
+      resourceId,
     );
     if (response.success) {
       return response;
@@ -95,7 +113,7 @@ export class ResourceController {
   }
 
   @UseGuards(AppGuard)
-  @Put('/ownership/change/:resourceId')
+  @Post('/ownership/change/:resourceId')
   async changeResourceOwnership(
     @Headers('Authorization') token: string,
     @Param('resourceId') resourceId: string,
@@ -194,6 +212,21 @@ export class ResourceController {
     const user = (await this.jwtService.decode(authToken)) as AuthUserDto;
 
     const response = await this.resourceService.getResourceByCode(user, code);
+    if (response.success) {
+      return response;
+    }
+    return Helpers.failedHttpResponse(response.message, HttpStatus.BAD_REQUEST);
+  }
+
+  @UseGuards(AppGuard)
+  @Get('/ownership/logs')
+  async getResourceOwnershipLog(
+    @Headers('Authorization') token: string,
+  ): Promise<ApiResponse> {
+    const authToken = token.substring(7);
+    const user = (await this.jwtService.decode(authToken)) as AuthUserDto;
+
+    const response = await this.resourceService.getResourceOwnershipLog(user);
     if (response.success) {
       return response;
     }

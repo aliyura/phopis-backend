@@ -1,10 +1,12 @@
 import {
   Body,
   Controller,
+  Delete,
   Get,
   HttpStatus,
   Param,
   Post,
+  Put,
   UseGuards,
 } from '@nestjs/common';
 import { ApiResponse } from 'src/dtos/ApiResponse.dto';
@@ -24,6 +26,30 @@ export class ResourceTypeController {
     const response = await this.resourceTypeService.createResourceType(
       requestDto,
     );
+    if (response.success) {
+      return response;
+    }
+    return Helpers.failedHttpResponse(response.message, HttpStatus.BAD_REQUEST);
+  }
+  @UseGuards(AppGuard)
+  @Put('/:id')
+  async updateResourceType(
+    @Param('id') id: string,
+    @Body() requestDto: ResourceTypeDto,
+  ): Promise<ApiResponse> {
+    const response = await this.resourceTypeService.updateResourceType(
+      id,
+      requestDto,
+    );
+    if (response.success) {
+      return response;
+    }
+    return Helpers.failedHttpResponse(response.message, HttpStatus.BAD_REQUEST);
+  }
+  @UseGuards(AppGuard)
+  @Delete('/:id')
+  async deleteResourceType(@Param('id') id: string): Promise<ApiResponse> {
+    const response = await this.resourceTypeService.deleteResourceType(id);
     if (response.success) {
       return response;
     }

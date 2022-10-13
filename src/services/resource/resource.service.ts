@@ -14,12 +14,18 @@ import { AuthUserDto } from '../../dtos/user.dto';
 import { Status } from 'src/enums';
 import { ResourceOwnershipChangeDto } from '../../dtos/resource.dto';
 import { Messages } from 'src/utils/messages/messages';
+import {
+  ResourceOwnershipLog,
+  ResourceOwnershipLogDocument,
+} from '../../schemas/resource-ownership-logs.schema';
 
 @Injectable()
 export class ResourceService {
   constructor(
     @InjectModel(Resource.name) private resource: Model<ResourceDocument>,
     @InjectModel(User.name) private user: Model<UserDocument>,
+    @InjectModel(ResourceOwnershipLog.name)
+    private resourceOwnershipLog: Model<ResourceOwnershipLogDocument>,
   ) {}
   async createResource(
     authUser: AuthUserDto,
@@ -52,17 +58,12 @@ export class ResourceService {
 
       const code = Helpers.getCode();
       const resourceId = `res${Helpers.getUniqueId()}`;
-      const qrCodeResponse = await Helpers.generateQR(code.toString());
-
-      if (!qrCodeResponse.success)
-        return Helpers.fail('Unable to generate QR code');
 
       const request = {
         ...requestDto,
         status: Status.ACTIVE,
         code: code,
         ruid: resourceId,
-        qrCode: qrCodeResponse.data,
         currentOwnerUuid: authenticatedUser.uuid,
       } as any;
 
@@ -80,21 +81,26 @@ export class ResourceService {
     requestDto: UpdateResourceDto,
   ): Promise<ApiResponse> {
     try {
+      const authenticatedUser = await this.user
+        .findOne({
+          $or: [{ phoneNumber: authUser.username }, { nin: authUser.username }],
+        })
+        .exec();
+
+      if (!authenticatedUser) return Helpers.fail('Resource owner not found');
+
       const existingResource = await this.resource.findOne({
         ruid: resourceId,
+        uuid: authenticatedUser.uuid,
       });
 
       if (!existingResource) return Helpers.fail('Resource not found');
 
       const resourceOwner = await this.user.findOne({
-        currentOwnerUuid: existingResource.currentOwnerUuid,
+        uuid: existingResource.currentOwnerUuid,
       });
 
       if (!resourceOwner) return Helpers.fail('Resource owner not found');
-
-      const authenticatedUser = await this.user.findOne({
-        phoneNumber: authUser.username,
-      });
 
       if (resourceOwner.uuid != authenticatedUser.uuid) {
         return Helpers.fail('You do not permission to update this resource');
@@ -112,6 +118,46 @@ export class ResourceService {
     }
   }
 
+  async deleteResource(
+    authUser: AuthUserDto,
+    resourceId: string,
+  ): Promise<ApiResponse> {
+    try {
+      const authenticatedUser = await this.user
+        .findOne({
+          $or: [{ phoneNumber: authUser.username }, { nin: authUser.username }],
+        })
+        .exec();
+
+      if (!authenticatedUser) return Helpers.fail('Resource owner not found');
+
+      const existingResource = await this.resource.findOne({
+        ruid: resourceId,
+        uuid: authenticatedUser.uuid,
+      });
+
+      if (!existingResource) return Helpers.fail('Resource not found');
+
+      const resourceOwner = await this.user.findOne({
+        uuid: existingResource.currentOwnerUuid,
+      });
+
+      if (!resourceOwner) return Helpers.fail('Resource owner not found');
+
+      if (resourceOwner.uuid != authenticatedUser.uuid)
+        return Helpers.fail('You do not permission to update this resource');
+
+      const response = await this.resource.deleteOne({
+        ruid: resourceId,
+        uuid: authenticatedUser.uuid,
+      });
+      return Helpers.success(response);
+    } catch (ex) {
+      console.log(Messages.ErrorOccurred, ex);
+      return Helpers.fail(Messages.Exception);
+    }
+  }
+
   async updateResourceStatus(
     authUser: AuthUserDto,
     resourceId: string,
@@ -119,30 +165,32 @@ export class ResourceService {
     requestDto: ResourceStatusUpdateDto,
   ): Promise<ApiResponse> {
     try {
+      const authenticatedUser = await this.user
+        .findOne({
+          $or: [{ phoneNumber: authUser.username }, { nin: authUser.username }],
+        })
+        .exec();
+
+      if (!authenticatedUser) return Helpers.fail('Resource owner not found');
+
       const existingResource = await this.resource.findOne({
         ruid: resourceId,
       });
-
       if (!existingResource) return Helpers.fail('Resource not found');
 
       const resourceOwner = await this.user.findOne({
-        currentOwnerUuid: existingResource.currentOwnerUuid,
+        uuid: existingResource.currentOwnerUuid,
       });
-
       if (!resourceOwner) return Helpers.fail('Resource owner not found');
-
-      const authenticatedUser = await this.user.findOne({
-        phoneNumber: authUser.username,
-      });
 
       if (resourceOwner.uuid != authenticatedUser.uuid) {
         return Helpers.fail('You do not permission to update this resource');
       }
 
       if (!Object.values(Status).includes(status))
-        return Helpers.fail('Invalid status');
+        return Helpers.fail('Invalid resource status');
 
-      const request = { missingDetail: requestDto, status: status };
+      const request = { statusChangeDetail: requestDto, status: status };
 
       const statusChangeHistory = {
         ...requestDto,
@@ -180,6 +228,14 @@ export class ResourceService {
     requestDto: ResourceOwnershipChangeDto,
   ): Promise<ApiResponse> {
     try {
+      const authenticatedUser = await this.user
+        .findOne({
+          $or: [{ phoneNumber: authUser.username }, { nin: authUser.username }],
+        })
+        .exec();
+
+      if (!authenticatedUser) return Helpers.fail('Resource owner not found');
+
       const existingResource = await this.resource.findOne({
         ruid: resourceId,
       });
@@ -218,23 +274,12 @@ export class ResourceService {
         newOwner = await this.user.findOne({
           phoneNumber: requestDto.newOwner,
         });
-
       if (!newOwner) return Helpers.fail('New owner not found');
-
-      const authenticatedUser = await this.user.findOne({
-        phoneNumber: authUser.username,
-      });
-
-      console.log('authUser', authenticatedUser.uuid);
-      console.log('resourceUser', existingResource.currentOwnerUuid);
 
       if (authenticatedUser.uuid != existingResource.currentOwnerUuid)
         return Helpers.fail(
           'You do not have rights to change ownership of this resource',
         );
-
-      if (existingResource.status == Status.BLOCKED)
-        return Helpers.fail("You can't change ownership of a blocked resource");
 
       const request = {
         prevOwnerUuid: resourceOwner.uuid,
@@ -261,11 +306,24 @@ export class ResourceService {
         { upsert: true },
       );
 
-      return Helpers.success(
-        await this.resource.findOne({
-          ruid: resourceId,
-        }),
-      );
+      const dateTime = new Date();
+      const resourceOwnership = {
+        ...existingResource,
+        ownerUuid: existingResource.currentOwnerUuid,
+        releasedDate: dateTime.toISOString().slice(0, 10),
+        newOwnerName: newOwner.name,
+        newOwnerUuid: newOwner.uuid,
+      } as any;
+
+      delete resourceOwnership.prevOwnerUuid;
+      delete resourceOwnership.currentOwnerUuid;
+
+      resourceOwnership.status = Status.RELEASED;
+
+      const saved = await (
+        await this.resourceOwnershipLog.create(resourceOwnership)
+      ).save();
+      return Helpers.success(saved);
     } catch (ex) {
       console.log(Messages.ErrorOccurred, ex);
       return Helpers.fail(Messages.Exception);
@@ -293,8 +351,6 @@ export class ResourceService {
       ) {
         query.status = status.toUpperCase();
       }
-
-      console.log(query);
 
       const resources = await this.resource.find(query);
       if (resources && resources.length > 0) return Helpers.success(resources);
@@ -362,6 +418,28 @@ export class ResourceService {
       if (resource) return Helpers.success(resource);
 
       return Helpers.fail('Resource not found');
+    } catch (ex) {
+      console.log(Messages.ErrorOccurred, ex);
+      return Helpers.fail(Messages.Exception);
+    }
+  }
+
+  async getResourceOwnershipLog(authUser: AuthUserDto): Promise<ApiResponse> {
+    try {
+      const authenticatedUser = await this.user
+        .findOne({
+          $or: [{ phoneNumber: authUser.username }, { nin: authUser.username }],
+        })
+        .exec();
+
+      if (!authenticatedUser) return Helpers.fail('Resource owner not found');
+
+      const resources = await this.resourceOwnershipLog.find({
+        ownerUuid: authenticatedUser.uuid,
+      });
+      if (resources) return Helpers.success(resources);
+
+      return Helpers.fail('No Resource found');
     } catch (ex) {
       console.log(Messages.ErrorOccurred, ex);
       return Helpers.fail(Messages.Exception);

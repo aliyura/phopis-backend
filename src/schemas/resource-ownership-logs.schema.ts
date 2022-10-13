@@ -7,10 +7,10 @@ import {
   ResourceLocationDetailDto,
 } from '../dtos/resource.dto';
 
-export type ResourceDocument = Resource & Document;
+export type ResourceOwnershipLogDocument = ResourceOwnershipLog & Document;
 
 @Schema({ timestamps: true })
-export class Resource {
+export class ResourceOwnershipLog {
   @Prop({ type: Types.ObjectId })
   id: string;
 
@@ -18,15 +18,18 @@ export class Resource {
   name: string;
 
   @Prop({ required: true })
-  currentOwnerUuid: string;
+  ownerUuid: string;
 
-  @Prop()
-  prevOwnerUuid: string;
+  @Prop({ required: true })
+  newOwnerName: string;
 
-  @Prop({ required: true, nique: true })
+  @Prop({ required: true })
+  newOwnerUuid: string;
+
+  @Prop({ required: true })
   code: number;
 
-  @Prop({ required: true, unique: true })
+  @Prop({ required: true })
   ruid: string;
 
   @Prop()
@@ -75,6 +78,9 @@ export class Resource {
   ownedDate: string;
 
   @Prop()
+  releasedDate: string;
+
+  @Prop()
   statusChangeHistory: any[];
 
   @Prop()
@@ -87,4 +93,5 @@ export class Resource {
   lastOwnershipChangeDate: string;
 }
 
-export const ResourceSchema = SchemaFactory.createForClass(Resource);
+export const ResourceOwnershipLogSchema =
+  SchemaFactory.createForClass(ResourceOwnershipLog);

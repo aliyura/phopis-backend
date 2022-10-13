@@ -40,6 +40,40 @@ export class ResourceTypeService {
     }
   }
 
+  async updateResourceType(
+    id: string,
+    requestDto: ResourceTypeDto,
+  ): Promise<ApiResponse> {
+    try {
+      const response = await this.resourceType
+        .findOne({ resourceTypeId: id })
+        .exec();
+
+      if (!response) return Helpers.fail('Resource type not found');
+
+      const saved = await this.resourceType.updateOne(
+        { resourceTypeId: id },
+        { $set: requestDto },
+      );
+      return Helpers.success(saved);
+    } catch (ex) {
+      console.log(Messages.ErrorOccurred, ex);
+      return Helpers.fail(Messages.Exception);
+    }
+  }
+
+  async deleteResourceType(id: string): Promise<ApiResponse> {
+    try {
+      const response = await this.resourceType
+        .deleteOne({ resourceTypeId: id })
+        .exec();
+      return Helpers.success(response);
+    } catch (ex) {
+      console.log(Messages.ErrorOccurred, ex);
+      return Helpers.fail(Messages.Exception);
+    }
+  }
+
   async findResourceType(type: string): Promise<ApiResponse> {
     try {
       const req = await this.resourceType.findOne({ resourceTypeId: type });

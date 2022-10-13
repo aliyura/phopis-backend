@@ -37,6 +37,10 @@ import { LogsService } from './services/logs/logs.service';
 import { WalletLog, WalletLogSchema } from './schemas/wallet-logs.schema';
 import { FileService } from './services/file/file.service';
 import { FileController } from './api/v1/file/file.controller';
+import {
+  ResourceOwnershipLog,
+  ResourceOwnershipLogSchema,
+} from './schemas/resource-ownership-logs.schema';
 
 @Module({
   imports: [
@@ -55,6 +59,9 @@ import { FileController } from './api/v1/file/file.controller';
     ]),
     MongooseModule.forFeature([
       { name: Resource.name, schema: ResourceSchema },
+    ]),
+    MongooseModule.forFeature([
+      { name: ResourceOwnershipLog.name, schema: ResourceOwnershipLogSchema },
     ]),
     MongooseModule.forFeature([{ name: Wallet.name, schema: WalletSchema }]),
     MongooseModule.forFeature([

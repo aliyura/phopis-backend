@@ -60,11 +60,11 @@ export class WalletService {
       if (!user) return Helpers.fail('User not found');
 
       //verify payment
-      const result = await this.verificationService.verifyTransaction(
-        fundWalletDto.transactionId,
-        fundWalletDto.amount,
-      );
-      if (!result.success) return Helpers.fail(result.message);
+      // const result = await this.verificationService.verifyTransaction(
+      //   fundWalletDto.transactionId,
+      //   fundWalletDto.amount,
+      // );
+      // if (!result.success) return Helpers.fail(result.message);
 
       const currentBalance = wallet.balance;
       let newBalance = currentBalance + fundWalletDto.amount;
