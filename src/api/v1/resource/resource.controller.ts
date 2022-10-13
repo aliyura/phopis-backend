@@ -94,7 +94,6 @@ export class ResourceController {
     @Headers('Authorization') token: string,
     @Param('resourceId') resourceId: string,
     @Query('status') status: string,
-
     @Body() requestDto: ResourceStatusUpdateDto,
   ): Promise<ApiResponse> {
     const authToken = token.substring(7);

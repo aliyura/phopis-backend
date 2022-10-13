@@ -42,13 +42,11 @@ export class UpdateResourceDto {
 }
 
 export class ResourceStatusUpdateDto {
-  @IsOptional() date: Date;
-  @IsOptional() area: string;
+  @IsOptional() reason: string;
   @IsOptional() description: string;
 }
 
 export class ResourceOwnershipChangeDto {
-  @IsOptional() currentOwner: string;
   @IsOptional() newOwner: string;
   @IsOptional() description: string;
 }

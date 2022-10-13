@@ -8,6 +8,7 @@ import {
   Put,
   UseGuards,
   Query,
+  Param,
 } from '@nestjs/common';
 import { UserDto } from 'src/dtos';
 import { Helpers } from 'src/helpers';
@@ -100,6 +101,19 @@ export class UserController {
         userResponse.message,
         HttpStatus.UNAUTHORIZED,
       );
+
+    if (userResponse.success) return userResponse;
+
+    return Helpers.failedHttpResponse(
+      userResponse.message,
+      HttpStatus.BAD_REQUEST,
+    );
+  }
+
+  @UseGuards(AppGuard)
+  @Get('/inquiry/:code')
+  async accountInquiry(@Param('code') code: number): Promise<ApiResponse> {
+    const userResponse = await this.userService.findByUserCode(code);
 
     if (userResponse.success) return userResponse;
 

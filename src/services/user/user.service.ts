@@ -266,6 +266,18 @@ export class UserService {
     }
   }
 
+  async findByUserCode(code: number): Promise<ApiResponse> {
+    try {
+      const response = await this.user.findOne({ code }).exec();
+      if (response) return Helpers.success(response);
+
+      return Helpers.fail(Messages.UserNotFound);
+    } catch (ex) {
+      console.log(Messages.ErrorOccurred, ex);
+      return Helpers.fail(Messages.Exception);
+    }
+  }
+
   async findByPhoneNumber(phoneNumber: string): Promise<ApiResponse> {
     try {
       const response = await this.user.findOne({ phoneNumber }).exec();

@@ -190,7 +190,14 @@ export class ResourceService {
       if (!Object.values(Status).includes(status))
         return Helpers.fail('Invalid resource status');
 
-      const request = { statusChangeDetail: requestDto, status: status };
+      const dateTime = new Date();
+      const request = {
+        statusChangeDetail: {
+          ...requestDto,
+          date: dateTime.toISOString().slice(0, 10),
+        },
+        status: status,
+      };
 
       const statusChangeHistory = {
         ...requestDto,
@@ -242,25 +249,6 @@ export class ResourceService {
 
       if (!existingResource) return Helpers.fail('Resource not found');
 
-      let resourceOwner = await this.user.findOne({
-        uuid: requestDto.currentOwner,
-      });
-
-      if (!resourceOwner)
-        resourceOwner = await this.user.findOne({
-          code: requestDto.currentOwner,
-        });
-
-      if (!resourceOwner)
-        resourceOwner = await this.user.findOne({
-          phoneNumber: requestDto.currentOwner,
-        });
-
-      console.log('resourceOwner', resourceOwner);
-      console.log('existingResource', existingResource);
-
-      if (!resourceOwner) return Helpers.fail('Resource owner not found');
-
       let newOwner = await this.user.findOne({
         uuid: requestDto.newOwner,
       });
@@ -282,7 +270,7 @@ export class ResourceService {
         );
 
       const request = {
-        prevOwnerUuid: resourceOwner.uuid,
+        prevOwnerUuid: authenticatedUser.uuid,
         currentOwnerUuid: newOwner.uuid,
         status: Status.ACTIVE,
         lastOwnershipChangeDate: new Date(),
