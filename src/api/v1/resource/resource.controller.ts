@@ -118,12 +118,13 @@ export class ResourceController {
   @UseGuards(AppGuard)
   @Get('/')
   async getMyResources(
+    @Query('status') status: string,
     @Headers('Authorization') token: string,
   ): Promise<ApiResponse> {
     const authToken = token.substring(7);
     const user = (await this.jwtService.decode(authToken)) as AuthUserDto;
 
-    const response = await this.resourceService.getMyResources(user);
+    const response = await this.resourceService.getMyResources(user, status);
     if (response.success) {
       return response;
     }

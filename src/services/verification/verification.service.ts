@@ -37,11 +37,11 @@ export class VerificationService {
   }
 
   async verifyTransaction(
-    transactionId: string,
+    transactionId: number,
     expectedAmount: number,
   ): Promise<ApiResponse> {
     try {
-      if (!transactionId) return Helpers.fail('Transaction ref required');
+      if (!transactionId) return Helpers.fail('Transaction id required');
 
       const flw = new Flutterwave(
         process.env.FLW_PUBLIC_KEY,
@@ -56,7 +56,7 @@ export class VerificationService {
       ) {
         return Helpers.success(response.data);
       } else {
-        return Helpers.fail('Invalid payment ref');
+        return Helpers.fail('Invalid transaction id');
       }
     } catch (ex) {
       console.log(Messages.ErrorOccurred, ex);

@@ -142,10 +142,6 @@ export class ResourceService {
       if (!Object.values(Status).includes(status))
         return Helpers.fail('Invalid status');
 
-      if (status == Status.MISSING) {
-        if (!requestDto.date) return Helpers.fail('Missing date required');
-      }
-
       const request = { missingDetail: requestDto, status: status };
 
       const statusChangeHistory = {
@@ -223,8 +219,6 @@ export class ResourceService {
           phoneNumber: requestDto.newOwner,
         });
 
-      console.log('newOwner', newOwner);
-
       if (!newOwner) return Helpers.fail('New owner not found');
 
       const authenticatedUser = await this.user.findOne({
@@ -239,10 +233,8 @@ export class ResourceService {
           'You do not have rights to change ownership of this resource',
         );
 
-      if (existingResource.status == Status.MISSING)
-        return Helpers.fail(
-          "You can't change ownership of a missing resource ",
-        );
+      if (existingResource.status == Status.BLOCKED)
+        return Helpers.fail("You can't change ownership of a blocked resource");
 
       const request = {
         prevOwnerUuid: resourceOwner.uuid,
@@ -280,7 +272,10 @@ export class ResourceService {
     }
   }
 
-  async getMyResources(authUser: AuthUserDto): Promise<ApiResponse> {
+  async getMyResources(
+    authUser: AuthUserDto,
+    status: string,
+  ): Promise<ApiResponse> {
     try {
       const resourceOwner = await this.user.findOne({
         uuid: authUser.sub,
@@ -288,9 +283,20 @@ export class ResourceService {
 
       if (!resourceOwner) return Helpers.fail('Resource owner not found');
 
-      const resources = await this.resource.find({
+      const query = {
         currentOwnerUuid: resourceOwner.uuid,
-      });
+      } as any;
+
+      if (
+        status &&
+        Object.values(Status).includes(status.toUpperCase() as Status)
+      ) {
+        query.status = status.toUpperCase();
+      }
+
+      console.log(query);
+
+      const resources = await this.resource.find(query);
       if (resources && resources.length > 0) return Helpers.success(resources);
 
       return Helpers.fail('No Resource found');

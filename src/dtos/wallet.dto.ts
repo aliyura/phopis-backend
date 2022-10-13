@@ -2,6 +2,7 @@ import { IsNumber, IsOptional, IsString } from 'class-validator';
 
 export class FundWalletDto {
   @IsString() paymentRef: string;
+  @IsString() transactionId: number;
   @IsOptional() channel: string;
   @IsNumber() amount: number;
 }

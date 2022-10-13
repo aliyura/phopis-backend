@@ -61,7 +61,7 @@ export class WalletService {
 
       //verify payment
       const result = await this.verificationService.verifyTransaction(
-        fundWalletDto.paymentRef,
+        fundWalletDto.transactionId,
         fundWalletDto.amount,
       );
       if (!result.success) return Helpers.fail(result.message);
