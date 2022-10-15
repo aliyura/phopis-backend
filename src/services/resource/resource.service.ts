@@ -35,9 +35,13 @@ export class ResourceService {
       const resourceExistByIdentity = await this.resource.findOne({
         identityNumber: requestDto.identityNumber,
       });
-      const resourceExistBySerialNumber = await this.resource.findOne({
-        'cartonDetail.serialNumber': requestDto.cartonDetail.serialNumber,
-      });
+
+      let resourceExistBySerialNumber;
+      if (requestDto.cartonDetail && requestDto.cartonDetail.serialNumber) {
+        resourceExistBySerialNumber = await this.resource.findOne({
+          'cartonDetail.serialNumber': requestDto.cartonDetail.serialNumber,
+        });
+      }
 
       const authenticatedUser = await this.user.findOne({
         phoneNumber: authUser.username,
@@ -341,6 +345,30 @@ export class ResourceService {
       }
 
       const resources = await this.resource.find(query);
+      if (resources && resources.length > 0) return Helpers.success(resources);
+
+      return Helpers.fail('No Resource found');
+    } catch (ex) {
+      console.log(Messages.ErrorOccurred, ex);
+      return Helpers.fail(Messages.Exception);
+    }
+  }
+
+  async searchMyResources(
+    authUser: AuthUserDto,
+    searchString: string,
+  ): Promise<ApiResponse> {
+    try {
+      const resourceOwner = await this.user.findOne({
+        uuid: authUser.sub,
+      });
+
+      if (!resourceOwner) return Helpers.fail('Resource owner not found');
+
+      const resources = await this.resource.find({
+        currentOwnerUuid: resourceOwner.uuid,
+        $text: { $search: searchString },
+      });
       if (resources && resources.length > 0) return Helpers.success(resources);
 
       return Helpers.fail('No Resource found');

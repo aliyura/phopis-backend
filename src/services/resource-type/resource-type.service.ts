@@ -26,10 +26,14 @@ export class ResourceTypeService {
 
       if (response) return Helpers.fail('Resource type already exist');
 
+      let title = requestDto.title.replace('\\s', '_');
+      title = title.toUpperCase();
+      requestDto.title = title;
+
       const request = {
         ...requestDto,
         status: Status.ACTIVE,
-        resourceTypeId: `RTI${Helpers.getUniqueId()}`,
+        resourceTypeId: `rt${Helpers.getUniqueId()}`,
       } as ResourceType;
 
       const saved = await this.resourceType.create(request);

@@ -149,4 +149,31 @@ export class UserController {
       );
     }
   }
+
+  @UseGuards(AppGuard)
+  @Get('/search')
+  async searchUsers(
+    @Query('page') page: number,
+    @Query('q') searchText: string,
+    @Headers('Authorization') token: string,
+  ): Promise<ApiResponse> {
+    const authToken = token.substring(7);
+    const userResponse = await this.userService.findByUserToken(authToken);
+    if (!userResponse.success)
+      return Helpers.failedHttpResponse(
+        userResponse.message,
+        HttpStatus.UNAUTHORIZED,
+      );
+
+    if (userResponse.data.role === UserRole.BUSINESS) {
+      const users = await this.userService.searchUsers(page, searchText);
+      if (users.success) return users;
+      return Helpers.failedHttpResponse(users.message, HttpStatus.BAD_REQUEST);
+    } else {
+      return Helpers.failedHttpResponse(
+        'You are not authorized user to perform this operation',
+        HttpStatus.UNAUTHORIZED,
+      );
+    }
+  }
 }

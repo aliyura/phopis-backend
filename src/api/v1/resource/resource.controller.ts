@@ -149,6 +149,24 @@ export class ResourceController {
   }
 
   @UseGuards(AppGuard)
+  @Get('/search')
+  async searchMyResources(
+    @Query('q') searchString: string,
+    @Headers('Authorization') token: string,
+  ): Promise<ApiResponse> {
+    const authToken = token.substring(7);
+    const user = (await this.jwtService.decode(authToken)) as AuthUserDto;
+
+    const response = await this.resourceService.searchMyResources(
+      user,
+      searchString,
+    );
+    if (response.success) {
+      return response;
+    }
+    return Helpers.failedHttpResponse(response.message, HttpStatus.BAD_REQUEST);
+  }
+  @UseGuards(AppGuard)
   @Get('/:ruid')
   async getResourceByRuid(
     @Headers('Authorization') token: string,

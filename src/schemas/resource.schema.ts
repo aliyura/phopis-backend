@@ -87,4 +87,6 @@ export class Resource {
   lastOwnershipChangeDate: string;
 }
 
-export const ResourceSchema = SchemaFactory.createForClass(Resource);
+export const ResourceSchema = SchemaFactory.createForClass(Resource).index({
+  '$**': 'text',
+});
