@@ -84,7 +84,7 @@ export class UserController {
     if (!userResponse.success) return Helpers.fail(userResponse.message);
     const user = userResponse.data;
 
-    const response = await this.userService.updateUser(user.uuid, requestDto);
+    const response = await this.userService.updateUser(user, requestDto);
     if (response.success) {
       return response;
     }
