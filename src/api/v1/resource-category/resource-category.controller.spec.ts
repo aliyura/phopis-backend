@@ -1,5 +1,5 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import { ResourceTypeController } from './resource-type.controller';
+import { ResourceTypeController } from './resource-category.controller';
 
 describe('ResourceTypeController', () => {
   let controller: ResourceTypeController;

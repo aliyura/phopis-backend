@@ -22,12 +22,12 @@ import { ResourceController } from './api/v1/resource/resource.controller';
 import { ResourceService } from './services/resource/resource.service';
 import { Resource, ResourceSchema } from './schemas/resource.schema';
 import { SmsService } from './services/sms/sms.service';
-import { ResourceTypeController } from './api/v1/resource-type/resource-type.controller';
-import { ResourceTypeService } from './services/resource-type/resource-type.service';
+import { ResourceCategoryController } from './api/v1/resource-category/resource-category.controller';
+import { ResourceCategoryService } from './services/resource-category/resource-category.service';
 import {
-  ResourceType,
-  ResourceTypeSchema,
-} from './schemas/resource-type.schema';
+  ResourceCategory,
+  ResourceCategorySchema,
+} from './schemas/resource-category.schema';
 import { VerificationService } from './services/verification/verification.service';
 import { Wallet, WalletSchema } from './schemas/wallet.schema';
 import { WalletService } from './services/wallet/wallet.service';
@@ -41,6 +41,12 @@ import {
   ResourceOwnershipLog,
   ResourceOwnershipLogSchema,
 } from './schemas/resource-ownership-logs.schema';
+import { Product, ProductSchema } from './schemas/product.schema';
+import { ProductType, ProductTypeSchema } from './schemas/product-type.schema';
+import { ProductTypeService } from './services/product-type/product-type.service';
+import { ProductTypeController } from './api/v1/product-type/product-type.controller';
+import { ProductController } from './api/v1/product/product.controller';
+import { ProductService } from './services/product/product.service';
 
 @Module({
   imports: [
@@ -55,10 +61,14 @@ import {
       { name: BusinessType.name, schema: BusinessTypeSchema },
     ]),
     MongooseModule.forFeature([
-      { name: ResourceType.name, schema: ResourceTypeSchema },
+      { name: ResourceCategory.name, schema: ResourceCategorySchema },
     ]),
     MongooseModule.forFeature([
       { name: Resource.name, schema: ResourceSchema },
+    ]),
+    MongooseModule.forFeature([{ name: Product.name, schema: ProductSchema }]),
+    MongooseModule.forFeature([
+      { name: ProductType.name, schema: ProductTypeSchema },
     ]),
     MongooseModule.forFeature([
       { name: ResourceOwnershipLog.name, schema: ResourceOwnershipLogSchema },
@@ -78,10 +88,12 @@ import {
     AuthController,
     BusinessTypeController,
     ResourceController,
-    ResourceTypeController,
+    ResourceCategoryController,
     WalletController,
     AppController,
     FileController,
+    ProductTypeController,
+    ProductController,
   ],
   providers: [
     UserService,
@@ -91,7 +103,9 @@ import {
     BusinessTypeService,
     ResourceService,
     SmsService,
-    ResourceTypeService,
+    ResourceCategoryService,
+    ProductTypeService,
+    ProductService,
     VerificationService,
     WalletService,
     LogsService,

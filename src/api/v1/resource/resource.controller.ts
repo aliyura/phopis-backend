@@ -20,15 +20,15 @@ import {
 } from '../../../dtos/resource.dto';
 import { Helpers } from 'src/helpers';
 import { AppGuard } from 'src/services/auth/app.guard';
-import { AuthUserDto } from '../../../dtos/user.dto';
-import { JwtService } from '@nestjs/jwt';
 import { ResourceOwnershipChangeDto } from '../../../dtos/resource.dto';
+import { User } from 'src/schemas/user.schema';
+import { UserService } from '../../../services/user/user.service';
 
 @Controller('resource')
 export class ResourceController {
   constructor(
     private resourceService: ResourceService,
-    private jwtService: JwtService,
+    private userService: UserService,
   ) {}
 
   @UseGuards(AppGuard)
@@ -38,7 +38,13 @@ export class ResourceController {
     @Body() requestDto: ResourceDto,
   ): Promise<ApiResponse> {
     const authToken = token.substring(7);
-    const user = (await this.jwtService.decode(authToken)) as AuthUserDto;
+    const userResponse = await this.userService.findByUserToken(authToken);
+    if (!userResponse.success)
+      return Helpers.failedHttpResponse(
+        userResponse.message,
+        HttpStatus.BAD_REQUEST,
+      );
+    const user = userResponse.data as User;
 
     const response = await this.resourceService.createResource(
       user,
@@ -58,7 +64,14 @@ export class ResourceController {
     @Body() requestDto: UpdateResourceDto,
   ): Promise<ApiResponse> {
     const authToken = token.substring(7);
-    const user = (await this.jwtService.decode(authToken)) as AuthUserDto;
+    const userResponse = await this.userService.findByUserToken(authToken);
+    if (!userResponse.success)
+      return Helpers.failedHttpResponse(
+        userResponse.message,
+        HttpStatus.BAD_REQUEST,
+      );
+    const user = userResponse.data as User;
+
     const response = await this.resourceService.updateResource(
       user,
       resourceId,
@@ -77,7 +90,14 @@ export class ResourceController {
     @Param('resourceId') resourceId: string,
   ): Promise<ApiResponse> {
     const authToken = token.substring(7);
-    const user = (await this.jwtService.decode(authToken)) as AuthUserDto;
+    const userResponse = await this.userService.findByUserToken(authToken);
+    if (!userResponse.success)
+      return Helpers.failedHttpResponse(
+        userResponse.message,
+        HttpStatus.BAD_REQUEST,
+      );
+    const user = userResponse.data as User;
+
     const response = await this.resourceService.deleteResource(
       user,
       resourceId,
@@ -97,7 +117,13 @@ export class ResourceController {
     @Body() requestDto: ResourceStatusUpdateDto,
   ): Promise<ApiResponse> {
     const authToken = token.substring(7);
-    const user = (await this.jwtService.decode(authToken)) as AuthUserDto;
+    const userResponse = await this.userService.findByUserToken(authToken);
+    if (!userResponse.success)
+      return Helpers.failedHttpResponse(
+        userResponse.message,
+        HttpStatus.BAD_REQUEST,
+      );
+    const user = userResponse.data as User;
 
     const response = await this.resourceService.updateResourceStatus(
       user,
@@ -119,7 +145,13 @@ export class ResourceController {
     @Body() requestDto: ResourceOwnershipChangeDto,
   ): Promise<ApiResponse> {
     const authToken = token.substring(7);
-    const user = (await this.jwtService.decode(authToken)) as AuthUserDto;
+    const userResponse = await this.userService.findByUserToken(authToken);
+    if (!userResponse.success)
+      return Helpers.failedHttpResponse(
+        userResponse.message,
+        HttpStatus.BAD_REQUEST,
+      );
+    const user = userResponse.data as User;
 
     const response = await this.resourceService.changeResourceOwnership(
       user,
@@ -139,7 +171,13 @@ export class ResourceController {
     @Headers('Authorization') token: string,
   ): Promise<ApiResponse> {
     const authToken = token.substring(7);
-    const user = (await this.jwtService.decode(authToken)) as AuthUserDto;
+    const userResponse = await this.userService.findByUserToken(authToken);
+    if (!userResponse.success)
+      return Helpers.failedHttpResponse(
+        userResponse.message,
+        HttpStatus.BAD_REQUEST,
+      );
+    const user = userResponse.data as User;
 
     const response = await this.resourceService.getMyResources(user, status);
     if (response.success) {
@@ -155,7 +193,13 @@ export class ResourceController {
     @Headers('Authorization') token: string,
   ): Promise<ApiResponse> {
     const authToken = token.substring(7);
-    const user = (await this.jwtService.decode(authToken)) as AuthUserDto;
+    const userResponse = await this.userService.findByUserToken(authToken);
+    if (!userResponse.success)
+      return Helpers.failedHttpResponse(
+        userResponse.message,
+        HttpStatus.BAD_REQUEST,
+      );
+    const user = userResponse.data as User;
 
     const response = await this.resourceService.searchMyResources(
       user,
@@ -173,7 +217,13 @@ export class ResourceController {
     @Param('ruid') ruid: string,
   ): Promise<ApiResponse> {
     const authToken = token.substring(7);
-    const user = (await this.jwtService.decode(authToken)) as AuthUserDto;
+    const userResponse = await this.userService.findByUserToken(authToken);
+    if (!userResponse.success)
+      return Helpers.failedHttpResponse(
+        userResponse.message,
+        HttpStatus.BAD_REQUEST,
+      );
+    const user = userResponse.data as User;
 
     const response = await this.resourceService.getResourceByRuid(user, ruid);
     if (response.success) {
@@ -189,7 +239,13 @@ export class ResourceController {
     @Param('identityNumber') identityNumber: string,
   ): Promise<ApiResponse> {
     const authToken = token.substring(7);
-    const user = (await this.jwtService.decode(authToken)) as AuthUserDto;
+    const userResponse = await this.userService.findByUserToken(authToken);
+    if (!userResponse.success)
+      return Helpers.failedHttpResponse(
+        userResponse.message,
+        HttpStatus.BAD_REQUEST,
+      );
+    const user = userResponse.data as User;
 
     const response = await this.resourceService.getResourceByIdentityNumber(
       user,
@@ -207,7 +263,13 @@ export class ResourceController {
     @Param('serialNumber') serialNumber: string,
   ): Promise<ApiResponse> {
     const authToken = token.substring(7);
-    const user = (await this.jwtService.decode(authToken)) as AuthUserDto;
+    const userResponse = await this.userService.findByUserToken(authToken);
+    if (!userResponse.success)
+      return Helpers.failedHttpResponse(
+        userResponse.message,
+        HttpStatus.BAD_REQUEST,
+      );
+    const user = userResponse.data as User;
 
     const response = await this.resourceService.getResourceBySerialNumber(
       user,
@@ -226,7 +288,13 @@ export class ResourceController {
     @Param('code') code: string,
   ): Promise<ApiResponse> {
     const authToken = token.substring(7);
-    const user = (await this.jwtService.decode(authToken)) as AuthUserDto;
+    const userResponse = await this.userService.findByUserToken(authToken);
+    if (!userResponse.success)
+      return Helpers.failedHttpResponse(
+        userResponse.message,
+        HttpStatus.BAD_REQUEST,
+      );
+    const user = userResponse.data as User;
 
     const response = await this.resourceService.getResourceByCode(user, code);
     if (response.success) {
@@ -241,7 +309,13 @@ export class ResourceController {
     @Headers('Authorization') token: string,
   ): Promise<ApiResponse> {
     const authToken = token.substring(7);
-    const user = (await this.jwtService.decode(authToken)) as AuthUserDto;
+    const userResponse = await this.userService.findByUserToken(authToken);
+    if (!userResponse.success)
+      return Helpers.failedHttpResponse(
+        userResponse.message,
+        HttpStatus.BAD_REQUEST,
+      );
+    const user = userResponse.data as User;
 
     const response = await this.resourceService.getResourceOwnershipLog(user);
     if (response.success) {

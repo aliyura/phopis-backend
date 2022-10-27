@@ -11,8 +11,16 @@ export enum Status {
   RELEASED = 'RELEASED',
   FAILED = 'FAILED',
   SUCCESSFUL = 'SUCCESSFUL',
+  AVAILABLE = 'AVAILABLE',
+  UNAVAILABLE = 'UNAVAILABLE',
 }
 
+export enum ActionType {
+  OWNERSHIPCHANGE = 'OWNERSHIPCHANGE',
+  ADJUSTMENT = 'ADJUSTMENT',
+  UPLOAD = 'UPLOAD',
+  UPDATE = 'UPDATE',
+}
 export enum WalletActivity {
   DEBIT = 'DEBIT',
   CREDIT = 'CREDIT',

@@ -92,4 +92,8 @@ export class Helpers {
     }
     return false;
   }
+
+  static getSizes(): any[] {
+    return ['PIECE', 'CARTON', 'PACKET', 'BAG'];
+  }
 }

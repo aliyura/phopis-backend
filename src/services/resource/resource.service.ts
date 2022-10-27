@@ -10,8 +10,7 @@ import {
 } from '../../dtos/resource.dto';
 import { ResourceDocument, Resource } from '../../schemas/resource.schema';
 import { UserDocument, User } from 'src/schemas/user.schema';
-import { AuthUserDto } from '../../dtos/user.dto';
-import { Status } from 'src/enums';
+import { ActionType, Status } from 'src/enums';
 import { ResourceOwnershipChangeDto } from '../../dtos/resource.dto';
 import { Messages } from 'src/utils/messages/messages';
 import {
@@ -28,7 +27,7 @@ export class ResourceService {
     private resourceOwnershipLog: Model<ResourceOwnershipLogDocument>,
   ) {}
   async createResource(
-    authUser: AuthUserDto,
+    authenticatedUser: User,
     requestDto: ResourceDto,
   ): Promise<ApiResponse> {
     try {
@@ -42,10 +41,6 @@ export class ResourceService {
           'cartonDetail.serialNumber': requestDto.cartonDetail.serialNumber,
         });
       }
-
-      const authenticatedUser = await this.user.findOne({
-        phoneNumber: authUser.username,
-      });
 
       if (resourceExistByIdentity)
         return Helpers.fail('Resource identity you provide is already exist');
@@ -80,19 +75,11 @@ export class ResourceService {
   }
 
   async updateResource(
-    authUser: AuthUserDto,
+    authenticatedUser: User,
     resourceId: string,
     requestDto: UpdateResourceDto,
   ): Promise<ApiResponse> {
     try {
-      const authenticatedUser = await this.user
-        .findOne({
-          $or: [{ phoneNumber: authUser.username }, { nin: authUser.username }],
-        })
-        .exec();
-
-      if (!authenticatedUser) return Helpers.fail('Resource owner not found');
-
       const existingResource = await this.resource.findOne({
         ruid: resourceId,
         uuid: authenticatedUser.uuid,
@@ -110,7 +97,23 @@ export class ResourceService {
         return Helpers.fail('You do not permission to update this resource');
       }
 
-      await this.resource.updateOne({ ruid: resourceId }, { $set: requestDto });
+      const updateHistory = {
+        ...requestDto,
+        actionType: ActionType.UPDATE,
+        actionDate: new Date(),
+        actionBy: authenticatedUser.uuid,
+        actionByUser: authenticatedUser.name,
+      };
+
+      await this.resource.updateOne(
+        { ruid: resourceId, uuid: authenticatedUser.uuid },
+        {
+          $set: requestDto,
+          $push: {
+            updateHistory: updateHistory,
+          },
+        },
+      );
       return Helpers.success(
         await this.resource.findOne({
           ruid: resourceId,
@@ -123,18 +126,10 @@ export class ResourceService {
   }
 
   async deleteResource(
-    authUser: AuthUserDto,
+    authenticatedUser: User,
     resourceId: string,
   ): Promise<ApiResponse> {
     try {
-      const authenticatedUser = await this.user
-        .findOne({
-          $or: [{ phoneNumber: authUser.username }, { nin: authUser.username }],
-        })
-        .exec();
-
-      if (!authenticatedUser) return Helpers.fail('Resource owner not found');
-
       const existingResource = await this.resource.findOne({
         ruid: resourceId,
         uuid: authenticatedUser.uuid,
@@ -163,20 +158,12 @@ export class ResourceService {
   }
 
   async updateResourceStatus(
-    authUser: AuthUserDto,
+    authenticatedUser: User,
     resourceId: string,
     status: any,
     requestDto: ResourceStatusUpdateDto,
   ): Promise<ApiResponse> {
     try {
-      const authenticatedUser = await this.user
-        .findOne({
-          $or: [{ phoneNumber: authUser.username }, { nin: authUser.username }],
-        })
-        .exec();
-
-      if (!authenticatedUser) return Helpers.fail('Resource owner not found');
-
       const existingResource = await this.resource.findOne({
         ruid: resourceId,
       });
@@ -206,6 +193,7 @@ export class ResourceService {
       const statusChangeHistory = {
         ...requestDto,
         status: status,
+        actionType: ActionType.UPDATE,
         actionDate: new Date(),
         actionBy: authenticatedUser.uuid,
         actionByUser: authenticatedUser.name,
@@ -234,19 +222,11 @@ export class ResourceService {
   }
 
   async changeResourceOwnership(
-    authUser: AuthUserDto,
+    authenticatedUser: User,
     resourceId: string,
     requestDto: ResourceOwnershipChangeDto,
   ): Promise<ApiResponse> {
     try {
-      const authenticatedUser = await this.user
-        .findOne({
-          $or: [{ phoneNumber: authUser.username }, { nin: authUser.username }],
-        })
-        .exec();
-
-      if (!authenticatedUser) return Helpers.fail('Resource owner not found');
-
       const existingResource = await this.resource.findOne({
         ruid: resourceId,
       });
@@ -287,12 +267,20 @@ export class ResourceService {
         actionByUser: authenticatedUser.name,
       } as any;
 
+      const updateHistory = {
+        ...requestDto,
+        actionType: ActionType.OWNERSHIPCHANGE,
+        actionDate: new Date(),
+        actionBy: authenticatedUser.uuid,
+        actionByUser: authenticatedUser.name,
+      };
       await this.resource.updateOne(
         { ruid: resourceId },
         {
           $set: request,
           $push: {
             ownershipHistory: ownershipHistory,
+            updateHistory: updateHistory,
           },
         },
         { upsert: true },
@@ -323,18 +311,12 @@ export class ResourceService {
   }
 
   async getMyResources(
-    authUser: AuthUserDto,
+    authenticatedUser: User,
     status: string,
   ): Promise<ApiResponse> {
     try {
-      const resourceOwner = await this.user.findOne({
-        uuid: authUser.sub,
-      });
-
-      if (!resourceOwner) return Helpers.fail('Resource owner not found');
-
       const query = {
-        currentOwnerUuid: resourceOwner.uuid,
+        currentOwnerUuid: authenticatedUser.uuid,
       } as any;
 
       if (
@@ -355,18 +337,12 @@ export class ResourceService {
   }
 
   async searchMyResources(
-    authUser: AuthUserDto,
+    authenticatedUser: User,
     searchString: string,
   ): Promise<ApiResponse> {
     try {
-      const resourceOwner = await this.user.findOne({
-        uuid: authUser.sub,
-      });
-
-      if (!resourceOwner) return Helpers.fail('Resource owner not found');
-
       const resources = await this.resource.find({
-        currentOwnerUuid: resourceOwner.uuid,
+        currentOwnerUuid: authenticatedUser.uuid,
         $text: { $search: searchString },
       });
       if (resources && resources.length > 0) return Helpers.success(resources);
@@ -379,7 +355,7 @@ export class ResourceService {
   }
 
   async getResourceByRuid(
-    authUser: AuthUserDto,
+    authenticatedUser: User,
     ruid: string,
   ): Promise<ApiResponse> {
     try {
@@ -394,7 +370,7 @@ export class ResourceService {
   }
 
   async getResourceByIdentityNumber(
-    authUser: AuthUserDto,
+    authenticatedUser: User,
     identityNumber: string,
   ): Promise<ApiResponse> {
     try {
@@ -409,7 +385,7 @@ export class ResourceService {
   }
 
   async getResourceBySerialNumber(
-    authUser: AuthUserDto,
+    authenticatedUser: User,
     cattonSerialNumber: string,
   ): Promise<ApiResponse> {
     try {
@@ -426,7 +402,7 @@ export class ResourceService {
   }
 
   async getResourceByCode(
-    authUser: AuthUserDto,
+    authenticatedUser: User,
     code: string,
   ): Promise<ApiResponse> {
     try {
@@ -440,16 +416,8 @@ export class ResourceService {
     }
   }
 
-  async getResourceOwnershipLog(authUser: AuthUserDto): Promise<ApiResponse> {
+  async getResourceOwnershipLog(authenticatedUser: User): Promise<ApiResponse> {
     try {
-      const authenticatedUser = await this.user
-        .findOne({
-          $or: [{ phoneNumber: authUser.username }, { nin: authUser.username }],
-        })
-        .exec();
-
-      if (!authenticatedUser) return Helpers.fail('Resource owner not found');
-
       const resources = await this.resourceOwnershipLog.find({
         ownerUuid: authenticatedUser.uuid,
       });

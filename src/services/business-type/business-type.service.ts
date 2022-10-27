@@ -29,7 +29,7 @@ export class BusinessTypeService {
       const request = {
         ...requestDto,
         status: Status.ACTIVE,
-        businessTypeId: `BTI${Helpers.getUniqueId()}`,
+        btuid: `bt${Helpers.getUniqueId()}`,
       } as BusinessType;
 
       const saved = await this.businessType.create(request);
@@ -40,9 +40,9 @@ export class BusinessTypeService {
     }
   }
 
-  async findBusinessType(type: string): Promise<ApiResponse> {
+  async findBusinessType(btuid: string): Promise<ApiResponse> {
     try {
-      const req = await this.businessType.findOne({ businessTypeId: type });
+      const req = await this.businessType.findOne({ btuid });
       if (req) {
         return Helpers.success(req);
       }

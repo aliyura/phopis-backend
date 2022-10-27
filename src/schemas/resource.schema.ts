@@ -60,6 +60,9 @@ export class Resource {
   ownershipHistory: any[];
 
   @Prop()
+  updateHistory: any[];
+
+  @Prop()
   ownershipProof: ResourceOwnershipProofDto;
 
   @Prop()

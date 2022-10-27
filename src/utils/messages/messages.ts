@@ -7,6 +7,7 @@ export enum Messages {
   NoUserFound = 'No User found',
   WalletNotFound = 'Wallet not found',
   ResourceNotFound = 'Resource not found',
-  ResourceTypeNotFound = 'Resource type not found',
+  ResourceCategoryNotFound = 'Resource category not found',
+  ProductTypeNotFound = 'Product type not found',
   BusinessTypeNotFound = 'Business type not found',
 }

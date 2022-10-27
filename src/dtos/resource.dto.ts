@@ -25,7 +25,7 @@ export class ResourceDto {
   @IsOptional() description: string;
   @IsOptional() carton: boolean;
   @IsOptional() cartonDetail: CartonDetailDto;
-  @IsOptional() type: string;
+  @IsOptional() category: string;
   @IsOptional() picture: string;
   @IsOptional() ownershipProof: ResourceOwnershipProofDto;
   @IsOptional() size: string;
