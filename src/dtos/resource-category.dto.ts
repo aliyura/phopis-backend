@@ -1,6 +1,6 @@
 import { IsOptional } from 'class-validator';
 
-export class ResourceCategoryDto {
+export class ProductCategoryDto {
   @IsOptional() title: string;
   @IsOptional() description: string;
 }

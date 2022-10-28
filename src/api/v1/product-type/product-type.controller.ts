@@ -15,7 +15,7 @@ import { AppGuard } from 'src/services/auth/app.guard';
 import { ProductTypeService } from 'src/services/product-type/product-type.service';
 import { ProductTypeDto } from '../../../dtos/product-type.dto';
 
-@Controller('inventory/product-type')
+@Controller('product-type')
 export class ProductTypeController {
   constructor(private readonly resourceCategoryService: ProductTypeService) {}
   @UseGuards(AppGuard)
@@ -59,9 +59,9 @@ export class ProductTypeController {
   @Get('/list')
   async allProductType(): Promise<ApiResponse> {
     const response = await this.resourceCategoryService.allProductType();
-    if (response.success) {
+    if (response.success && response.data) {
       return response;
     }
-    return Helpers.failedHttpResponse(response.message, HttpStatus.BAD_REQUEST);
+    return Helpers.failedHttpResponse(response.message, HttpStatus.NOT_FOUND);
   }
 }

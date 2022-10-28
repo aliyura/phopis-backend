@@ -1,10 +1,10 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { Document, Types } from 'mongoose';
 
-export type ResourceCategoryDocument = ResourceCategory & Document;
+export type ProductCategoryDocument = ProductCategory & Document;
 
 @Schema({ timestamps: true })
-export class ResourceCategory {
+export class ProductCategory {
   @Prop({ type: Types.ObjectId })
   id: string;
 
@@ -18,8 +18,8 @@ export class ResourceCategory {
   status: string;
 
   @Prop({ required: true })
-  rcuid: string;
+  pcuid: string;
 }
 
-export const ResourceCategorySchema =
-  SchemaFactory.createForClass(ResourceCategory);
+export const ProductCategorySchema =
+  SchemaFactory.createForClass(ProductCategory);

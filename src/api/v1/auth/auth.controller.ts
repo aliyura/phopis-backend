@@ -13,7 +13,7 @@ export class AuthController {
     @Body() requestDto: UserAuthDto,
   ): Promise<ApiResponse> {
     const response = await this.authService.login(requestDto);
-    if (response.success) {
+    if (response.success && response.data) {
       return response;
     }
     return Helpers.failedHttpResponse(

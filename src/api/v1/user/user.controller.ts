@@ -106,7 +106,7 @@ export class UserController {
 
     return Helpers.failedHttpResponse(
       userResponse.message,
-      HttpStatus.BAD_REQUEST,
+      HttpStatus.NOT_FOUND,
     );
   }
 
@@ -119,7 +119,7 @@ export class UserController {
 
     return Helpers.failedHttpResponse(
       userResponse.message,
-      HttpStatus.BAD_REQUEST,
+      HttpStatus.NOT_FOUND,
     );
   }
 
@@ -141,7 +141,7 @@ export class UserController {
     if (userResponse.data.role === UserRole.BUSINESS) {
       const users = await this.userService.findAllUsers(page, status);
       if (users.success) return users;
-      return Helpers.failedHttpResponse(users.message, HttpStatus.BAD_REQUEST);
+      return Helpers.failedHttpResponse(users.message, HttpStatus.NOT_FOUND);
     } else {
       return Helpers.failedHttpResponse(
         'You are not authorized user to perform this operation',
@@ -168,7 +168,7 @@ export class UserController {
     if (userResponse.data.role === UserRole.BUSINESS) {
       const users = await this.userService.searchUsers(page, searchText);
       if (users.success) return users;
-      return Helpers.failedHttpResponse(users.message, HttpStatus.BAD_REQUEST);
+      return Helpers.failedHttpResponse(users.message, HttpStatus.NOT_FOUND);
     } else {
       return Helpers.failedHttpResponse(
         'You are not authorized user to perform this operation',

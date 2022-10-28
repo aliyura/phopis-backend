@@ -42,7 +42,7 @@ export class ResourceController {
     if (!userResponse.success)
       return Helpers.failedHttpResponse(
         userResponse.message,
-        HttpStatus.BAD_REQUEST,
+        HttpStatus.UNAUTHORIZED,
       );
     const user = userResponse.data as User;
 
@@ -68,7 +68,7 @@ export class ResourceController {
     if (!userResponse.success)
       return Helpers.failedHttpResponse(
         userResponse.message,
-        HttpStatus.BAD_REQUEST,
+        HttpStatus.UNAUTHORIZED,
       );
     const user = userResponse.data as User;
 
@@ -94,7 +94,7 @@ export class ResourceController {
     if (!userResponse.success)
       return Helpers.failedHttpResponse(
         userResponse.message,
-        HttpStatus.BAD_REQUEST,
+        HttpStatus.UNAUTHORIZED,
       );
     const user = userResponse.data as User;
 
@@ -121,7 +121,7 @@ export class ResourceController {
     if (!userResponse.success)
       return Helpers.failedHttpResponse(
         userResponse.message,
-        HttpStatus.BAD_REQUEST,
+        HttpStatus.UNAUTHORIZED,
       );
     const user = userResponse.data as User;
 
@@ -149,7 +149,7 @@ export class ResourceController {
     if (!userResponse.success)
       return Helpers.failedHttpResponse(
         userResponse.message,
-        HttpStatus.BAD_REQUEST,
+        HttpStatus.UNAUTHORIZED,
       );
     const user = userResponse.data as User;
 
@@ -165,7 +165,7 @@ export class ResourceController {
   }
 
   @UseGuards(AppGuard)
-  @Get('/')
+  @Get('/list')
   async getMyResources(
     @Query('status') status: string,
     @Headers('Authorization') token: string,
@@ -175,7 +175,7 @@ export class ResourceController {
     if (!userResponse.success)
       return Helpers.failedHttpResponse(
         userResponse.message,
-        HttpStatus.BAD_REQUEST,
+        HttpStatus.UNAUTHORIZED,
       );
     const user = userResponse.data as User;
 
@@ -183,7 +183,7 @@ export class ResourceController {
     if (response.success) {
       return response;
     }
-    return Helpers.failedHttpResponse(response.message, HttpStatus.BAD_REQUEST);
+    return Helpers.failedHttpResponse(response.message, HttpStatus.NOT_FOUND);
   }
 
   @UseGuards(AppGuard)
@@ -197,7 +197,7 @@ export class ResourceController {
     if (!userResponse.success)
       return Helpers.failedHttpResponse(
         userResponse.message,
-        HttpStatus.BAD_REQUEST,
+        HttpStatus.UNAUTHORIZED,
       );
     const user = userResponse.data as User;
 
@@ -208,7 +208,7 @@ export class ResourceController {
     if (response.success) {
       return response;
     }
-    return Helpers.failedHttpResponse(response.message, HttpStatus.BAD_REQUEST);
+    return Helpers.failedHttpResponse(response.message, HttpStatus.NOT_FOUND);
   }
   @UseGuards(AppGuard)
   @Get('/:ruid')
@@ -221,7 +221,7 @@ export class ResourceController {
     if (!userResponse.success)
       return Helpers.failedHttpResponse(
         userResponse.message,
-        HttpStatus.BAD_REQUEST,
+        HttpStatus.UNAUTHORIZED,
       );
     const user = userResponse.data as User;
 
@@ -229,7 +229,7 @@ export class ResourceController {
     if (response.success) {
       return response;
     }
-    return Helpers.failedHttpResponse(response.message, HttpStatus.BAD_REQUEST);
+    return Helpers.failedHttpResponse(response.message, HttpStatus.NOT_FOUND);
   }
 
   @UseGuards(AppGuard)
@@ -243,7 +243,7 @@ export class ResourceController {
     if (!userResponse.success)
       return Helpers.failedHttpResponse(
         userResponse.message,
-        HttpStatus.BAD_REQUEST,
+        HttpStatus.UNAUTHORIZED,
       );
     const user = userResponse.data as User;
 
@@ -254,7 +254,7 @@ export class ResourceController {
     if (response.success) {
       return response;
     }
-    return Helpers.failedHttpResponse(response.message, HttpStatus.BAD_REQUEST);
+    return Helpers.failedHttpResponse(response.message, HttpStatus.NOT_FOUND);
   }
   @UseGuards(AppGuard)
   @Get('/search/byserial/:serialNumber')
@@ -267,7 +267,7 @@ export class ResourceController {
     if (!userResponse.success)
       return Helpers.failedHttpResponse(
         userResponse.message,
-        HttpStatus.BAD_REQUEST,
+        HttpStatus.UNAUTHORIZED,
       );
     const user = userResponse.data as User;
 
@@ -278,7 +278,7 @@ export class ResourceController {
     if (response.success) {
       return response;
     }
-    return Helpers.failedHttpResponse(response.message, HttpStatus.BAD_REQUEST);
+    return Helpers.failedHttpResponse(response.message, HttpStatus.NOT_FOUND);
   }
 
   @UseGuards(AppGuard)
@@ -292,7 +292,7 @@ export class ResourceController {
     if (!userResponse.success)
       return Helpers.failedHttpResponse(
         userResponse.message,
-        HttpStatus.BAD_REQUEST,
+        HttpStatus.UNAUTHORIZED,
       );
     const user = userResponse.data as User;
 
@@ -300,7 +300,7 @@ export class ResourceController {
     if (response.success) {
       return response;
     }
-    return Helpers.failedHttpResponse(response.message, HttpStatus.BAD_REQUEST);
+    return Helpers.failedHttpResponse(response.message, HttpStatus.NOT_FOUND);
   }
 
   @UseGuards(AppGuard)
@@ -313,7 +313,7 @@ export class ResourceController {
     if (!userResponse.success)
       return Helpers.failedHttpResponse(
         userResponse.message,
-        HttpStatus.BAD_REQUEST,
+        HttpStatus.UNAUTHORIZED,
       );
     const user = userResponse.data as User;
 
@@ -321,6 +321,6 @@ export class ResourceController {
     if (response.success) {
       return response;
     }
-    return Helpers.failedHttpResponse(response.message, HttpStatus.BAD_REQUEST);
+    return Helpers.failedHttpResponse(response.message, HttpStatus.NOT_FOUND);
   }
 }

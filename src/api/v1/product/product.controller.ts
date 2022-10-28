@@ -42,7 +42,7 @@ export class ProductController {
     if (!userResponse.success)
       return Helpers.failedHttpResponse(
         userResponse.message,
-        HttpStatus.BAD_REQUEST,
+        HttpStatus.UNAUTHORIZED,
       );
     const user = userResponse.data as User;
 
@@ -65,7 +65,7 @@ export class ProductController {
     if (!userResponse.success)
       return Helpers.failedHttpResponse(
         userResponse.message,
-        HttpStatus.BAD_REQUEST,
+        HttpStatus.UNAUTHORIZED,
       );
     const user = userResponse.data as User;
 
@@ -92,7 +92,7 @@ export class ProductController {
     if (!userResponse.success)
       return Helpers.failedHttpResponse(
         userResponse.message,
-        HttpStatus.BAD_REQUEST,
+        HttpStatus.UNAUTHORIZED,
       );
     const user = userResponse.data as User;
 
@@ -118,7 +118,7 @@ export class ProductController {
     if (!userResponse.success)
       return Helpers.failedHttpResponse(
         userResponse.message,
-        HttpStatus.BAD_REQUEST,
+        HttpStatus.UNAUTHORIZED,
       );
     const user = userResponse.data as User;
 
@@ -144,7 +144,7 @@ export class ProductController {
     if (!userResponse.success)
       return Helpers.failedHttpResponse(
         userResponse.message,
-        HttpStatus.BAD_REQUEST,
+        HttpStatus.UNAUTHORIZED,
       );
     const user = userResponse.data as User;
 
@@ -167,7 +167,7 @@ export class ProductController {
     if (!userResponse.success)
       return Helpers.failedHttpResponse(
         userResponse.message,
-        HttpStatus.BAD_REQUEST,
+        HttpStatus.UNAUTHORIZED,
       );
     const user = userResponse.data as User;
 
@@ -179,7 +179,7 @@ export class ProductController {
     if (response.success) {
       return response;
     }
-    return Helpers.failedHttpResponse(response.message, HttpStatus.BAD_REQUEST);
+    return Helpers.failedHttpResponse(response.message, HttpStatus.NOT_FOUND);
   }
 
   @UseGuards(AppGuard)
@@ -194,7 +194,7 @@ export class ProductController {
     if (!userResponse.success)
       return Helpers.failedHttpResponse(
         userResponse.message,
-        HttpStatus.BAD_REQUEST,
+        HttpStatus.UNAUTHORIZED,
       );
     const user = userResponse.data as User;
 
@@ -206,6 +206,6 @@ export class ProductController {
     if (response.success) {
       return response;
     }
-    return Helpers.failedHttpResponse(response.message, HttpStatus.BAD_REQUEST);
+    return Helpers.failedHttpResponse(response.message, HttpStatus.NOT_FOUND);
   }
 }

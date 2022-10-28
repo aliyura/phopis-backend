@@ -3,23 +3,23 @@ import { InjectModel } from '@nestjs/mongoose';
 import { ApiResponse } from 'src/dtos/ApiResponse.dto';
 import { Status } from 'src/enums';
 import { Helpers } from 'src/helpers';
-import { ResourceCategoryDto } from '../../dtos/resource-category.dto';
+import { ProductCategoryDto } from '../../dtos/resource-category.dto';
 import { Model } from 'mongoose';
 import {
-  ResourceCategory,
-  ResourceCategoryDocument,
+  ProductCategory,
+  ProductCategoryDocument,
 } from '../../schemas/resource-category.schema';
 import { Messages } from 'src/utils/messages/messages';
 
 @Injectable()
-export class ResourceCategoryService {
+export class ProductCategoryService {
   constructor(
-    @InjectModel(ResourceCategory.name)
-    private resourceType: Model<ResourceCategoryDocument>,
+    @InjectModel(ProductCategory.name)
+    private resourceType: Model<ProductCategoryDocument>,
   ) {}
 
-  async createResourceCategory(
-    requestDto: ResourceCategoryDto,
+  async createProductCategory(
+    requestDto: ProductCategoryDto,
   ): Promise<ApiResponse> {
     try {
       const response = await this.resourceType
@@ -35,8 +35,8 @@ export class ResourceCategoryService {
       const request = {
         ...requestDto,
         status: Status.ACTIVE,
-        rcuid: `rc${Helpers.getUniqueId()}`,
-      } as ResourceCategory;
+        pcuid: `rc${Helpers.getUniqueId()}`,
+      } as ProductCategory;
 
       const saved = await this.resourceType.create(request);
       return Helpers.success(saved);
@@ -46,9 +46,9 @@ export class ResourceCategoryService {
     }
   }
 
-  async updateResourceCategory(
+  async updateProductCategory(
     id: string,
-    requestDto: ResourceCategoryDto,
+    requestDto: ProductCategoryDto,
   ): Promise<ApiResponse> {
     try {
       const response = await this.resourceType
@@ -68,7 +68,7 @@ export class ResourceCategoryService {
     }
   }
 
-  async deleteResourceCategory(rcuid: string): Promise<ApiResponse> {
+  async deleteProductCategory(rcuid: string): Promise<ApiResponse> {
     try {
       const response = await this.resourceType.deleteOne({ rcuid }).exec();
       return Helpers.success(response);
@@ -78,26 +78,26 @@ export class ResourceCategoryService {
     }
   }
 
-  async findResourceCategory(rcuid: string): Promise<ApiResponse> {
+  async findProductCategory(rcuid: string): Promise<ApiResponse> {
     try {
       const req = await this.resourceType.findOne({ rcuid });
       if (req) {
         return Helpers.success(req);
       }
-      return Helpers.fail(Messages.ResourceCategoryNotFound);
+      return Helpers.fail(Messages.ProductCategoryNotFound);
     } catch (ex) {
       console.log(Messages.ErrorOccurred, ex);
       return Helpers.fail(Messages.Exception);
     }
   }
 
-  async allResourceCategory(): Promise<ApiResponse> {
+  async allProductCategory(): Promise<ApiResponse> {
     try {
       const req = await this.resourceType.find();
       if (req) {
         return Helpers.success(req);
       }
-      return Helpers.fail(Messages.ResourceCategoryNotFound);
+      return Helpers.fail(Messages.ProductCategoryNotFound);
     } catch (ex) {
       console.log(Messages.ErrorOccurred, ex);
       return Helpers.fail(Messages.Exception);

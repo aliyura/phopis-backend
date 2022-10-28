@@ -12,20 +12,20 @@ import {
 import { ApiResponse } from 'src/dtos/ApiResponse.dto';
 import { Helpers } from 'src/helpers';
 import { AppGuard } from 'src/services/auth/app.guard';
-import { ResourceCategoryService } from 'src/services/resource-category/resource-category.service';
-import { ResourceCategoryDto } from '../../../dtos/resource-category.dto';
+import { ProductCategoryService } from 'src/services/product-category/product-category.service';
+import { ProductCategoryDto } from '../../../dtos/resource-category.dto';
 
-@Controller('resource-category')
-export class ResourceCategoryController {
+@Controller('product-category')
+export class ProductCategoryController {
   constructor(
-    private readonly resourceCategoryService: ResourceCategoryService,
+    private readonly resourceCategoryService: ProductCategoryService,
   ) {}
   @UseGuards(AppGuard)
   @Post('/')
-  async createResourceCategory(
-    @Body() requestDto: ResourceCategoryDto,
+  async createProductCategory(
+    @Body() requestDto: ProductCategoryDto,
   ): Promise<ApiResponse> {
-    const response = await this.resourceCategoryService.createResourceCategory(
+    const response = await this.resourceCategoryService.createProductCategory(
       requestDto,
     );
     if (response.success) {
@@ -35,11 +35,11 @@ export class ResourceCategoryController {
   }
   @UseGuards(AppGuard)
   @Put('/:id')
-  async updateResourceCategory(
+  async updateProductCategory(
     @Param('id') id: string,
-    @Body() requestDto: ResourceCategoryDto,
+    @Body() requestDto: ProductCategoryDto,
   ): Promise<ApiResponse> {
-    const response = await this.resourceCategoryService.updateResourceCategory(
+    const response = await this.resourceCategoryService.updateProductCategory(
       id,
       requestDto,
     );
@@ -50,8 +50,8 @@ export class ResourceCategoryController {
   }
   @UseGuards(AppGuard)
   @Delete('/:id')
-  async deleteResourceCategory(@Param('id') id: string): Promise<ApiResponse> {
-    const response = await this.resourceCategoryService.deleteResourceCategory(
+  async deleteProductCategory(@Param('id') id: string): Promise<ApiResponse> {
+    const response = await this.resourceCategoryService.deleteProductCategory(
       id,
     );
     if (response.success) {
@@ -60,11 +60,11 @@ export class ResourceCategoryController {
     return Helpers.failedHttpResponse(response.message, HttpStatus.BAD_REQUEST);
   }
   @Get('/list')
-  async allResourceCategory(): Promise<ApiResponse> {
-    const response = await this.resourceCategoryService.allResourceCategory();
-    if (response.success) {
+  async allProductCategory(): Promise<ApiResponse> {
+    const response = await this.resourceCategoryService.allProductCategory();
+    if (response.success && response.data) {
       return response;
     }
-    return Helpers.failedHttpResponse(response.message, HttpStatus.BAD_REQUEST);
+    return Helpers.failedHttpResponse(response.message, HttpStatus.NOT_FOUND);
   }
 }

@@ -14,8 +14,8 @@ import {
   ProductType,
 } from '../../schemas/product-type.schema';
 import {
-  ResourceCategoryDocument,
-  ResourceCategory,
+  ProductCategoryDocument,
+  ProductCategory,
 } from '../../schemas/resource-category.schema';
 import {
   ProductDto,
@@ -30,8 +30,8 @@ export class ProductService {
     @InjectModel(User.name) private user: Model<UserDocument>,
     @InjectModel(ProductType.name)
     private productType: Model<ProductTypeDocument>,
-    @InjectModel(ResourceCategory.name)
-    private category: Model<ResourceCategoryDocument>,
+    @InjectModel(ProductCategory.name)
+    private category: Model<ProductCategoryDocument>,
   ) {}
   async createProduct(
     authenticatedUser: User,

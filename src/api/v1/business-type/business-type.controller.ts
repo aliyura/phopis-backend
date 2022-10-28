@@ -42,16 +42,14 @@ export class BusinessTypeController {
     if (response.success) {
       return response;
     }
-    return Helpers.failedHttpResponse(response.message, HttpStatus.BAD_REQUEST);
+    return Helpers.failedHttpResponse(response.message, HttpStatus.NOT_FOUND);
   }
-  // FInd Business Type
-  // @UseGuards(AppGuard)
-  @Get('/')
+  @Get('/list')
   async allBusinessType(): Promise<ApiResponse> {
     const response = await this.businessTypeService.allBusinessType();
-    if (response.success) {
+    if (response.success && response.data) {
       return response;
     }
-    return Helpers.failedHttpResponse(response.message, HttpStatus.BAD_REQUEST);
+    return Helpers.failedHttpResponse(response.message, HttpStatus.NOT_FOUND);
   }
 }

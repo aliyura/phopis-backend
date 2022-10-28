@@ -22,11 +22,11 @@ import { ResourceController } from './api/v1/resource/resource.controller';
 import { ResourceService } from './services/resource/resource.service';
 import { Resource, ResourceSchema } from './schemas/resource.schema';
 import { SmsService } from './services/sms/sms.service';
-import { ResourceCategoryController } from './api/v1/resource-category/resource-category.controller';
-import { ResourceCategoryService } from './services/resource-category/resource-category.service';
+import { ProductCategoryController } from './api/v1/product-category/product-category.controller';
+import { ProductCategoryService } from './services/product-category/product-category.service';
 import {
-  ResourceCategory,
-  ResourceCategorySchema,
+  ProductCategory,
+  ProductCategorySchema,
 } from './schemas/resource-category.schema';
 import { VerificationService } from './services/verification/verification.service';
 import { Wallet, WalletSchema } from './schemas/wallet.schema';
@@ -61,7 +61,7 @@ import { ProductService } from './services/product/product.service';
       { name: BusinessType.name, schema: BusinessTypeSchema },
     ]),
     MongooseModule.forFeature([
-      { name: ResourceCategory.name, schema: ResourceCategorySchema },
+      { name: ProductCategory.name, schema: ProductCategorySchema },
     ]),
     MongooseModule.forFeature([
       { name: Resource.name, schema: ResourceSchema },
@@ -88,7 +88,7 @@ import { ProductService } from './services/product/product.service';
     AuthController,
     BusinessTypeController,
     ResourceController,
-    ResourceCategoryController,
+    ProductCategoryController,
     WalletController,
     AppController,
     FileController,
@@ -103,7 +103,7 @@ import { ProductService } from './services/product/product.service';
     BusinessTypeService,
     ResourceService,
     SmsService,
-    ResourceCategoryService,
+    ProductCategoryService,
     ProductTypeService,
     ProductService,
     VerificationService,
