@@ -27,7 +27,7 @@ import { ProductCategoryService } from './services/product-category/product-cate
 import {
   ProductCategory,
   ProductCategorySchema,
-} from './schemas/resource-category.schema';
+} from './schemas/product-category.schema';
 import { VerificationService } from './services/verification/verification.service';
 import { Wallet, WalletSchema } from './schemas/wallet.schema';
 import { WalletService } from './services/wallet/wallet.service';

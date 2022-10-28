@@ -16,7 +16,7 @@ import {
 import {
   ProductCategoryDocument,
   ProductCategory,
-} from '../../schemas/resource-category.schema';
+} from '../../schemas/product-category.schema';
 import {
   ProductDto,
   UpdateProductDto,
@@ -270,7 +270,7 @@ export class ProductService {
         .skip(skip * size)
         .limit(size);
 
-      if (result) {
+      if (result.length) {
         const totalPages = Math.round(count / size);
         return Helpers.success({
           page: result,
@@ -311,7 +311,7 @@ export class ProductService {
         .skip(skip * size)
         .limit(size);
 
-      if (result) {
+      if (result.length) {
         const totalPages = Math.round(count / size);
         return Helpers.success({
           page: result,

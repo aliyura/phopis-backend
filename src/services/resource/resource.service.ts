@@ -327,7 +327,7 @@ export class ResourceService {
       }
 
       const resources = await this.resource.find(query);
-      if (resources && resources.length > 0) return Helpers.success(resources);
+      if (resources.length) return Helpers.success(resources);
 
       return Helpers.fail('No Resource found');
     } catch (ex) {
@@ -345,7 +345,7 @@ export class ResourceService {
         currentOwnerUuid: authenticatedUser.uuid,
         $text: { $search: searchString },
       });
-      if (resources && resources.length > 0) return Helpers.success(resources);
+      if (resources.length) return Helpers.success(resources);
 
       return Helpers.fail('No Resource found');
     } catch (ex) {
@@ -421,7 +421,7 @@ export class ResourceService {
       const resources = await this.resourceOwnershipLog.find({
         ownerUuid: authenticatedUser.uuid,
       });
-      if (resources) return Helpers.success(resources);
+      if (resources.length) return Helpers.success(resources);
 
       return Helpers.fail('No Resource found');
     } catch (ex) {

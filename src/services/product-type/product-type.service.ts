@@ -15,12 +15,12 @@ import { Messages } from 'src/utils/messages/messages';
 export class ProductTypeService {
   constructor(
     @InjectModel(ProductType.name)
-    private resourceType: Model<ProductTypeDocument>,
+    private productType: Model<ProductTypeDocument>,
   ) {}
 
   async createProductType(requestDto: ProductTypeDto): Promise<ApiResponse> {
     try {
-      const response = await this.resourceType
+      const response = await this.productType
         .findOne({ title: requestDto.title })
         .exec();
 
@@ -36,7 +36,7 @@ export class ProductTypeService {
         ptuid: `pt${Helpers.getUniqueId()}`,
       } as ProductType;
 
-      const saved = await this.resourceType.create(request);
+      const saved = await this.productType.create(request);
       return Helpers.success(saved);
     } catch (ex) {
       console.log(Messages.ErrorOccurred, ex);
@@ -49,14 +49,14 @@ export class ProductTypeService {
     requestDto: ProductTypeDto,
   ): Promise<ApiResponse> {
     try {
-      const response = await this.resourceType
-        .findOne({ resourceTypeId: id })
+      const response = await this.productType
+        .findOne({ productTypeId: id })
         .exec();
 
       if (!response) return Helpers.fail(Messages.ProductTypeNotFound);
 
-      const saved = await this.resourceType.updateOne(
-        { resourceTypeId: id },
+      const saved = await this.productType.updateOne(
+        { productTypeId: id },
         { $set: requestDto },
       );
       return Helpers.success(saved);
@@ -68,21 +68,8 @@ export class ProductTypeService {
 
   async deleteProductType(ptuid: string): Promise<ApiResponse> {
     try {
-      const response = await this.resourceType.deleteOne({ ptuid }).exec();
+      const response = await this.productType.deleteOne({ ptuid }).exec();
       return Helpers.success(response);
-    } catch (ex) {
-      console.log(Messages.ErrorOccurred, ex);
-      return Helpers.fail(Messages.Exception);
-    }
-  }
-
-  async findProductType(ptuid: string): Promise<ApiResponse> {
-    try {
-      const req = await this.resourceType.findOne({ ptuid });
-      if (req) {
-        return Helpers.success(req);
-      }
-      return Helpers.fail(Messages.ProductTypeNotFound);
     } catch (ex) {
       console.log(Messages.ErrorOccurred, ex);
       return Helpers.fail(Messages.Exception);
@@ -91,8 +78,8 @@ export class ProductTypeService {
 
   async allProductType(): Promise<ApiResponse> {
     try {
-      const req = await this.resourceType.find();
-      if (req) {
+      const req = await this.productType.find();
+      if (req.length) {
         return Helpers.success(req);
       }
       return Helpers.fail(Messages.ProductTypeNotFound);
