@@ -39,4 +39,6 @@ export class Sale {
   suid: string;
 }
 
-export const SaleSchema = SchemaFactory.createForClass(Sale);
+export const SaleSchema = SchemaFactory.createForClass(Sale).index({
+  '$**': 'text',
+});

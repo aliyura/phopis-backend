@@ -150,4 +150,105 @@ export class SaleService {
       return Helpers.fail(Messages.Exception);
     }
   }
+
+  async findById(puid: string): Promise<ApiResponse> {
+    try {
+      const response = await this.sale.findOne({ puid }).exec();
+      if (response) return Helpers.success(response);
+
+      return Helpers.fail('Sale not found');
+    } catch (ex) {
+      console.log(Messages.ErrorOccurred, ex);
+      return Helpers.fail(Messages.Exception);
+    }
+  }
+
+  async getMySales(
+    page: number,
+    authenticatedUser: User,
+    status: string,
+  ): Promise<ApiResponse> {
+    try {
+      const query = {
+        uuid: authenticatedUser.uuid,
+      } as any;
+
+      if (
+        status &&
+        Object.values(Status).includes(status.toUpperCase() as Status)
+      ) {
+        query.status = status.toUpperCase();
+      }
+
+      const size = 20;
+      const skip = page || 0;
+
+      const count = await this.sale.count(query);
+      const result = await this.sale
+        .find(query)
+        .skip(skip * size)
+        .limit(size);
+
+      if (result.length) {
+        const totalPages = Math.round(count / size);
+        return Helpers.success({
+          page: result,
+          size: size,
+          currentPage: Number(skip),
+          totalPages:
+            totalPages > 0
+              ? totalPages
+              : count > 0 && result.length > 0
+              ? 1
+              : 0,
+        });
+      }
+
+      return Helpers.fail('No Sale found');
+    } catch (ex) {
+      console.log(Messages.ErrorOccurred, ex);
+      return Helpers.fail(Messages.Exception);
+    }
+  }
+
+  async searchMySales(
+    page: number,
+    authenticatedUser: User,
+    searchString: string,
+  ): Promise<ApiResponse> {
+    try {
+      const query = {
+        uuid: authenticatedUser.uuid,
+        $text: { $search: searchString },
+      };
+      const size = 20;
+      const skip = page || 0;
+
+      const count = await this.sale.count(query);
+      const result = await this.sale
+        .find(query)
+        .skip(skip * size)
+        .limit(size);
+
+      if (result.length) {
+        const totalPages = Math.round(count / size);
+        return Helpers.success({
+          page: result,
+          size: size,
+          currentPage: Number(skip),
+          totalPages:
+            totalPages > 0
+              ? totalPages
+              : count > 0 && result.length > 0
+              ? 1
+              : 0,
+        });
+      }
+
+      return Helpers.fail('No Sale found');
+    } catch (ex) {
+      console.log(Messages.ErrorOccurred, ex);
+      return Helpers.fail(Messages.Exception);
+    }
+  }
 }
