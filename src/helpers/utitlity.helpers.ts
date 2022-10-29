@@ -33,10 +33,32 @@ export class Helpers {
     throw new HttpException(data, status);
   }
 
+  static failedHttpResponse2(
+    content: any,
+    message: string,
+    status: HttpStatus,
+  ): ApiResponse {
+    const data = {
+      success: false,
+      message,
+      data: content,
+    } as ApiResponse;
+    throw new HttpException(data, status);
+  }
+
   static success(content: any): ApiResponse {
     const data = {
       success: true,
       message: Messages.RequestSuccessful,
+      data: content,
+    } as ApiResponse;
+    return data;
+  }
+
+  static failure(content: any, message): ApiResponse {
+    const data = {
+      success: false,
+      message,
       data: content,
     } as ApiResponse;
     return data;
@@ -91,9 +113,5 @@ export class Helpers {
       return true;
     }
     return false;
-  }
-
-  static getSizes(): any[] {
-    return ['PIECE', 'CARTON', 'PACKET', 'BAG'];
   }
 }

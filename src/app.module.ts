@@ -47,6 +47,12 @@ import { ProductTypeService } from './services/product-type/product-type.service
 import { ProductTypeController } from './api/v1/product-type/product-type.controller';
 import { ProductController } from './api/v1/product/product.controller';
 import { ProductService } from './services/product/product.service';
+import { ProductSizeService } from './services/product-size/product-size.service';
+import { ProductSizeController } from './api/v1/product-size/product-size.controller';
+import { ProductSize, ProductSizeSchema } from './schemas/product-size.schema';
+import { SaleService } from './services/sale/sale.service';
+import { SaleController } from './api/v1/sale/sale.controller';
+import { Sale, SaleSchema } from './schemas/sale-chema';
 
 @Module({
   imports: [
@@ -71,12 +77,17 @@ import { ProductService } from './services/product/product.service';
       { name: ProductType.name, schema: ProductTypeSchema },
     ]),
     MongooseModule.forFeature([
+      { name: ProductSize.name, schema: ProductSizeSchema },
+    ]),
+    MongooseModule.forFeature([
       { name: ResourceOwnershipLog.name, schema: ResourceOwnershipLogSchema },
     ]),
     MongooseModule.forFeature([{ name: Wallet.name, schema: WalletSchema }]),
     MongooseModule.forFeature([
       { name: WalletLog.name, schema: WalletLogSchema },
     ]),
+
+    MongooseModule.forFeature([{ name: Sale.name, schema: SaleSchema }]),
     JwtModule.register({
       secret: process.env.APP_SECRET,
       signOptions: { expiresIn: '10000s' },
@@ -93,7 +104,9 @@ import { ProductService } from './services/product/product.service';
     AppController,
     FileController,
     ProductTypeController,
+    ProductSizeController,
     ProductController,
+    SaleController,
   ],
   providers: [
     UserService,
@@ -105,11 +118,13 @@ import { ProductService } from './services/product/product.service';
     SmsService,
     ProductCategoryService,
     ProductTypeService,
+    ProductSizeService,
     ProductService,
     VerificationService,
     WalletService,
     LogsService,
     FileService,
+    SaleService,
   ],
 })
 export class AppModule {}

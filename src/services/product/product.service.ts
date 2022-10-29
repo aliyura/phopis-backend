@@ -10,6 +10,10 @@ import { Messages } from 'src/utils/messages/messages';
 import { ActionType } from '../../enums/enums';
 import { ProductUploadDto } from '../../dtos/product.dto';
 import {
+  ProductSize,
+  ProductSizeDocument,
+} from '../../schemas/product-size.schema';
+import {
   ProductTypeDocument,
   ProductType,
 } from '../../schemas/product-type.schema';
@@ -32,6 +36,8 @@ export class ProductService {
     private productType: Model<ProductTypeDocument>,
     @InjectModel(ProductCategory.name)
     private category: Model<ProductCategoryDocument>,
+    @InjectModel(ProductSize.name)
+    private productSize: Model<ProductSizeDocument>,
   ) {}
   async createProduct(
     authenticatedUser: User,
@@ -43,11 +49,6 @@ export class ProductService {
       });
       if (productExistByTitle) return Helpers.fail('Product  already exist');
 
-      if (!Helpers.getSizes().includes(requestDto.size.toUpperCase()))
-        return Helpers.fail(
-          'Product size not recognized, use ' + Helpers.getSizes().toString(),
-        );
-
       const categoryExist = await this.category.findOne({
         title: requestDto.category,
       });
@@ -58,11 +59,16 @@ export class ProductService {
       });
       if (!typeExist) return Helpers.fail('Product type not exist');
 
+      const sizeExist = await this.productSize.findOne({
+        title: requestDto.size,
+      });
+      if (!sizeExist) return Helpers.fail('Product size does not exist');
+
       if (!requestDto.quantity || requestDto.quantity <= 0)
         requestDto.quantity = 0;
 
-      if (!requestDto.price || requestDto.price <= 0)
-        return Helpers.fail('Product price required');
+      if (!requestDto.sellingPrice || requestDto.sellingPrice <= 0)
+        return Helpers.fail('Product selling price required');
 
       const code = Helpers.getCode();
       const productId = `pro${Helpers.getUniqueId()}`;
@@ -192,36 +198,52 @@ export class ProductService {
         uuid: authenticatedUser.uuid,
       });
 
-      if (!existingProduct) return Helpers.fail('Product not found');
+      if (!existingProduct)
+        return Helpers.fail('Product not found, please create it');
 
       let quantity = existingProduct.quantity;
       quantity += requestDto.quantity;
 
       const status = quantity > 0 ? Status.AVAILABLE : Status.UNAVAILABLE;
-      const request = {
-        quantity,
-        status,
-      };
-      const updateHistory = {
-        ...requestDto,
-        actionType: ActionType.UPLOAD,
-        actionDate: new Date(),
-        actionBy: authenticatedUser.uuid,
-        actionByUser: authenticatedUser.name,
-      };
 
-      const updated = await this.product.updateOne(
-        { puid: productId, uuid: authenticatedUser.uuid },
-        {
-          $set: request,
-          $push: {
-            updateHistory: updateHistory,
+      if (
+        existingProduct.sellingPrice !== requestDto.sellingPrice ||
+        existingProduct.purchasePrice !== requestDto.purchasePrice
+      ) {
+        delete existingProduct._id; //removing previous id
+        existingProduct.quantity = quantity;
+        existingProduct.status = status;
+        existingProduct.code = Helpers.getCode();
+        existingProduct.puid = await Helpers.getUniqueId();
+        existingProduct.title = `${existingProduct.title}(${requestDto.title})`;
+
+        const saved = await this.product.create(existingProduct);
+        return Helpers.success(saved);
+      } else {
+        const request = {
+          quantity,
+          status,
+        };
+        const updateHistory = {
+          ...requestDto,
+          actionType: ActionType.UPLOAD,
+          actionDate: new Date(),
+          actionBy: authenticatedUser.uuid,
+          actionByUser: authenticatedUser.name,
+        };
+
+        await this.product.updateOne(
+          { puid: productId, uuid: authenticatedUser.uuid },
+          {
+            $set: request,
+            $push: {
+              updateHistory: updateHistory,
+            },
           },
-        },
-        { upsert: true },
-      );
-
-      return Helpers.success(updated);
+          { upsert: true },
+        );
+        return Helpers.success(await this.product.findOne({ puid: productId }));
+      }
     } catch (ex) {
       console.log(Messages.ErrorOccurred, ex);
       return Helpers.fail(Messages.Exception);

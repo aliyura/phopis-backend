@@ -10,15 +10,17 @@ export class ProductDto {
   @IsString() title: string;
   @IsString() @IsUppercase() type: string;
   @IsString() @IsUppercase() category: string;
-  @IsNumber() price: number;
+  @IsOptional() purchasePrice: number;
+  @IsNumber() sellingPrice: number;
   @IsString() @IsUppercase() size: string;
   @IsOptional() quantity: number;
   @IsOptional() description: string;
 }
 
 export class UpdateProductDto {
-  @IsString() title: string;
-  @IsNumber() price: number;
+  @IsOptional() title: string;
+  @IsOptional() sellingPrice: number;
+  @IsOptional() purchasePrice: number;
   @IsOptional() description: string;
 }
 
@@ -32,6 +34,8 @@ export class SaleDto {
 export class ProductUploadDto {
   @IsOptional() title: string;
   @IsNumber() quantity: number;
+  @IsNumber() sellingPrice: number;
+  @IsOptional() purchasePrice: number;
   @IsOptional() description: string;
 }
 

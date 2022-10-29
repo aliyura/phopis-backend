@@ -9,5 +9,6 @@ export enum Messages {
   ResourceNotFound = 'Resource not found',
   ProductCategoryNotFound = 'Resource category not found',
   ProductTypeNotFound = 'Product type not found',
+  ProductSizeNotFound = 'Product size not found',
   BusinessTypeNotFound = 'Business type not found',
 }
