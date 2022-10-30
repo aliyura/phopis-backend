@@ -1,34 +1,38 @@
 import {
   Body,
   Controller,
-  Get,
   Headers,
   HttpStatus,
+  Put,
+  Param,
+  Get,
+  Query,
   Post,
   UseGuards,
 } from '@nestjs/common';
 import { ApiResponse } from 'src/dtos/ApiResponse.dto';
 import { Helpers } from 'src/helpers';
 import { AppGuard } from 'src/services/auth/app.guard';
-import { WalletService } from '../../../services/wallet/wallet.service';
-import { UserService } from 'src/services/user/user.service';
-import { User } from '../../../schemas/user.schema';
-import { FundsTransferDto, FundWalletDto } from '../../../dtos/wallet.dto';
-import { LogsService } from '../../../services/logs/logs.service';
+import { User } from 'src/schemas/user.schema';
+import { UserService } from '../../../services/user/user.service';
+import {
+  TrackingRequestDto,
+  TrackingStatusChangeDto,
+} from '../../../dtos/tracking.dto';
+import { TrackingService } from 'src/services/tracking/tracking.service';
 
-@Controller('wallet')
-export class WalletController {
+@Controller('tracking')
+export class TrackingController {
   constructor(
-    private walletService: WalletService,
-    private logService: LogsService,
+    private trackingService: TrackingService,
     private userService: UserService,
   ) {}
 
   @UseGuards(AppGuard)
-  @Post('/')
-  async fundWallet(
+  @Post('/request')
+  async requestTracking(
     @Headers('Authorization') token: string,
-    @Body() fundWalletDto: FundWalletDto,
+    @Body() requestDto: TrackingRequestDto,
   ): Promise<ApiResponse> {
     const authToken = token.substring(7);
     const userResponse = await this.userService.findByUserToken(authToken);
@@ -37,66 +41,77 @@ export class WalletController {
         userResponse.message,
         HttpStatus.UNAUTHORIZED,
       );
-
-    const currentUser = userResponse.data as User;
-    const response = await this.walletService.fundWallet(
-      currentUser.walletAddress,
-      fundWalletDto,
-    );
-    if (response.success) return response;
-
-    return Helpers.failedHttpResponse(response.message, HttpStatus.BAD_REQUEST);
-  }
-
-  @UseGuards(AppGuard)
-  @Post('/transfer')
-  async transferFunds(
-    @Headers('Authorization') token: string,
-    @Body() fundTransferDto: FundsTransferDto,
-  ): Promise<ApiResponse> {
-    const authToken = token.substring(7);
-    const userResponse = await this.userService.findByUserToken(authToken);
-    if (!userResponse.success)
-      return Helpers.failedHttpResponse(
-        userResponse.message,
-        HttpStatus.UNAUTHORIZED,
-      );
-
-    const currentUser = userResponse.data as User;
-    const response = await this.walletService.fundsTransfer(
-      currentUser.walletAddress,
-      fundTransferDto,
-    );
-    if (response.success) return response;
-
-    return Helpers.failedHttpResponse(response.message, HttpStatus.BAD_REQUEST);
-  }
-
-  @UseGuards(AppGuard)
-  @Get('/')
-  async getWallet(
-    @Headers('Authorization') token: string,
-  ): Promise<ApiResponse> {
-    const authToken = token.substring(7);
-    const userResponse = await this.userService.findByUserToken(authToken);
-    if (!userResponse.success)
-      return Helpers.failedHttpResponse(
-        userResponse.message,
-        HttpStatus.UNAUTHORIZED,
-      );
-
     const user = userResponse.data as User;
-    const response = await this.walletService.findWalletByAddress(
-      user.walletAddress,
+
+    const response = await this.trackingService.createTrackingRequest(
+      user,
+      requestDto,
+    );
+    if (response.success) {
+      return response;
+    }
+    return Helpers.failedHttpResponse(response.message, HttpStatus.BAD_REQUEST);
+  }
+
+  @UseGuards(AppGuard)
+  @Put('/request/status/:trackingId')
+  async updateTrackingRequest(
+    @Headers('Authorization') token: string,
+    @Param('trackingId') trackingId: string,
+    @Body() requestDto: TrackingStatusChangeDto,
+  ): Promise<ApiResponse> {
+    const authToken = token.substring(7);
+    const userResponse = await this.userService.findByUserToken(authToken);
+    if (!userResponse.success)
+      return Helpers.failedHttpResponse(
+        userResponse.message,
+        HttpStatus.UNAUTHORIZED,
+      );
+    const user = userResponse.data as User;
+
+    const response = await this.trackingService.updateTrackingRequest(
+      user,
+      trackingId,
+      requestDto,
+    );
+    if (response.success) {
+      return response;
+    }
+    return Helpers.failedHttpResponse(response.message, HttpStatus.BAD_REQUEST);
+  }
+
+  @UseGuards(AppGuard)
+  @Get('/request/list')
+  async getMyProducts(
+    @Query('page') page: number,
+    @Query('status') status: string,
+    @Headers('Authorization') token: string,
+  ): Promise<ApiResponse> {
+    const authToken = token.substring(7);
+    const userResponse = await this.userService.findByUserToken(authToken);
+    if (!userResponse.success)
+      return Helpers.failedHttpResponse(
+        userResponse.message,
+        HttpStatus.UNAUTHORIZED,
+      );
+    const user = userResponse.data as User;
+
+    const response = await this.trackingService.getMyTrackingRequests(
+      page,
+      user,
+      status,
     );
     if (response.success) {
       return response;
     }
     return Helpers.failedHttpResponse(response.message, HttpStatus.NOT_FOUND);
   }
+
   @UseGuards(AppGuard)
-  @Get('/logs')
-  async getWalletLogs(
+  @Get('/request/search')
+  async searchMyProducts(
+    @Query('page') page: number,
+    @Query('q') searchString: string,
     @Headers('Authorization') token: string,
   ): Promise<ApiResponse> {
     const authToken = token.substring(7);
@@ -106,9 +121,13 @@ export class WalletController {
         userResponse.message,
         HttpStatus.UNAUTHORIZED,
       );
-
     const user = userResponse.data as User;
-    const response = await this.logService.getWalletLog(user.walletAddress);
+
+    const response = await this.trackingService.searchMyTrackingRequest(
+      page,
+      user,
+      searchString,
+    );
     if (response.success) {
       return response;
     }

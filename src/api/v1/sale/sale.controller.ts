@@ -50,7 +50,7 @@ export class SaleController {
   }
 
   @UseGuards(AppGuard)
-  @Get('/:suid')
+  @Get('/detail/:suid')
   async accountInquiry(@Param('suid') suid: string): Promise<ApiResponse> {
     const saleResponse = await this.saleService.findById(suid);
 

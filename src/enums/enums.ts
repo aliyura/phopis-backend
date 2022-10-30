@@ -13,6 +13,9 @@ export enum Status {
   SUCCESSFUL = 'SUCCESSFUL',
   AVAILABLE = 'AVAILABLE',
   UNAVAILABLE = 'UNAVAILABLE',
+  PENDING = 'PENDING',
+  INPROGRESS = 'INPROGRESS',
+  FOUND = 'FOUND',
 }
 
 export enum ActionType {

@@ -50,7 +50,7 @@ export class Resource {
   @Prop()
   statusChangeDetail: ResourceStatusUpdateDto;
 
-  @Prop()
+  @Prop({ required: true })
   type: string;
 
   @Prop()

@@ -77,6 +77,7 @@ export class ProductService {
 
       const request = {
         ...requestDto,
+        initialQuantity: requestDto.quantity,
         status: status,
         code: code,
         puid: productId,
@@ -148,17 +149,21 @@ export class ProductService {
       if (!existingProduct) return Helpers.fail('Product not found');
 
       let quantity = existingProduct.quantity;
+      let initialQuantity = existingProduct.initialQuantity;
 
-      if (requestDto.operation.toUpperCase() === 'ADD')
+      if (requestDto.operation.toUpperCase() === 'ADD') {
         quantity += requestDto.quantity;
-      else if (requestDto.operation.toUpperCase() === 'REMOVE')
+        initialQuantity += requestDto.quantity;
+      } else if (requestDto.operation.toUpperCase() === 'REMOVE') {
         if (quantity - requestDto.quantity > 0) quantity -= requestDto.quantity;
         else quantity = 0;
-      else return Helpers.fail('Operation not recognized, use ADD or REMOVE');
+      } else {
+        return Helpers.fail('Operation not recognized, use ADD or REMOVE');
+      }
 
       const status = quantity > 0 ? Status.AVAILABLE : Status.UNAVAILABLE;
       const request = {
-        quantity,
+        initialQuantity,
         status,
       };
       const updateHistory = {
@@ -202,7 +207,10 @@ export class ProductService {
         return Helpers.fail('Product not found, please create it');
 
       let quantity = existingProduct.quantity;
+      let initialQuantity = existingProduct.initialQuantity;
+
       quantity += requestDto.quantity;
+      initialQuantity += requestDto.quantity;
 
       const status = quantity > 0 ? Status.AVAILABLE : Status.UNAVAILABLE;
 
@@ -212,15 +220,17 @@ export class ProductService {
       ) {
         delete existingProduct._id; //removing previous id
         existingProduct.quantity = quantity;
+        existingProduct.initialQuantity = quantity;
         existingProduct.status = status;
         existingProduct.code = Helpers.getCode();
         existingProduct.puid = await Helpers.getUniqueId();
-        existingProduct.title = `${existingProduct.title}(${requestDto.title})`;
+        existingProduct.title = `${requestDto.title}`;
 
         const saved = await this.product.create(existingProduct);
         return Helpers.success(saved);
       } else {
         const request = {
+          initialQuantity,
           quantity,
           status,
         };

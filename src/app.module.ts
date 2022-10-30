@@ -53,6 +53,11 @@ import { ProductSize, ProductSizeSchema } from './schemas/product-size.schema';
 import { SaleService } from './services/sale/sale.service';
 import { SaleController } from './api/v1/sale/sale.controller';
 import { Sale, SaleSchema } from './schemas/sale-chema';
+import { ReportController } from './api/v1/report/report.controller';
+import { ReportService } from './services/report/report.service';
+import { TrackingService } from './services/tracking/tracking.service';
+import { TrackingController } from './api/v1/tracking/tracking.controller';
+import { Tracking, TrackingSchema } from './schemas/tracking.schema';
 
 @Module({
   imports: [
@@ -71,6 +76,9 @@ import { Sale, SaleSchema } from './schemas/sale-chema';
     ]),
     MongooseModule.forFeature([
       { name: Resource.name, schema: ResourceSchema },
+    ]),
+    MongooseModule.forFeature([
+      { name: Tracking.name, schema: TrackingSchema },
     ]),
     MongooseModule.forFeature([{ name: Product.name, schema: ProductSchema }]),
     MongooseModule.forFeature([
@@ -107,6 +115,8 @@ import { Sale, SaleSchema } from './schemas/sale-chema';
     ProductSizeController,
     ProductController,
     SaleController,
+    ReportController,
+    TrackingController,
   ],
   providers: [
     UserService,
@@ -125,6 +135,8 @@ import { Sale, SaleSchema } from './schemas/sale-chema';
     LogsService,
     FileService,
     SaleService,
+    ReportService,
+    TrackingService,
   ],
 })
 export class AppModule {}

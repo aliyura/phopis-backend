@@ -134,7 +134,7 @@ export class ProductController {
   }
 
   @UseGuards(AppGuard)
-  @Delete('/:productId')
+  @Delete('/detail/:productId')
   async deleteProduct(
     @Headers('Authorization') token: string,
     @Param('productId') productId: string,

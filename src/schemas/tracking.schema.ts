@@ -1,45 +1,42 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { Document, Types } from 'mongoose';
 
-export type ProductDocument = Product & Document;
+export type TrackingDocument = Tracking & Document;
 
 @Schema({ timestamps: true })
-export class Product {
+export class Tracking {
   @Prop({ type: Types.ObjectId })
   id: string;
 
   @Prop({ required: true })
-  title: string;
+  resourceId: string;
 
   @Prop({ required: true })
-  type: string;
+  resourceName: string;
 
   @Prop({ required: true })
-  category: string;
+  resourceIdentityNumber: string;
 
   @Prop({ required: true })
-  purchasePrice: number;
+  resourceType: string;
 
   @Prop({ required: true })
-  sellingPrice: number;
+  missingReason: string;
 
   @Prop({ required: true })
-  quantity: number;
+  missingDate: string;
 
   @Prop({ required: true })
-  initialQuantity: number;
+  missingArea: string;
 
   @Prop({ required: true })
-  size: string;
-
-  @Prop()
   description: string;
 
   @Prop({ required: true, nique: true })
   code: number;
 
   @Prop({ required: true, unique: true })
-  puid: string;
+  truid: string;
 
   @Prop({ required: true })
   uuid: string;
@@ -47,13 +44,10 @@ export class Product {
   @Prop()
   statusChangeHistory: any[];
 
-  @Prop()
-  updateHistory: any[];
-
   @Prop({ required: true })
   status: string;
 }
 
-export const ProductSchema = SchemaFactory.createForClass(Product).index({
+export const TrackingSchema = SchemaFactory.createForClass(Tracking).index({
   '$**': 'text',
 });

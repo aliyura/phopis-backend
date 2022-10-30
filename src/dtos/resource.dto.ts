@@ -20,6 +20,7 @@ export class ResourceLocationDetailDto {
 export class ResourceDto {
   @IsString() name: string;
   @IsString() identityNumber: string;
+  @IsString() type: string;
   @IsOptional() model: string;
   @IsOptional() color: string;
   @IsOptional() description: string;

@@ -211,7 +211,7 @@ export class ResourceController {
     return Helpers.failedHttpResponse(response.message, HttpStatus.NOT_FOUND);
   }
   @UseGuards(AppGuard)
-  @Get('/:ruid')
+  @Get('/detail/:ruid')
   async getResourceByRuid(
     @Headers('Authorization') token: string,
     @Param('ruid') ruid: string,
