@@ -110,7 +110,6 @@ export class ReportService {
       total = totalSold = totalLeft = totalIncome = 0;
 
       await productAnalytic.forEach((analytic) => {
-        console.log(analytic);
         total = total + analytic.total;
         totalSold = totalSold + analytic.totalSold;
         totalLeft = totalLeft + analytic.totalLeft;

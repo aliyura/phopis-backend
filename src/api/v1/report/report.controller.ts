@@ -1,9 +1,9 @@
 import {
-  Body,
   Controller,
   Get,
   Headers,
   HttpStatus,
+  Query,
   UseGuards,
 } from '@nestjs/common';
 import { ApiResponse } from 'src/dtos/ApiResponse.dto';
@@ -47,7 +47,8 @@ export class ReportController {
   @UseGuards(AppGuard)
   @Get('/inventory/analytics')
   async getInventoryAnalytics(
-    @Body() requestDto: FilterDto,
+    @Query('from') from: string,
+    @Query('to') to: string,
     @Headers('Authorization') token: string,
   ): Promise<ApiResponse> {
     const authToken = token.substring(7);
@@ -58,6 +59,8 @@ export class ReportController {
         HttpStatus.UNAUTHORIZED,
       );
     const user = userResponse.data as User;
+
+    const requestDto = { from, to } as FilterDto;
 
     const response = await this.reportService.getInventoryAnalytics(
       user,
