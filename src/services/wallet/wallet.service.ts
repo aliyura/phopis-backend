@@ -7,7 +7,11 @@ import { SmsService } from '../sms/sms.service';
 import { Status } from 'src/enums';
 import { Model } from 'mongoose';
 import { InjectModel } from '@nestjs/mongoose';
-import { FundWalletDto, FundsTransferDto } from '../../dtos/wallet.dto';
+import {
+  FundWalletDto,
+  FundsTransferDto,
+  DebitWalletDto,
+} from '../../dtos/wallet.dto';
 import { WalletActivity } from '../../enums/enums';
 import { LogsService } from '../logs/logs.service';
 import { User, UserDocument } from '../../schemas/user.schema';
@@ -97,6 +101,60 @@ export class WalletService {
         )} `,
       );
       const updatedWallet = await this.wallet.findOne({ address });
+      return Helpers.success(updatedWallet);
+    } catch (ex) {
+      console.log(Messages.ErrorOccurred, ex);
+      return Helpers.fail(Messages.Exception);
+    }
+  }
+
+  async debitWallet(requestDto: DebitWalletDto): Promise<ApiResponse> {
+    try {
+      const wallet = await this.wallet
+        .findOne({ address: requestDto.address })
+        .exec();
+      if (!wallet) return Helpers.fail('Wallet not found');
+      const user = await this.user.findOne({ uuid: wallet.uuid });
+      if (!user) return Helpers.fail('User not found');
+
+      const currentBalance = wallet.balance;
+      if (currentBalance < requestDto.amount) {
+        return Helpers.fail('Wallet insufficient funds');
+      }
+      let newBalance = currentBalance - requestDto.amount;
+      newBalance = Math.round(newBalance * 100) / 100; //two decimal
+
+      const nData = {
+        balance: newBalance,
+        prevBalance: currentBalance,
+      } as any;
+
+      const walletLog = {
+        activity: WalletActivity.DEBIT,
+        status: Status.SUCCESSFUL,
+        uuid: wallet.uuid,
+        amount: requestDto.amount,
+        ref: requestDto.transactionId,
+        channel: requestDto.channel,
+        narration: requestDto.narration,
+      } as any;
+
+      await this.wallet.updateOne({ address: requestDto.address }, nData);
+
+      await this.logService.saveWalletLog(walletLog);
+
+      //notification
+      await this.smsService.sendMessage(
+        user.phoneNumber,
+        `DEBIT of ${Helpers.convertToMoney(
+          requestDto.amount,
+        )} is successful on your wallet for ${
+          requestDto.channel
+        }, transaction ref  ${requestDto.transactionId}`,
+      );
+      const updatedWallet = await this.wallet.findOne({
+        address: requestDto.address,
+      });
       return Helpers.success(updatedWallet);
     } catch (ex) {
       console.log(Messages.ErrorOccurred, ex);

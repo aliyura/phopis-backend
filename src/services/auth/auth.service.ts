@@ -27,7 +27,7 @@ export class AuthService {
         const user = res.data as User;
 
         if (user.status == Status.ACTIVE) {
-          const yes = await this.cryptoService.compare(
+          const yes = await this.cryptoService.comparePassword(
             user.password,
             authRequest.password,
           );

@@ -87,9 +87,11 @@ export class Helpers {
     const i = filename.lastIndexOf('.');
     return i < 0 ? '' : filename.substring(i);
   }
-  static convertToMoney(num: number): number {
+  static convertToMoney(num: number): string {
     const opts = { format: '%v %c' };
-    return formatCurrency(num, opts);
+    return (
+      'NGN' + formatCurrency(num, opts).toString().replace('undefined', '')
+    );
   }
 
   static validNin(nin: string): boolean {

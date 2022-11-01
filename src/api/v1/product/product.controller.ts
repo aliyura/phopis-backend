@@ -38,7 +38,7 @@ export class ProductController {
     @Body() requestDto: ProductDto,
   ): Promise<ApiResponse> {
     const authToken = token.substring(7);
-    const userResponse = await this.userService.findByUserToken(authToken);
+    const userResponse = await this.userService.authenticatedUserByToken(authToken);
     if (!userResponse.success)
       return Helpers.failedHttpResponse(
         userResponse.message,
@@ -61,7 +61,7 @@ export class ProductController {
     @Body() requestDto: UpdateProductDto,
   ): Promise<ApiResponse> {
     const authToken = token.substring(7);
-    const userResponse = await this.userService.findByUserToken(authToken);
+    const userResponse = await this.userService.authenticatedUserByToken(authToken);
     if (!userResponse.success)
       return Helpers.failedHttpResponse(
         userResponse.message,
@@ -88,7 +88,7 @@ export class ProductController {
     @Body() requestDto: ProductAdjustDto,
   ): Promise<ApiResponse> {
     const authToken = token.substring(7);
-    const userResponse = await this.userService.findByUserToken(authToken);
+    const userResponse = await this.userService.authenticatedUserByToken(authToken);
     if (!userResponse.success)
       return Helpers.failedHttpResponse(
         userResponse.message,
@@ -114,7 +114,7 @@ export class ProductController {
     @Body() requestDto: ProductUploadDto,
   ): Promise<ApiResponse> {
     const authToken = token.substring(7);
-    const userResponse = await this.userService.findByUserToken(authToken);
+    const userResponse = await this.userService.authenticatedUserByToken(authToken);
     if (!userResponse.success)
       return Helpers.failedHttpResponse(
         userResponse.message,
@@ -140,7 +140,7 @@ export class ProductController {
     @Param('productId') productId: string,
   ): Promise<ApiResponse> {
     const authToken = token.substring(7);
-    const userResponse = await this.userService.findByUserToken(authToken);
+    const userResponse = await this.userService.authenticatedUserByToken(authToken);
     if (!userResponse.success)
       return Helpers.failedHttpResponse(
         userResponse.message,
@@ -163,7 +163,7 @@ export class ProductController {
     @Headers('Authorization') token: string,
   ): Promise<ApiResponse> {
     const authToken = token.substring(7);
-    const userResponse = await this.userService.findByUserToken(authToken);
+    const userResponse = await this.userService.authenticatedUserByToken(authToken);
     if (!userResponse.success)
       return Helpers.failedHttpResponse(
         userResponse.message,
@@ -190,7 +190,7 @@ export class ProductController {
     @Headers('Authorization') token: string,
   ): Promise<ApiResponse> {
     const authToken = token.substring(7);
-    const userResponse = await this.userService.findByUserToken(authToken);
+    const userResponse = await this.userService.authenticatedUserByToken(authToken);
     if (!userResponse.success)
       return Helpers.failedHttpResponse(
         userResponse.message,

@@ -52,8 +52,6 @@ export class UserService {
           requestDto.nin,
         );
 
-        console.log('Nin details:', ninResponse.data);
-
         if (ninResponse.success) {
           const ninDetails = ninResponse.data;
           const name = `${ninDetails.firstname} ${ninDetails.middlename} ${ninDetails.surname}`;
@@ -68,7 +66,9 @@ export class UserService {
         }
       }
       //encrypt password
-      const hash = await this.cryptoService.encrypt(requestDto.password);
+      const hash = await this.cryptoService.encryptPassword(
+        requestDto.password,
+      );
       requestDto.password = hash;
 
       if (requestDto.accountType == AccountType.INDIVIDUAL) {
@@ -82,10 +82,21 @@ export class UserService {
         return Helpers.fail('Phone Number provided is not valid');
       }
 
+      const startDate = new Date().toISOString().slice(0, 10);
+      const endDate = new Date(
+        new Date().setFullYear(new Date().getFullYear() + 1),
+      )
+        .toISOString()
+        .slice(0, 10);
+
       const request = {
         ...requestDto,
         status: Status.INACTIVE,
         code: Helpers.getCode(),
+        subscription: {
+          startDate: startDate,
+          endDate: endDate,
+        },
         uuid:
           requestDto.accountType == AccountType.BUSINESS
             ? `bis${Helpers.getUniqueId()}`
@@ -221,7 +232,7 @@ export class UserService {
         const systemOtp = await this.cache.get(requestDto.username); //stored OTP in memory
 
         if (requestDto.otp == systemOtp) {
-          const hashedPassword = await this.cryptoService.encrypt(
+          const hashedPassword = await this.cryptoService.encryptPassword(
             requestDto.password,
           );
 
@@ -244,7 +255,7 @@ export class UserService {
     }
   }
 
-  async findByUserToken(authToken: string): Promise<ApiResponse> {
+  async authenticatedUserByToken(authToken: string): Promise<ApiResponse> {
     try {
       const user = (await this.jwtService.decode(authToken)) as AuthUserDto;
       const response = await this.findByPhoneNumberOrNin(user.username);

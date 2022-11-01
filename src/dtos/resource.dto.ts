@@ -1,4 +1,4 @@
-import { IsOptional, IsString } from 'class-validator';
+import { IsNumber, IsOptional, IsString } from 'class-validator';
 
 export class CartonDetailDto {
   @IsString() serialNumber: string;
@@ -40,6 +40,12 @@ export class UpdateResourceDto {
   @IsOptional() model: string;
   @IsOptional() color: string;
   @IsOptional() description: string;
+}
+
+export class VerifyResourceDto {
+  @IsNumber() resourceNumber: number;
+  @IsNumber() ownerAccountNumber: number;
+  @IsString() ownerIdentity: string;
 }
 
 export class ResourceStatusUpdateDto {

@@ -7,6 +7,13 @@ export class FundWalletDto {
   @IsNumber() amount: number;
 }
 
+export class DebitWalletDto {
+  @IsString() address: string;
+  @IsString() transactionId: string;
+  @IsString() channel: string;
+  @IsNumber() amount: number;
+  @IsOptional() narration: string;
+}
 export class FundsTransferDto {
   @IsString() recipient: string;
   @IsOptional() narration: string;

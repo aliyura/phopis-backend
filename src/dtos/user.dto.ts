@@ -48,3 +48,8 @@ export class UserAuthDto {
   @IsString() username: string;
   @IsString() password: string;
 }
+
+export class UserSubscriptionDto {
+  @IsString() startDate: string;
+  @IsString() endDate: string;
+}

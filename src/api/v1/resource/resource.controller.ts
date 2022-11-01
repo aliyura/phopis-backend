@@ -20,7 +20,10 @@ import {
 } from '../../../dtos/resource.dto';
 import { Helpers } from 'src/helpers';
 import { AppGuard } from 'src/services/auth/app.guard';
-import { ResourceOwnershipChangeDto } from '../../../dtos/resource.dto';
+import {
+  ResourceOwnershipChangeDto,
+  VerifyResourceDto,
+} from '../../../dtos/resource.dto';
 import { User } from 'src/schemas/user.schema';
 import { UserService } from '../../../services/user/user.service';
 
@@ -38,7 +41,9 @@ export class ResourceController {
     @Body() requestDto: ResourceDto,
   ): Promise<ApiResponse> {
     const authToken = token.substring(7);
-    const userResponse = await this.userService.findByUserToken(authToken);
+    const userResponse = await this.userService.authenticatedUserByToken(
+      authToken,
+    );
     if (!userResponse.success)
       return Helpers.failedHttpResponse(
         userResponse.message,
@@ -64,7 +69,9 @@ export class ResourceController {
     @Body() requestDto: UpdateResourceDto,
   ): Promise<ApiResponse> {
     const authToken = token.substring(7);
-    const userResponse = await this.userService.findByUserToken(authToken);
+    const userResponse = await this.userService.authenticatedUserByToken(
+      authToken,
+    );
     if (!userResponse.success)
       return Helpers.failedHttpResponse(
         userResponse.message,
@@ -90,7 +97,9 @@ export class ResourceController {
     @Param('resourceId') resourceId: string,
   ): Promise<ApiResponse> {
     const authToken = token.substring(7);
-    const userResponse = await this.userService.findByUserToken(authToken);
+    const userResponse = await this.userService.authenticatedUserByToken(
+      authToken,
+    );
     if (!userResponse.success)
       return Helpers.failedHttpResponse(
         userResponse.message,
@@ -109,6 +118,33 @@ export class ResourceController {
   }
 
   @UseGuards(AppGuard)
+  @Post('/verification')
+  async verifyResource(
+    @Headers('Authorization') token: string,
+    @Body() requestDto: VerifyResourceDto,
+  ): Promise<ApiResponse> {
+    const authToken = token.substring(7);
+    const userResponse = await this.userService.authenticatedUserByToken(
+      authToken,
+    );
+    if (!userResponse.success)
+      return Helpers.failedHttpResponse(
+        userResponse.message,
+        HttpStatus.UNAUTHORIZED,
+      );
+    const user = userResponse.data as User;
+
+    const response = await this.resourceService.verifyResource(
+      user,
+      requestDto,
+    );
+    if (response.success) {
+      return response;
+    }
+    return Helpers.failedHttpResponse(response.message, HttpStatus.BAD_REQUEST);
+  }
+
+  @UseGuards(AppGuard)
   @Put('/status/update/:resourceId')
   async updateResourceStatus(
     @Headers('Authorization') token: string,
@@ -117,7 +153,9 @@ export class ResourceController {
     @Body() requestDto: ResourceStatusUpdateDto,
   ): Promise<ApiResponse> {
     const authToken = token.substring(7);
-    const userResponse = await this.userService.findByUserToken(authToken);
+    const userResponse = await this.userService.authenticatedUserByToken(
+      authToken,
+    );
     if (!userResponse.success)
       return Helpers.failedHttpResponse(
         userResponse.message,
@@ -145,7 +183,9 @@ export class ResourceController {
     @Body() requestDto: ResourceOwnershipChangeDto,
   ): Promise<ApiResponse> {
     const authToken = token.substring(7);
-    const userResponse = await this.userService.findByUserToken(authToken);
+    const userResponse = await this.userService.authenticatedUserByToken(
+      authToken,
+    );
     if (!userResponse.success)
       return Helpers.failedHttpResponse(
         userResponse.message,
@@ -171,7 +211,9 @@ export class ResourceController {
     @Headers('Authorization') token: string,
   ): Promise<ApiResponse> {
     const authToken = token.substring(7);
-    const userResponse = await this.userService.findByUserToken(authToken);
+    const userResponse = await this.userService.authenticatedUserByToken(
+      authToken,
+    );
     if (!userResponse.success)
       return Helpers.failedHttpResponse(
         userResponse.message,
@@ -193,7 +235,9 @@ export class ResourceController {
     @Headers('Authorization') token: string,
   ): Promise<ApiResponse> {
     const authToken = token.substring(7);
-    const userResponse = await this.userService.findByUserToken(authToken);
+    const userResponse = await this.userService.authenticatedUserByToken(
+      authToken,
+    );
     if (!userResponse.success)
       return Helpers.failedHttpResponse(
         userResponse.message,
@@ -217,7 +261,9 @@ export class ResourceController {
     @Param('ruid') ruid: string,
   ): Promise<ApiResponse> {
     const authToken = token.substring(7);
-    const userResponse = await this.userService.findByUserToken(authToken);
+    const userResponse = await this.userService.authenticatedUserByToken(
+      authToken,
+    );
     if (!userResponse.success)
       return Helpers.failedHttpResponse(
         userResponse.message,
@@ -239,7 +285,9 @@ export class ResourceController {
     @Param('identityNumber') identityNumber: string,
   ): Promise<ApiResponse> {
     const authToken = token.substring(7);
-    const userResponse = await this.userService.findByUserToken(authToken);
+    const userResponse = await this.userService.authenticatedUserByToken(
+      authToken,
+    );
     if (!userResponse.success)
       return Helpers.failedHttpResponse(
         userResponse.message,
@@ -263,7 +311,9 @@ export class ResourceController {
     @Param('serialNumber') serialNumber: string,
   ): Promise<ApiResponse> {
     const authToken = token.substring(7);
-    const userResponse = await this.userService.findByUserToken(authToken);
+    const userResponse = await this.userService.authenticatedUserByToken(
+      authToken,
+    );
     if (!userResponse.success)
       return Helpers.failedHttpResponse(
         userResponse.message,
@@ -288,7 +338,9 @@ export class ResourceController {
     @Param('code') code: string,
   ): Promise<ApiResponse> {
     const authToken = token.substring(7);
-    const userResponse = await this.userService.findByUserToken(authToken);
+    const userResponse = await this.userService.authenticatedUserByToken(
+      authToken,
+    );
     if (!userResponse.success)
       return Helpers.failedHttpResponse(
         userResponse.message,
@@ -309,7 +361,9 @@ export class ResourceController {
     @Headers('Authorization') token: string,
   ): Promise<ApiResponse> {
     const authToken = token.substring(7);
-    const userResponse = await this.userService.findByUserToken(authToken);
+    const userResponse = await this.userService.authenticatedUserByToken(
+      authToken,
+    );
     if (!userResponse.success)
       return Helpers.failedHttpResponse(
         userResponse.message,

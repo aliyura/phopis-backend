@@ -74,7 +74,7 @@ export class UserController {
     @Headers('Authorization') token: string,
   ): Promise<ApiResponse> {
     const authToken = token.substring(7);
-    const userResponse = await this.userService.findByUserToken(authToken);
+    const userResponse = await this.userService.authenticatedUserByToken(authToken);
     if (!userResponse.success)
       return Helpers.failedHttpResponse(
         userResponse.message,
@@ -95,7 +95,7 @@ export class UserController {
   @Get('/')
   async getUser(@Headers('Authorization') token: string): Promise<ApiResponse> {
     const authToken = token.substring(7);
-    const userResponse = await this.userService.findByUserToken(authToken);
+    const userResponse = await this.userService.authenticatedUserByToken(authToken);
     if (!userResponse.success)
       return Helpers.failedHttpResponse(
         userResponse.message,
@@ -131,7 +131,7 @@ export class UserController {
     @Headers('Authorization') token: string,
   ): Promise<ApiResponse> {
     const authToken = token.substring(7);
-    const userResponse = await this.userService.findByUserToken(authToken);
+    const userResponse = await this.userService.authenticatedUserByToken(authToken);
     if (!userResponse.success)
       return Helpers.failedHttpResponse(
         userResponse.message,
@@ -158,7 +158,7 @@ export class UserController {
     @Headers('Authorization') token: string,
   ): Promise<ApiResponse> {
     const authToken = token.substring(7);
-    const userResponse = await this.userService.findByUserToken(authToken);
+    const userResponse = await this.userService.authenticatedUserByToken(authToken);
     if (!userResponse.success)
       return Helpers.failedHttpResponse(
         userResponse.message,

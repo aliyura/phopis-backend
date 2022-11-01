@@ -11,8 +11,14 @@ import {
 import { ResourceDocument, Resource } from '../../schemas/resource.schema';
 import { UserDocument, User } from 'src/schemas/user.schema';
 import { ActionType, Status } from 'src/enums';
-import { ResourceOwnershipChangeDto } from '../../dtos/resource.dto';
+import {
+  ResourceOwnershipChangeDto,
+  VerifyResourceDto,
+} from '../../dtos/resource.dto';
 import { Messages } from 'src/utils/messages/messages';
+import { CryptoService } from '../crypto/crypto.service';
+import { WalletService } from '../wallet/wallet.service';
+import { DebitWalletDto } from '../../dtos/wallet.dto';
 import {
   ResourceOwnershipLog,
   ResourceOwnershipLogDocument,
@@ -25,6 +31,8 @@ export class ResourceService {
     @InjectModel(User.name) private user: Model<UserDocument>,
     @InjectModel(ResourceOwnershipLog.name)
     private resourceOwnershipLog: Model<ResourceOwnershipLogDocument>,
+    private cryptoService: CryptoService,
+    private walletService: WalletService,
   ) {}
   async createResource(
     authenticatedUser: User,
@@ -94,7 +102,7 @@ export class ResourceService {
       if (!resourceOwner) return Helpers.fail('Resource owner not found');
 
       if (resourceOwner.uuid != authenticatedUser.uuid) {
-        return Helpers.fail('You do not permission to update this resource');
+        return Helpers.fail(Messages.NoPermission);
       }
 
       const updateHistory = {
@@ -144,12 +152,101 @@ export class ResourceService {
       if (!resourceOwner) return Helpers.fail('Resource owner not found');
 
       if (resourceOwner.uuid != authenticatedUser.uuid)
-        return Helpers.fail('You do not permission to update this resource');
+        return Helpers.fail(Messages.NoPermission);
 
       const response = await this.resource.deleteOne({
         ruid: resourceId,
         uuid: authenticatedUser.uuid,
       });
+      return Helpers.success(response);
+    } catch (ex) {
+      console.log(Messages.ErrorOccurred, ex);
+      return Helpers.fail(Messages.Exception);
+    }
+  }
+
+  async verifyResource(
+    authenticatedUser: User,
+    requestDto: VerifyResourceDto,
+  ): Promise<ApiResponse> {
+    try {
+      //find the user
+      const resourceOwner = await this.user.findOne({
+        code: requestDto.ownerAccountNumber,
+        $or: [
+          {
+            nin: requestDto.ownerIdentity,
+          },
+          { regNumber: requestDto.ownerIdentity },
+        ],
+      });
+      if (!resourceOwner) {
+        console.log('Resource owner not found');
+        return Helpers.fail(
+          'Verification failed -Invalid resource owner details',
+        );
+      }
+
+      //find the resource
+      const existingResource = await this.resource.findOne({
+        code: requestDto.resourceNumber,
+        currentOwnerUuid: resourceOwner.uuid,
+      });
+      if (!existingResource) {
+        console.log('Resource not found');
+        return Helpers.fail(
+          'Verification failed -Resource not found or invalid owner details',
+        );
+      }
+
+      const verificationCharge = Number(process.env.VERIFICATION_CHARGE);
+      const transactionRef = `ver${Helpers.getUniqueId()}`;
+      const walletDebitRequest = {
+        address: resourceOwner.walletAddress,
+        transactionId: transactionRef,
+        channel: 'resource verification',
+        amount: verificationCharge,
+        narration: `Verification of ${existingResource.name}`,
+      } as DebitWalletDto;
+      const walletDebitResponse = await this.walletService.debitWallet(
+        walletDebitRequest,
+      );
+      if (!walletDebitResponse.success)
+        return Helpers.fail(
+          `Verification failed -${walletDebitResponse.message}`,
+        );
+
+      const dateTime = new Date();
+      const response = {
+        verified: true,
+        transactionRef: transactionRef,
+        resourceDetail: existingResource,
+        ownerDetail: {
+          name: resourceOwner.name,
+          phoneNumber: resourceOwner.phoneNumber,
+          code: resourceOwner.code,
+        },
+      } as any;
+
+      const verificationHistory = {
+        verified: true,
+        transactionRef: transactionRef,
+        verificationRequest: requestDto,
+        verifiedBy: authenticatedUser.uuid,
+        verifiedByName: authenticatedUser.name,
+        verifiedDate: dateTime.toISOString().slice(0, 10),
+      } as any;
+
+      await this.resource.updateOne(
+        { ruid: existingResource.ruid },
+        {
+          $push: {
+            verificationHistory: verificationHistory,
+          },
+        },
+        { upsert: true },
+      );
+
       return Helpers.success(response);
     } catch (ex) {
       console.log(Messages.ErrorOccurred, ex);
@@ -175,7 +272,7 @@ export class ResourceService {
       if (!resourceOwner) return Helpers.fail('Resource owner not found');
 
       if (resourceOwner.uuid != authenticatedUser.uuid) {
-        return Helpers.fail('You do not permission to update this resource');
+        return Helpers.fail(Messages.NoPermission);
       }
 
       if (!Object.values(Status).includes(status))
