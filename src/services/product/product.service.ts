@@ -81,8 +81,10 @@ export class ProductService {
         status: status,
         code: code,
         puid: productId,
-        uuid: authenticatedUser.uuid,
-      } as any;
+        businessId: authenticatedUser.businessId,
+        createdBy: authenticatedUser.name,
+        createdById: authenticatedUser.uuid,
+      } as Product;
 
       const saved = await (await this.product.create(request)).save();
       return Helpers.success(saved);
@@ -100,7 +102,6 @@ export class ProductService {
     try {
       const existingProduct = await this.product.findOne({
         puid: productId,
-        uuid: authenticatedUser.uuid,
       });
 
       if (!existingProduct) return Helpers.fail('Product not found');
@@ -143,7 +144,6 @@ export class ProductService {
     try {
       const existingProduct = await this.product.findOne({
         puid: productId,
-        uuid: authenticatedUser.uuid,
       });
 
       if (!existingProduct) return Helpers.fail('Product not found');
@@ -200,7 +200,6 @@ export class ProductService {
     try {
       const existingProduct = await this.product.findOne({
         puid: productId,
-        uuid: authenticatedUser.uuid,
       });
 
       if (!existingProduct)
@@ -267,7 +266,7 @@ export class ProductService {
     try {
       const response = await this.product.deleteOne({
         puid: productId,
-        uuid: authenticatedUser.uuid,
+        businessId: authenticatedUser.businessId,
       });
       return Helpers.success(response);
     } catch (ex) {
@@ -283,7 +282,7 @@ export class ProductService {
   ): Promise<ApiResponse> {
     try {
       const query = {
-        uuid: authenticatedUser.uuid,
+        businessId: authenticatedUser.businessId,
       } as any;
 
       if (
@@ -331,7 +330,7 @@ export class ProductService {
   ): Promise<ApiResponse> {
     try {
       const query = {
-        uuid: authenticatedUser.uuid,
+        businessId: authenticatedUser.businessId,
         $text: { $search: searchString },
       };
       const size = 20;

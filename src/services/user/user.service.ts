@@ -22,7 +22,7 @@ import { Messages } from 'src/utils/messages/messages';
 import { VerificationService } from '../verification/verification.service';
 import { WalletService } from '../wallet/wallet.service';
 import { JwtService } from '@nestjs/jwt';
-import { BusinessUserDto } from '../../dtos/user.dto';
+import { BusinessUserDto, UserBranchDto } from '../../dtos/user.dto';
 
 @Injectable()
 export class UserService {
@@ -115,7 +115,13 @@ export class UserService {
           requestDto.accountType == AccountType.BUSINESS
             ? `bis${Helpers.getUniqueId()}`
             : `ind${Helpers.getUniqueId()}`,
-      } as any;
+      } as User;
+
+      //adding business id and business name
+      if (requestDto.accountType === AccountType.BUSINESS) {
+        request.businessId = request.uuid;
+        request.business = request.name;
+      }
 
       const account = await (await this.user.create(request)).save();
       if (account) {
@@ -169,7 +175,7 @@ export class UserService {
       if (!Helpers.validPhoneNumber(requestDto.phoneNumber)) {
         return Helpers.fail('Phone Number provided is not valid');
       }
-      if (authenticatedUser.accountType !== AccountType.BUSINESS) {
+      if (authenticatedUser.role !== UserRole.BUSINESS) {
         return Helpers.fail(Messages.NoPermission);
       }
 
@@ -223,6 +229,7 @@ export class UserService {
 
   async updateUser(
     authenticatedUser: User,
+    userId: string,
     requestDto: UserUpdateDto,
   ): Promise<any> {
     try {
@@ -236,9 +243,119 @@ export class UserService {
         }
       }
 
+      const saved = await this.user.updateOne({ uuid: userId }, requestDto);
+      return Helpers.success(saved);
+    } catch (ex) {
+      console.log(Messages.ErrorOccurred, ex);
+      return Helpers.fail(Messages.Exception);
+    }
+  }
+
+  async createUserBranch(
+    authenticatedUser: User,
+    requestDto: UserBranchDto,
+  ): Promise<ApiResponse> {
+    try {
+      if (!Helpers.validPhoneNumber(requestDto.phoneNumber)) {
+        return Helpers.fail('Phone Number provided is not valid');
+      }
+      if (authenticatedUser.role !== UserRole.BUSINESS) {
+        return Helpers.fail(Messages.NoPermission);
+      }
+      const alreadyExistByPhone = await this.existByPhoneNumber(
+        requestDto.phoneNumber,
+      );
+      if (alreadyExistByPhone)
+        return Helpers.fail('Account already exist with this phone number');
+
+      //encrypt password
+      const hash = await this.cryptoService.encryptPassword(
+        requestDto.password,
+      );
+      requestDto.password = hash;
+
+      const startDate = new Date().toISOString().slice(0, 10);
+      const endDate = new Date(
+        new Date().setFullYear(new Date().getFullYear() + 1),
+      )
+        .toISOString()
+        .slice(0, 10);
+      const branchId = `bib${Helpers.getUniqueId()}`;
+
+      const request = {
+        ...requestDto,
+        status: Status.ACTIVE,
+        businessId: branchId,
+        business: requestDto.name,
+        mainBusinessId: authenticatedUser.uuid,
+        mainBusiness: authenticatedUser.name,
+        businessType: authenticatedUser.businessType,
+        accountType: AccountType.BUSINESS,
+        role: UserRole.BUSINESS,
+        code: Helpers.getCode(),
+        subscription: {
+          startDate: startDate,
+          endDate: endDate,
+        },
+        uuid: branchId,
+      } as any;
+
+      const account = await (await this.user.create(request)).save();
+      if (account) {
+        const walletResponse = await this.walletService.createWallet(
+          account.uuid,
+          account.code,
+        );
+
+        if (walletResponse.success) {
+          const wallet = walletResponse.data;
+          const nData = {
+            walletAddress: wallet.address,
+            walletCode: wallet.code,
+          };
+
+          await this.user.updateOne({ uuid: account.uuid }, nData);
+
+          const createdUser = await this.findByUserId(account.uuid);
+          return Helpers.success(createdUser);
+        } else {
+          //removed saved user if process fail somewhere
+          await this.user.deleteOne({ uuid: account.uuid });
+          return Helpers.fail(walletResponse.message);
+        }
+      } else {
+        return Helpers.fail('Unable to create your account');
+      }
+    } catch (ex) {
+      console.log(Messages.ErrorOccurred, ex);
+      return Helpers.fail(Messages.Exception);
+    }
+  }
+
+  async activateUser(authenticatedUser: User, userId: string): Promise<any> {
+    try {
+      if (authenticatedUser.role == UserRole.USER)
+        return Helpers.fail(Messages.NoPermission);
+
       const saved = await this.user.updateOne(
-        { uuid: authenticatedUser.uuid },
-        requestDto,
+        { uuid: userId },
+        { status: Status.ACTIVE },
+      );
+      return Helpers.success(saved);
+    } catch (ex) {
+      console.log(Messages.ErrorOccurred, ex);
+      return Helpers.fail(Messages.Exception);
+    }
+  }
+
+  async deactivateUser(authenticatedUser: User, userId: string): Promise<any> {
+    try {
+      if (authenticatedUser.role == UserRole.USER)
+        return Helpers.fail(Messages.NoPermission);
+
+      const saved = await this.user.updateOne(
+        { uuid: userId },
+        { status: Status.INACTIVE },
       );
       return Helpers.success(saved);
     } catch (ex) {
@@ -276,7 +393,12 @@ export class UserService {
       if (res && res.success) {
         const userOtp = requestDto.otp;
         const systemOtp = await this.cache.get(requestDto.username); //stored OTP in memory
-        console.log(userOtp, systemOtp);
+
+        const user = res.data as User;
+
+        if (user.accountType === AccountType.BUSINESS) {
+          return Helpers.fail(Messages.NoPermission);
+        }
 
         if (userOtp == systemOtp) {
           await this.user.updateOne(
@@ -399,72 +521,6 @@ export class UserService {
     }
   }
 
-  async findAllUsers(page: number, status: string): Promise<ApiResponse> {
-    try {
-      const size = 20;
-      const skip = page || 0;
-
-      const count = await this.user.count(status ? { status } : {});
-      const result = await this.user
-        .find(status ? { status } : {})
-        .skip(skip * size)
-        .limit(size);
-
-      if (result.length) {
-        const totalPages = Math.round(count / size);
-        return Helpers.success({
-          page: result,
-          size: size,
-          currentPage: Number(skip),
-          totalPages:
-            totalPages > 0
-              ? totalPages
-              : count > 0 && result.length > 0
-              ? 1
-              : 0,
-        });
-      }
-
-      return Helpers.fail(Messages.NoUserFound);
-    } catch (ex) {
-      console.log(Messages.ErrorOccurred, ex);
-      return Helpers.fail(Messages.Exception);
-    }
-  }
-
-  async searchUsers(page: number, searchString: string): Promise<ApiResponse> {
-    try {
-      const size = 20;
-      const skip = page || 0;
-
-      const count = await this.user.count({ $text: { $search: searchString } });
-      const result = await this.user
-        .find({ $text: { $search: searchString } })
-        .skip(skip * size)
-        .limit(size);
-
-      if (result.length) {
-        const totalPages = Math.round(count / size);
-        return Helpers.success({
-          page: result,
-          size: size,
-          currentPage: Number(skip),
-          totalPages:
-            totalPages > 0
-              ? totalPages
-              : count > 0 && result.length > 0
-              ? 1
-              : 0,
-        });
-      }
-
-      return Helpers.fail(Messages.NoUserFound);
-    } catch (ex) {
-      console.log(Messages.ErrorOccurred, ex);
-      return Helpers.fail(Messages.Exception);
-    }
-  }
-
   async existByPhoneNumber(phoneNumber: string): Promise<boolean> {
     try {
       const response = await this.user.findOne({ phoneNumber }).exec();
@@ -484,6 +540,188 @@ export class UserService {
     } catch (ex) {
       console.log(Messages.ErrorOccurred, ex);
       return false;
+    }
+  }
+
+  async findAllUsers(
+    authenticatedUser: User,
+    page: number,
+    status: string,
+  ): Promise<ApiResponse> {
+    try {
+      const size = 20;
+      const skip = page || 0;
+
+      if (authenticatedUser.role === UserRole.USER) {
+        return Helpers.fail(Messages.NoPermission);
+      }
+
+      const query = status ? ({ status } as any) : ({} as any);
+      if (authenticatedUser.role === UserRole.BUSINESS) {
+        query.businessId = authenticatedUser.uuid;
+      }
+      const count = await this.user.count(query);
+      const result = await this.user
+        .find(query)
+        .skip(skip * size)
+        .limit(size);
+
+      if (result.length) {
+        const totalPages = Math.round(count / size);
+        return Helpers.success({
+          page: result,
+          size: size,
+          currentPage: Number(skip),
+          totalPages:
+            totalPages > 0
+              ? totalPages
+              : count > 0 && result.length > 0
+              ? 1
+              : 0,
+        });
+      }
+
+      return Helpers.fail(Messages.NoUserFound);
+    } catch (ex) {
+      console.log(Messages.ErrorOccurred, ex);
+      return Helpers.fail(Messages.Exception);
+    }
+  }
+
+  async searchUsers(
+    authenticatedUser: User,
+    page: number,
+    searchString: string,
+  ): Promise<ApiResponse> {
+    try {
+      const size = 20;
+      const skip = page || 0;
+
+      if (authenticatedUser.role === UserRole.USER) {
+        return Helpers.fail(Messages.NoPermission);
+      }
+
+      const query = { $text: { $search: searchString } } as any;
+      if (authenticatedUser.role === UserRole.BUSINESS) {
+        query.businessId = authenticatedUser.uuid;
+      }
+
+      const count = await this.user.count(query);
+      const result = await this.user
+        .find(query)
+        .skip(skip * size)
+        .limit(size);
+
+      if (result.length) {
+        const totalPages = Math.round(count / size);
+        return Helpers.success({
+          page: result,
+          size: size,
+          currentPage: Number(skip),
+          totalPages:
+            totalPages > 0
+              ? totalPages
+              : count > 0 && result.length > 0
+              ? 1
+              : 0,
+        });
+      }
+
+      return Helpers.fail(Messages.NoUserFound);
+    } catch (ex) {
+      console.log(Messages.ErrorOccurred, ex);
+      return Helpers.fail(Messages.Exception);
+    }
+  }
+
+  async findAllUserBranches(
+    authenticatedUser: User,
+    page: number,
+    status: string,
+  ): Promise<ApiResponse> {
+    try {
+      const size = 20;
+      const skip = page || 0;
+
+      if (authenticatedUser.role === UserRole.USER) {
+        return Helpers.fail(Messages.NoPermission);
+      }
+
+      const query = status ? ({ status } as any) : ({} as any);
+      if (authenticatedUser.role === UserRole.BUSINESS) {
+        query.mainBusinessId = authenticatedUser.uuid;
+      }
+      const count = await this.user.count(query);
+      const result = await this.user
+        .find(query)
+        .skip(skip * size)
+        .limit(size);
+
+      if (result.length) {
+        const totalPages = Math.round(count / size);
+        return Helpers.success({
+          page: result,
+          size: size,
+          currentPage: Number(skip),
+          totalPages:
+            totalPages > 0
+              ? totalPages
+              : count > 0 && result.length > 0
+              ? 1
+              : 0,
+        });
+      }
+
+      return Helpers.fail(Messages.NoUserFound);
+    } catch (ex) {
+      console.log(Messages.ErrorOccurred, ex);
+      return Helpers.fail(Messages.Exception);
+    }
+  }
+
+  async searchUserBranches(
+    authenticatedUser: User,
+    page: number,
+    searchString: string,
+  ): Promise<ApiResponse> {
+    try {
+      const size = 20;
+      const skip = page || 0;
+
+      if (authenticatedUser.role === UserRole.USER) {
+        return Helpers.fail(Messages.NoPermission);
+      }
+
+      const query = { $text: { $search: searchString } } as any;
+      if (authenticatedUser.role === UserRole.BUSINESS) {
+        query.mainBusinessId = authenticatedUser.uuid;
+      }
+
+      const count = await this.user.count(query);
+      const result = await this.user
+        .find(query)
+        .skip(skip * size)
+        .limit(size);
+
+      if (result.length) {
+        const totalPages = Math.round(count / size);
+        return Helpers.success({
+          page: result,
+          size: size,
+          currentPage: Number(skip),
+          totalPages:
+            totalPages > 0
+              ? totalPages
+              : count > 0 && result.length > 0
+              ? 1
+              : 0,
+        });
+      }
+
+      return Helpers.fail(Messages.NoUserFound);
+    } catch (ex) {
+      console.log(Messages.ErrorOccurred, ex);
+      return Helpers.fail(Messages.Exception);
     }
   }
 }

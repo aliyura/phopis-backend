@@ -8,7 +8,7 @@ import { UserDocument, User } from 'src/schemas/user.schema';
 import { Messages } from 'src/utils/messages/messages';
 import { SaleDto, SaleProductsDto } from '../../dtos/sale.dto';
 import { Product, ProductDocument } from '../../schemas/product.schema';
-import { Status } from '../../enums/enums';
+import { AccountType, Status, UserRole } from '../../enums/enums';
 import { Sale, SaleDocument } from '../../schemas/sale-chema';
 
 @Injectable()
@@ -135,6 +135,7 @@ export class SaleService {
           code: code,
           suid: saleId,
           products: saleRequest,
+          businessId: authenticatedUser.businessId,
           createdBy: authenticatedUser.name,
           createdById: authenticatedUser.uuid,
         } as any;
@@ -169,9 +170,14 @@ export class SaleService {
     status: string,
   ): Promise<ApiResponse> {
     try {
-      const query = {
-        uuid: authenticatedUser.uuid,
-      } as any;
+      const query = {} as any;
+      if (authenticatedUser.role === UserRole.USER) {
+        query.createdById = authenticatedUser.uuid;
+      } else {
+        if (authenticatedUser.accountType === AccountType.BUSINESS) {
+          query.businessId = authenticatedUser.businessId;
+        }
+      }
 
       if (
         status &&
@@ -217,10 +223,15 @@ export class SaleService {
     searchString: string,
   ): Promise<ApiResponse> {
     try {
-      const query = {
-        uuid: authenticatedUser.uuid,
-        $text: { $search: searchString },
-      };
+      const query = { $text: { $search: searchString } } as any;
+      if (authenticatedUser.role === UserRole.USER) {
+        query.createdById = authenticatedUser.uuid;
+      } else {
+        if (authenticatedUser.accountType === AccountType.BUSINESS) {
+          query.businessId = authenticatedUser.businessId;
+        }
+      }
+
       const size = 20;
       const skip = page || 0;
 

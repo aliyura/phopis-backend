@@ -42,7 +42,13 @@ export class Product {
   puid: string;
 
   @Prop({ required: true })
-  uuid: string;
+  createdById: string;
+
+  @Prop({ required: true })
+  createdBy: string;
+
+  @Prop({ required: true })
+  businessId: string;
 
   @Prop()
   statusChangeHistory: any[];

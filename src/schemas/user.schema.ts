@@ -27,6 +27,12 @@ export class User {
   @Prop()
   business: string;
 
+  @Prop()
+  mainBusinessId: string;
+
+  @Prop()
+  mainBusiness: string;
+
   @Prop({ required: true, unique: true })
   code: number;
 

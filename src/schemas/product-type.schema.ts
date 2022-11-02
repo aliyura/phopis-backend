@@ -19,6 +19,9 @@ export class ProductType {
 
   @Prop({ required: true })
   ptuid: string;
+
+  @Prop({ required: true })
+  businessId: string;
 }
 
 export const ProductTypeSchema = SchemaFactory.createForClass(ProductType);

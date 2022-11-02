@@ -6,6 +6,7 @@ import {
   HttpStatus,
   Param,
   Post,
+  Headers,
   Put,
   UseGuards,
 } from '@nestjs/common';
@@ -14,16 +15,40 @@ import { Helpers } from 'src/helpers';
 import { AppGuard } from 'src/services/auth/app.guard';
 import { ProductTypeService } from 'src/services/product-type/product-type.service';
 import { ProductTypeDto } from '../../../dtos/product-type.dto';
+import { User } from '../../../schemas/user.schema';
+import { UserService } from '../../../services/user/user.service';
 
 @Controller('product-type')
 export class ProductTypeController {
-  constructor(private readonly resourceCategoryService: ProductTypeService) {}
+  constructor(
+    private readonly resourceCategoryService: ProductTypeService,
+    private userService: UserService,
+  ) {}
   @UseGuards(AppGuard)
   @Post('/')
   async createProductType(
     @Body() requestDto: ProductTypeDto,
+    @Headers('Authorization') token: string,
   ): Promise<ApiResponse> {
+    const authToken = token.substring(7);
+    const userResponse = await this.userService.authenticatedUserByToken(
+      authToken,
+    );
+    if (!userResponse.success)
+      return Helpers.failedHttpResponse(
+        userResponse.message,
+        HttpStatus.UNAUTHORIZED,
+      );
+    const user = userResponse.data as User;
+
+    if (!Helpers.verifySubscription(user.subscription.endDate))
+      return Helpers.failedHttpResponse(
+        `Your subscription expired on ${user.subscription.endDate}, you need to renew`,
+        HttpStatus.UNAUTHORIZED,
+      );
+
     const response = await this.resourceCategoryService.createProductType(
+      user,
       requestDto,
     );
     if (response.success) {

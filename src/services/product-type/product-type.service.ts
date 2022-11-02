@@ -10,6 +10,7 @@ import {
   ProductTypeDocument,
 } from '../../schemas/product-type.schema';
 import { Messages } from 'src/utils/messages/messages';
+import { User } from '../../schemas/user.schema';
 
 @Injectable()
 export class ProductTypeService {
@@ -18,7 +19,10 @@ export class ProductTypeService {
     private productType: Model<ProductTypeDocument>,
   ) {}
 
-  async createProductType(requestDto: ProductTypeDto): Promise<ApiResponse> {
+  async createProductType(
+    authenticatedUser: User,
+    requestDto: ProductTypeDto,
+  ): Promise<ApiResponse> {
     try {
       const response = await this.productType
         .findOne({ title: requestDto.title })
@@ -33,6 +37,7 @@ export class ProductTypeService {
       const request = {
         ...requestDto,
         status: Status.ACTIVE,
+        businessId: authenticatedUser.businessId,
         ptuid: `pt${Helpers.getUniqueId()}`,
       } as ProductType;
 

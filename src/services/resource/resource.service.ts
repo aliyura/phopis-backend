@@ -16,7 +16,6 @@ import {
   VerifyResourceDto,
 } from '../../dtos/resource.dto';
 import { Messages } from 'src/utils/messages/messages';
-import { CryptoService } from '../crypto/crypto.service';
 import { WalletService } from '../wallet/wallet.service';
 import { DebitWalletDto } from '../../dtos/wallet.dto';
 import {
@@ -31,7 +30,6 @@ export class ResourceService {
     @InjectModel(User.name) private user: Model<UserDocument>,
     @InjectModel(ResourceOwnershipLog.name)
     private resourceOwnershipLog: Model<ResourceOwnershipLogDocument>,
-    private cryptoService: CryptoService,
     private walletService: WalletService,
   ) {}
   async createResource(

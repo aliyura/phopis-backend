@@ -29,6 +29,9 @@ export class Sale {
   @Prop({ required: true })
   createdBy: string;
 
+  @Prop({ required: true })
+  businessId: string;
+
   @Prop({ required: true, unique: true })
   code: number;
 

@@ -58,6 +58,7 @@ import { ReportService } from './services/report/report.service';
 import { TrackingService } from './services/tracking/tracking.service';
 import { TrackingController } from './api/v1/tracking/tracking.controller';
 import { Tracking, TrackingSchema } from './schemas/tracking.schema';
+import { BranchController } from './api/v1/branch/branch.controller';
 
 @Module({
   imports: [
@@ -117,6 +118,7 @@ import { Tracking, TrackingSchema } from './schemas/tracking.schema';
     SaleController,
     ReportController,
     TrackingController,
+    BranchController,
   ],
   providers: [
     UserService,

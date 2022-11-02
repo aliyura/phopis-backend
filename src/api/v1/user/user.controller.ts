@@ -22,6 +22,7 @@ import { AppGuard } from '../../../services/auth/app.guard';
 import { ApiResponse } from '../../../dtos/ApiResponse.dto';
 import { ResetPasswordDto, BusinessUserDto } from '../../../dtos/user.dto';
 import { UserRole } from '../../../enums/enums';
+import { Messages } from '../../../utils/messages/messages';
 
 @Controller('user')
 export class UserController {
@@ -103,9 +104,10 @@ export class UserController {
   }
 
   @UseGuards(AppGuard)
-  @Put('/')
+  @Put('/:userId')
   async updateUser(
     @Body() requestDto: UserUpdateDto,
+    @Param('userId') userId: string,
     @Headers('Authorization') token: string,
   ): Promise<ApiResponse> {
     const authToken = token.substring(7);
@@ -121,7 +123,63 @@ export class UserController {
     if (!userResponse.success) return Helpers.fail(userResponse.message);
     const user = userResponse.data;
 
-    const response = await this.userService.updateUser(user, requestDto);
+    const response = await this.userService.updateUser(
+      user,
+      userId,
+      requestDto,
+    );
+    if (response.success) {
+      return response;
+    }
+    return Helpers.failedHttpResponse(response.message, HttpStatus.BAD_REQUEST);
+  }
+
+  @UseGuards(AppGuard)
+  @Put('/activate/:userId')
+  async activateUser(
+    @Param('userId') userId: string,
+    @Headers('Authorization') token: string,
+  ): Promise<ApiResponse> {
+    const authToken = token.substring(7);
+    const userResponse = await this.userService.authenticatedUserByToken(
+      authToken,
+    );
+    if (!userResponse.success)
+      return Helpers.failedHttpResponse(
+        userResponse.message,
+        HttpStatus.UNAUTHORIZED,
+      );
+
+    if (!userResponse.success) return Helpers.fail(userResponse.message);
+    const user = userResponse.data;
+
+    const response = await this.userService.activateUser(user, userId);
+    if (response.success) {
+      return response;
+    }
+    return Helpers.failedHttpResponse(response.message, HttpStatus.BAD_REQUEST);
+  }
+
+  @UseGuards(AppGuard)
+  @Put('/deactivate/:userId')
+  async deactivateUser(
+    @Param('userId') userId: string,
+    @Headers('Authorization') token: string,
+  ): Promise<ApiResponse> {
+    const authToken = token.substring(7);
+    const userResponse = await this.userService.authenticatedUserByToken(
+      authToken,
+    );
+    if (!userResponse.success)
+      return Helpers.failedHttpResponse(
+        userResponse.message,
+        HttpStatus.UNAUTHORIZED,
+      );
+
+    if (!userResponse.success) return Helpers.fail(userResponse.message);
+    const user = userResponse.data;
+
+    const response = await this.userService.deactivateUser(user, userId);
     if (response.success) {
       return response;
     }
@@ -179,13 +237,15 @@ export class UserController {
         HttpStatus.UNAUTHORIZED,
       );
 
-    if (userResponse.data.role === UserRole.BUSINESS) {
-      const users = await this.userService.findAllUsers(page, status);
+    const user = userResponse.data;
+
+    if (user.role === UserRole.BUSINESS || user.role === UserRole.ADMIN) {
+      const users = await this.userService.findAllUsers(user, page, status);
       if (users.success) return users;
       return Helpers.failedHttpResponse(users.message, HttpStatus.NOT_FOUND);
     } else {
       return Helpers.failedHttpResponse(
-        'You are not authorized user to perform this operation',
+        Messages.NoPermission,
         HttpStatus.UNAUTHORIZED,
       );
     }
@@ -208,13 +268,15 @@ export class UserController {
         HttpStatus.UNAUTHORIZED,
       );
 
-    if (userResponse.data.role === UserRole.BUSINESS) {
-      const users = await this.userService.searchUsers(page, searchText);
+    const user = userResponse.data;
+
+    if (user.role === UserRole.BUSINESS || user.role === UserRole.ADMIN) {
+      const users = await this.userService.searchUsers(user, page, searchText);
       if (users.success) return users;
       return Helpers.failedHttpResponse(users.message, HttpStatus.NOT_FOUND);
     } else {
       return Helpers.failedHttpResponse(
-        'You are not authorized user to perform this operation',
+        Messages.NoPermission,
         HttpStatus.UNAUTHORIZED,
       );
     }

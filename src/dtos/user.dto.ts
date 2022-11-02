@@ -25,6 +25,15 @@ export class BusinessUserDto {
   @IsString() password: string;
 }
 
+export class UserBranchDto {
+  @IsString() name: string;
+  @IsString() phoneNumber: string;
+  @IsOptional() @IsString() state: string;
+  @IsOptional() @IsString() lga: string;
+  @IsOptional() @IsString() address: string;
+  @IsString() password: string;
+}
+
 export class ValidateUserDto {
   @IsString() username: string;
 }
