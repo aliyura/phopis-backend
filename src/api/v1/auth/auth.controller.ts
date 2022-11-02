@@ -14,6 +14,10 @@ export class AuthController {
   ): Promise<ApiResponse> {
     const response = await this.authService.login(requestDto);
     if (response.success && response.data) {
+      const user = response.data.info;
+      const daysLeft = Helpers.calculateSubscription(user.subscription.endDate);
+      user.subscription.daysLeft = daysLeft;
+      response.data.info = user;
       return response;
     }
     return Helpers.failedHttpResponse(

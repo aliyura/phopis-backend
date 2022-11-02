@@ -25,7 +25,8 @@ export class VerificationService {
       console.log('response:', response.data);
       if (
         response.status == HttpStatus.OK &&
-        response.data.response !== 'norecord'
+        response.data.response !== 'norecord' &&
+        response.data.firstname
       )
         return Helpers.success(response.data);
 

@@ -38,13 +38,21 @@ export class ProductController {
     @Body() requestDto: ProductDto,
   ): Promise<ApiResponse> {
     const authToken = token.substring(7);
-    const userResponse = await this.userService.authenticatedUserByToken(authToken);
+    const userResponse = await this.userService.authenticatedUserByToken(
+      authToken,
+    );
     if (!userResponse.success)
       return Helpers.failedHttpResponse(
         userResponse.message,
         HttpStatus.UNAUTHORIZED,
       );
     const user = userResponse.data as User;
+
+    if (!Helpers.verifySubscription(user.subscription.endDate))
+      return Helpers.failedHttpResponse(
+        `Your subscription expired on ${user.subscription.endDate}, you need to renew`,
+        HttpStatus.UNAUTHORIZED,
+      );
 
     const response = await this.productService.createProduct(user, requestDto);
     if (response.success) {
@@ -61,13 +69,21 @@ export class ProductController {
     @Body() requestDto: UpdateProductDto,
   ): Promise<ApiResponse> {
     const authToken = token.substring(7);
-    const userResponse = await this.userService.authenticatedUserByToken(authToken);
+    const userResponse = await this.userService.authenticatedUserByToken(
+      authToken,
+    );
     if (!userResponse.success)
       return Helpers.failedHttpResponse(
         userResponse.message,
         HttpStatus.UNAUTHORIZED,
       );
     const user = userResponse.data as User;
+
+    if (!Helpers.verifySubscription(user.subscription.endDate))
+      return Helpers.failedHttpResponse(
+        `Your subscription expired on ${user.subscription.endDate}, you need to renew`,
+        HttpStatus.UNAUTHORIZED,
+      );
 
     const response = await this.productService.updateProduct(
       user,
@@ -88,13 +104,21 @@ export class ProductController {
     @Body() requestDto: ProductAdjustDto,
   ): Promise<ApiResponse> {
     const authToken = token.substring(7);
-    const userResponse = await this.userService.authenticatedUserByToken(authToken);
+    const userResponse = await this.userService.authenticatedUserByToken(
+      authToken,
+    );
     if (!userResponse.success)
       return Helpers.failedHttpResponse(
         userResponse.message,
         HttpStatus.UNAUTHORIZED,
       );
     const user = userResponse.data as User;
+
+    if (!Helpers.verifySubscription(user.subscription.endDate))
+      return Helpers.failedHttpResponse(
+        `Your subscription expired on ${user.subscription.endDate}, you need to renew`,
+        HttpStatus.UNAUTHORIZED,
+      );
 
     const response = await this.productService.adjustProduct(
       user,
@@ -114,13 +138,21 @@ export class ProductController {
     @Body() requestDto: ProductUploadDto,
   ): Promise<ApiResponse> {
     const authToken = token.substring(7);
-    const userResponse = await this.userService.authenticatedUserByToken(authToken);
+    const userResponse = await this.userService.authenticatedUserByToken(
+      authToken,
+    );
     if (!userResponse.success)
       return Helpers.failedHttpResponse(
         userResponse.message,
         HttpStatus.UNAUTHORIZED,
       );
     const user = userResponse.data as User;
+
+    if (!Helpers.verifySubscription(user.subscription.endDate))
+      return Helpers.failedHttpResponse(
+        `Your subscription expired on ${user.subscription.endDate}, you need to renew`,
+        HttpStatus.UNAUTHORIZED,
+      );
 
     const response = await this.productService.uploadProduct(
       user,
@@ -140,13 +172,21 @@ export class ProductController {
     @Param('productId') productId: string,
   ): Promise<ApiResponse> {
     const authToken = token.substring(7);
-    const userResponse = await this.userService.authenticatedUserByToken(authToken);
+    const userResponse = await this.userService.authenticatedUserByToken(
+      authToken,
+    );
     if (!userResponse.success)
       return Helpers.failedHttpResponse(
         userResponse.message,
         HttpStatus.UNAUTHORIZED,
       );
     const user = userResponse.data as User;
+
+    if (!Helpers.verifySubscription(user.subscription.endDate))
+      return Helpers.failedHttpResponse(
+        `Your subscription expired on ${user.subscription.endDate}, you need to renew`,
+        HttpStatus.UNAUTHORIZED,
+      );
 
     const response = await this.productService.deleteProduct(user, productId);
     if (response.success) {
@@ -163,7 +203,9 @@ export class ProductController {
     @Headers('Authorization') token: string,
   ): Promise<ApiResponse> {
     const authToken = token.substring(7);
-    const userResponse = await this.userService.authenticatedUserByToken(authToken);
+    const userResponse = await this.userService.authenticatedUserByToken(
+      authToken,
+    );
     if (!userResponse.success)
       return Helpers.failedHttpResponse(
         userResponse.message,
@@ -190,7 +232,9 @@ export class ProductController {
     @Headers('Authorization') token: string,
   ): Promise<ApiResponse> {
     const authToken = token.substring(7);
-    const userResponse = await this.userService.authenticatedUserByToken(authToken);
+    const userResponse = await this.userService.authenticatedUserByToken(
+      authToken,
+    );
     if (!userResponse.success)
       return Helpers.failedHttpResponse(
         userResponse.message,

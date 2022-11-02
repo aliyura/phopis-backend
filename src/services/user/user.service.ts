@@ -52,9 +52,11 @@ export class UserService {
           requestDto.nin,
         );
 
-        if (ninResponse.success) {
+        if (ninResponse.success && ninResponse.data) {
           const ninDetails = ninResponse.data;
-          const name = `${ninDetails.firstname} ${ninDetails.middlename} ${ninDetails.surname}`;
+          const name = `${ninDetails.firstname} ${
+            ninDetails.middlename === 'undefined' ? '' : ninDetails.middlename
+          } ${ninDetails.surname === 'undefined' ? '' : ninDetails.surname}`;
           const address = `${ninDetails.residence_AdressLine1} ${ninDetails.residence_Town} `;
 
           requestDto.name = capitalize(name);
@@ -273,6 +275,7 @@ export class UserService {
       return Helpers.fail(Messages.Exception);
     }
   }
+
   async findByUserId(userId: string): Promise<ApiResponse> {
     try {
       const response = await this.user.findOne({ uuid: userId }).exec();

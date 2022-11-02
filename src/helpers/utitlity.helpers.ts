@@ -116,4 +116,24 @@ export class Helpers {
     }
     return false;
   }
+
+  static calculateSubscription(endDate: string): number {
+    const from = endDate;
+    const to = new Date().toISOString().slice(0, 10);
+
+    const fromDate = new Date(from).valueOf();
+    const toDate = new Date(to).valueOf();
+
+    const diffTime = Math.abs(toDate - fromDate);
+    let diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+    if (!diffDays) diffDays = 0;
+
+    return diffDays;
+  }
+
+  static verifySubscription(endDate: string) {
+    const daysLeft = this.calculateSubscription(endDate) as number;
+    if (!daysLeft) return false;
+    return true;
+  }
 }
