@@ -22,6 +22,7 @@ import { Messages } from 'src/utils/messages/messages';
 import { VerificationService } from '../verification/verification.service';
 import { WalletService } from '../wallet/wallet.service';
 import { JwtService } from '@nestjs/jwt';
+import { BusinessUserDto } from '../../dtos/user.dto';
 
 @Injectable()
 export class UserService {
@@ -47,6 +48,13 @@ export class UserService {
 
         const alreadyExistByNin = await this.existByNIN(requestDto.nin);
         if (alreadyExistByNin) return Helpers.fail('Account already exist');
+
+        if (
+          !requestDto.accountType ||
+          !Object.values(AccountType).includes(requestDto.accountType)
+        ) {
+          return Helpers.fail('Invalid account type');
+        }
 
         const ninResponse = await this.verificationService.verifyNIN(
           requestDto.nin,
@@ -95,6 +103,10 @@ export class UserService {
         ...requestDto,
         status: Status.INACTIVE,
         code: Helpers.getCode(),
+        role:
+          requestDto.accountType == AccountType.INDIVIDUAL
+            ? UserRole.USER
+            : UserRole.BUSINESS,
         subscription: {
           startDate: startDate,
           endDate: endDate,
@@ -105,8 +117,6 @@ export class UserService {
             : `ind${Helpers.getUniqueId()}`,
       } as any;
 
-      if (!requestDto.role) request.role = UserRole.USER;
-
       const account = await (await this.user.create(request)).save();
       if (account) {
         const walletResponse = await this.walletService.createWallet(
@@ -115,7 +125,6 @@ export class UserService {
         );
 
         if (walletResponse.success) {
-          //update user with wallet information
           const wallet = walletResponse.data;
           const nData = {
             walletAddress: wallet.address,
@@ -143,6 +152,69 @@ export class UserService {
       } else {
         return Helpers.fail('Unable to create your account');
       }
+    } catch (ex) {
+      console.log(Messages.ErrorOccurred, ex);
+      return Helpers.fail(Messages.Exception);
+    }
+  }
+
+  async createBusinessUser(
+    authenticatedUser: User,
+    requestDto: BusinessUserDto,
+  ): Promise<ApiResponse> {
+    try {
+      if (!Helpers.validNin(requestDto.nin))
+        return Helpers.fail('NIN provided is not valid');
+
+      if (!Helpers.validPhoneNumber(requestDto.phoneNumber)) {
+        return Helpers.fail('Phone Number provided is not valid');
+      }
+      if (authenticatedUser.accountType !== AccountType.BUSINESS) {
+        return Helpers.fail(Messages.NoPermission);
+      }
+
+      const alreadyExistByPhone = await this.existByPhoneNumber(
+        requestDto.phoneNumber,
+      );
+      if (alreadyExistByPhone)
+        return Helpers.fail('Account already exist with this phone number');
+
+      const alreadyExistByNin = await this.existByNIN(requestDto.nin);
+      if (alreadyExistByNin)
+        return Helpers.fail('Account already exist with this NIN');
+
+      //encrypt password
+      const hash = await this.cryptoService.encryptPassword(
+        requestDto.password,
+      );
+      requestDto.password = hash;
+
+      const startDate = new Date().toISOString().slice(0, 10);
+      const endDate = new Date(
+        new Date().setFullYear(new Date().getFullYear() + 1),
+      )
+        .toISOString()
+        .slice(0, 10);
+
+      const request = {
+        ...requestDto,
+        status: Status.ACTIVE,
+        businessId: authenticatedUser.uuid,
+        business: authenticatedUser.name,
+        accountType: AccountType.BUSINESS,
+        walletAddress: authenticatedUser.walletAddress,
+        walletCode: authenticatedUser.walletCode,
+        role: UserRole.USER,
+        code: Helpers.getCode(),
+        subscription: {
+          startDate: startDate,
+          endDate: endDate,
+        },
+        uuid: `biu${Helpers.getUniqueId()}`,
+      } as User;
+
+      const account = await (await this.user.create(request)).save();
+      return Helpers.success(account);
     } catch (ex) {
       console.log(Messages.ErrorOccurred, ex);
       return Helpers.fail(Messages.Exception);

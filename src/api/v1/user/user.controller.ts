@@ -20,7 +20,7 @@ import {
 } from '../../../dtos/user.dto';
 import { AppGuard } from '../../../services/auth/app.guard';
 import { ApiResponse } from '../../../dtos/ApiResponse.dto';
-import { ResetPasswordDto } from '../../../dtos/user.dto';
+import { ResetPasswordDto, BusinessUserDto } from '../../../dtos/user.dto';
 import { UserRole } from '../../../enums/enums';
 
 @Controller('user')
@@ -61,6 +61,41 @@ export class UserController {
     @Body() requestDto: ResetPasswordDto,
   ): Promise<ApiResponse> {
     const response = await this.userService.resetPassword(requestDto);
+    if (response.success) {
+      return response;
+    }
+    return Helpers.failedHttpResponse(response.message, HttpStatus.BAD_REQUEST);
+  }
+
+  @UseGuards(AppGuard)
+  @Post('/add')
+  async createBusinessUser(
+    @Headers('Authorization') token: string,
+    @Body() requestDto: BusinessUserDto,
+  ): Promise<ApiResponse> {
+    const authToken = token.substring(7);
+    const userResponse = await this.userService.authenticatedUserByToken(
+      authToken,
+    );
+    if (!userResponse.success)
+      return Helpers.failedHttpResponse(
+        userResponse.message,
+        HttpStatus.UNAUTHORIZED,
+      );
+
+    if (!userResponse.success) return Helpers.fail(userResponse.message);
+    const user = userResponse.data;
+
+    if (!Helpers.verifySubscription(user.subscription.endDate))
+      return Helpers.failedHttpResponse(
+        `Your subscription expired on ${user.subscription.endDate}, you need to renew`,
+        HttpStatus.UNAUTHORIZED,
+      );
+
+    const response = await this.userService.createBusinessUser(
+      user,
+      requestDto,
+    );
     if (response.success) {
       return response;
     }

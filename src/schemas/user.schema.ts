@@ -21,6 +21,12 @@ export class User {
   @Prop({ required: true, unique: true })
   uuid: string;
 
+  @Prop()
+  businessId: string;
+
+  @Prop()
+  business: string;
+
   @Prop({ required: true, unique: true })
   code: number;
 
@@ -53,6 +59,9 @@ export class User {
 
   @Prop({ required: true })
   role: string;
+
+  @Prop({ required: true })
+  accountType: string;
 
   @Prop()
   businessTarget: string;
