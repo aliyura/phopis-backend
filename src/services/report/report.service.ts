@@ -6,7 +6,7 @@ import { WalletLog } from 'src/schemas/wallet-logs.schema';
 import { WalletLogDocument } from '../../schemas/wallet-logs.schema';
 import { Helpers } from 'src/helpers';
 import { Messages } from 'src/utils/messages/messages';
-import { WalletActivity } from 'src/enums';
+import { AccountType, WalletActivity } from 'src/enums';
 import { Sale, SaleDocument } from '../../schemas/sale-chema';
 import { Product, ProductDocument } from '../../schemas/product.schema';
 import { User } from '../../schemas/user.schema';
@@ -54,7 +54,10 @@ export class ReportService {
     requestDto: FilterDto,
   ): Promise<ApiResponse> {
     try {
-      const query = { uuid: authenticatedUser.uuid } as any;
+      const query = {} as any;
+      if (authenticatedUser.accountType === AccountType.BUSINESS) {
+        query.businessId = authenticatedUser.businessId;
+      }
       if (requestDto.from || requestDto.to) {
         if (!requestDto.from) requestDto.from = new Date().toISOString();
         if (!requestDto.to) requestDto.to = new Date().toISOString();

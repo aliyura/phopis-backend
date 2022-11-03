@@ -7,7 +7,7 @@ import { ProductDocument, Product } from '../../schemas/product.schema';
 import { UserDocument, User } from 'src/schemas/user.schema';
 import { Status } from 'src/enums';
 import { Messages } from 'src/utils/messages/messages';
-import { ActionType } from '../../enums/enums';
+import { ActionType, AccountType } from '../../enums/enums';
 import { ProductUploadDto } from '../../dtos/product.dto';
 import {
   ProductSize,
@@ -281,9 +281,9 @@ export class ProductService {
     status: string,
   ): Promise<ApiResponse> {
     try {
-      const query = {
-        businessId: authenticatedUser.businessId,
-      } as any;
+      const query = {} as any;
+      if (authenticatedUser.accountType === AccountType.BUSINESS)
+        query.businessId = authenticatedUser.businessId;
 
       if (
         status &&
@@ -330,9 +330,12 @@ export class ProductService {
   ): Promise<ApiResponse> {
     try {
       const query = {
-        businessId: authenticatedUser.businessId,
         $text: { $search: searchString },
-      };
+      } as any;
+      if (authenticatedUser.accountType === AccountType.BUSINESS) {
+        query.businessId = authenticatedUser.businessId;
+      }
+
       const size = 20;
       const skip = page || 0;
 
