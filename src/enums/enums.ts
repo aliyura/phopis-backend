@@ -30,12 +30,13 @@ export enum WalletActivity {
   CREDIT = 'CREDIT',
 }
 export enum BusinessTarget {
-  MANY = 'MANY',
   PRODUCT = 'PRODUCT',
   SERVICE = 'SERVICE',
+  PROSERV = 'PROSERV',
 }
 
 export enum AccountType {
+  ADMIN = 'ADMIN',
   BUSINESS = 'BUSINESS',
   INDIVIDUAL = 'INDIVIDUAL',
 }

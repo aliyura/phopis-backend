@@ -59,6 +59,12 @@ import { TrackingService } from './services/tracking/tracking.service';
 import { TrackingController } from './api/v1/tracking/tracking.controller';
 import { Tracking, TrackingSchema } from './schemas/tracking.schema';
 import { BranchController } from './api/v1/branch/branch.controller';
+import { ResourceTypeController } from './api/v1/resource-type/resource-type.controller';
+import { ResourceTypeService } from './services/resource-type/resource-type.service';
+import {
+  ResourceType,
+  ResourceTypeSchema,
+} from './schemas/resource-type.schema';
 
 @Module({
   imports: [
@@ -89,6 +95,9 @@ import { BranchController } from './api/v1/branch/branch.controller';
       { name: ProductSize.name, schema: ProductSizeSchema },
     ]),
     MongooseModule.forFeature([
+      { name: ResourceType.name, schema: ResourceTypeSchema },
+    ]),
+    MongooseModule.forFeature([
       { name: ResourceOwnershipLog.name, schema: ResourceOwnershipLogSchema },
     ]),
     MongooseModule.forFeature([{ name: Wallet.name, schema: WalletSchema }]),
@@ -114,6 +123,7 @@ import { BranchController } from './api/v1/branch/branch.controller';
     FileController,
     ProductTypeController,
     ProductSizeController,
+    ResourceTypeController,
     ProductController,
     SaleController,
     ReportController,
@@ -131,6 +141,7 @@ import { BranchController } from './api/v1/branch/branch.controller';
     ProductCategoryService,
     ProductTypeService,
     ProductSizeService,
+    ResourceTypeService,
     ProductService,
     VerificationService,
     WalletService,

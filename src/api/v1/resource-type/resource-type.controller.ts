@@ -12,20 +12,18 @@ import {
 import { ApiResponse } from 'src/dtos/ApiResponse.dto';
 import { Helpers } from 'src/helpers';
 import { AppGuard } from 'src/services/auth/app.guard';
-import { ProductCategoryService } from 'src/services/product-category/product-category.service';
-import { ProductCategoryDto } from '../../../dtos/product-category.dto';
+import { ResourceTypeService } from 'src/services/resource-type/resource-type.service';
+import { ResourceTypeDto } from '../../../dtos/resource-type.dto';
 
-@Controller('product-category')
-export class ProductCategoryController {
-  constructor(
-    private readonly resourceCategoryService: ProductCategoryService,
-  ) {}
+@Controller('resource-type')
+export class ResourceTypeController {
+  constructor(private readonly resourceCategoryService: ResourceTypeService) {}
   @UseGuards(AppGuard)
   @Post('/')
-  async createProductCategory(
-    @Body() requestDto: ProductCategoryDto,
+  async createResourceType(
+    @Body() requestDto: ResourceTypeDto,
   ): Promise<ApiResponse> {
-    const response = await this.resourceCategoryService.createProductCategory(
+    const response = await this.resourceCategoryService.createResourceType(
       requestDto,
     );
     if (response.success) {
@@ -35,11 +33,11 @@ export class ProductCategoryController {
   }
   @UseGuards(AppGuard)
   @Put('/:id')
-  async updateProductCategory(
+  async updateResourceType(
     @Param('id') id: string,
-    @Body() requestDto: ProductCategoryDto,
+    @Body() requestDto: ResourceTypeDto,
   ): Promise<ApiResponse> {
-    const response = await this.resourceCategoryService.updateProductCategory(
+    const response = await this.resourceCategoryService.updateResourceType(
       id,
       requestDto,
     );
@@ -50,18 +48,16 @@ export class ProductCategoryController {
   }
   @UseGuards(AppGuard)
   @Delete('/:id')
-  async deleteProductCategory(@Param('id') id: string): Promise<ApiResponse> {
-    const response = await this.resourceCategoryService.deleteProductCategory(
-      id,
-    );
+  async deleteResourceType(@Param('id') id: string): Promise<ApiResponse> {
+    const response = await this.resourceCategoryService.deleteResourceType(id);
     if (response.success) {
       return response;
     }
     return Helpers.failedHttpResponse(response.message, HttpStatus.BAD_REQUEST);
   }
   @Get('/list')
-  async allProductCategory(): Promise<ApiResponse> {
-    const response = await this.resourceCategoryService.allProductCategory();
+  async allResourceType(): Promise<ApiResponse> {
+    const response = await this.resourceCategoryService.allResourceType();
     if (response.success && response.data) {
       return response;
     }

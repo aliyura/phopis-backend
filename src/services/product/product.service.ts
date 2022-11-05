@@ -288,7 +288,7 @@ export class ProductService {
   ): Promise<ApiResponse> {
     try {
       const query = {} as any;
-      if (authenticatedUser.accountType === AccountType.BUSINESS)
+      if (authenticatedUser.role === UserRole.BUSINESS)
         query.businessId = authenticatedUser.businessId;
 
       if (

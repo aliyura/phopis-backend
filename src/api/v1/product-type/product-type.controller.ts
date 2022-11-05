@@ -60,8 +60,26 @@ export class ProductTypeController {
   @Put('/:id')
   async updateProductType(
     @Param('id') id: string,
+    @Headers('Authorization') token: string,
     @Body() requestDto: ProductTypeDto,
   ): Promise<ApiResponse> {
+    const authToken = token.substring(7);
+    const userResponse = await this.userService.authenticatedUserByToken(
+      authToken,
+    );
+    if (!userResponse.success)
+      return Helpers.failedHttpResponse(
+        userResponse.message,
+        HttpStatus.UNAUTHORIZED,
+      );
+    const user = userResponse.data as User;
+
+    if (!Helpers.verifySubscription(user.subscription.endDate))
+      return Helpers.failedHttpResponse(
+        `Your subscription expired on ${user.subscription.endDate}, you need to renew`,
+        HttpStatus.UNAUTHORIZED,
+      );
+
     const response = await this.resourceCategoryService.updateProductType(
       id,
       requestDto,
@@ -73,7 +91,27 @@ export class ProductTypeController {
   }
   @UseGuards(AppGuard)
   @Delete('/:id')
-  async deleteProductType(@Param('id') id: string): Promise<ApiResponse> {
+  async deleteProductType(
+    @Param('id') id: string,
+    @Headers('Authorization') token: string,
+  ): Promise<ApiResponse> {
+    const authToken = token.substring(7);
+    const userResponse = await this.userService.authenticatedUserByToken(
+      authToken,
+    );
+    if (!userResponse.success)
+      return Helpers.failedHttpResponse(
+        userResponse.message,
+        HttpStatus.UNAUTHORIZED,
+      );
+    const user = userResponse.data as User;
+
+    if (!Helpers.verifySubscription(user.subscription.endDate))
+      return Helpers.failedHttpResponse(
+        `Your subscription expired on ${user.subscription.endDate}, you need to renew`,
+        HttpStatus.UNAUTHORIZED,
+      );
+
     const response = await this.resourceCategoryService.deleteProductType(id);
     if (response.success) {
       return response;
@@ -82,8 +120,21 @@ export class ProductTypeController {
   }
 
   @Get('/list')
-  async allProductType(): Promise<ApiResponse> {
-    const response = await this.resourceCategoryService.allProductType();
+  async allProductType(
+    @Headers('Authorization') token: string,
+  ): Promise<ApiResponse> {
+    const authToken = token.substring(7);
+    const userResponse = await this.userService.authenticatedUserByToken(
+      authToken,
+    );
+    if (!userResponse.success)
+      return Helpers.failedHttpResponse(
+        userResponse.message,
+        HttpStatus.UNAUTHORIZED,
+      );
+    const user = userResponse.data as User;
+
+    const response = await this.resourceCategoryService.allProductType(user);
     if (response.success && response.data) {
       return response;
     }

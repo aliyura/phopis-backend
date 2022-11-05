@@ -47,7 +47,6 @@ export class AuthService {
   async login(authRequest: UserAuthDto): Promise<ApiResponse> {
     try {
       const res = await this.validateUser(authRequest);
-      console.log(res);
       if (res.success) {
         const user = res.data as User;
         const payload = { username: user.phoneNumber, sub: user.uuid };

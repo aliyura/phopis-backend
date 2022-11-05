@@ -3,30 +3,28 @@ import { InjectModel } from '@nestjs/mongoose';
 import { ApiResponse } from 'src/dtos/ApiResponse.dto';
 import { Status } from 'src/enums';
 import { Helpers } from 'src/helpers';
-import { ProductCategoryDto } from '../../dtos/product-category.dto';
+import { ResourceTypeDto } from '../../dtos/resource-type.dto';
 import { Model } from 'mongoose';
 import {
-  ProductCategory,
-  ProductCategoryDocument,
-} from '../../schemas/product-category.schema';
+  ResourceType,
+  ResourceTypeDocument,
+} from '../../schemas/resource-type.schema';
 import { Messages } from 'src/utils/messages/messages';
 
 @Injectable()
-export class ProductCategoryService {
+export class ResourceTypeService {
   constructor(
-    @InjectModel(ProductCategory.name)
-    private productCategory: Model<ProductCategoryDocument>,
+    @InjectModel(ResourceType.name)
+    private productCategory: Model<ResourceTypeDocument>,
   ) {}
 
-  async createProductCategory(
-    requestDto: ProductCategoryDto,
-  ): Promise<ApiResponse> {
+  async createResourceType(requestDto: ResourceTypeDto): Promise<ApiResponse> {
     try {
       const response = await this.productCategory
         .findOne({ title: requestDto.title })
         .exec();
 
-      if (response) return Helpers.fail('Product category already exist');
+      if (response) return Helpers.fail('Resource type already exist');
 
       let title = requestDto.title.replace('\\s', '_');
       title = title.toUpperCase();
@@ -35,8 +33,8 @@ export class ProductCategoryService {
       const request = {
         ...requestDto,
         status: Status.ACTIVE,
-        pcuid: `pc${Helpers.getUniqueId()}`,
-      } as ProductCategory;
+        rtuid: `rt${Helpers.getUniqueId()}`,
+      } as ResourceType;
 
       const saved = await this.productCategory.create(request);
       return Helpers.success(saved);
@@ -46,19 +44,19 @@ export class ProductCategoryService {
     }
   }
 
-  async updateProductCategory(
-    pcuid: string,
-    requestDto: ProductCategoryDto,
+  async updateResourceType(
+    rtuid: string,
+    requestDto: ResourceTypeDto,
   ): Promise<ApiResponse> {
     try {
       const response = await this.productCategory
-        .findOne({ pcuid: pcuid })
+        .findOne({ rtuid: rtuid })
         .exec();
 
-      if (!response) return Helpers.fail('Product category not found');
+      if (!response) return Helpers.fail('Resource type not found');
 
       const saved = await this.productCategory.updateOne(
-        { pcuid: pcuid },
+        { rtuid: rtuid },
         { $set: requestDto },
       );
       return Helpers.success(saved);
@@ -68,9 +66,9 @@ export class ProductCategoryService {
     }
   }
 
-  async deleteProductCategory(pcuid: string): Promise<ApiResponse> {
+  async deleteResourceType(rtuid: string): Promise<ApiResponse> {
     try {
-      const response = await this.productCategory.deleteOne({ pcuid }).exec();
+      const response = await this.productCategory.deleteOne({ rtuid }).exec();
       return Helpers.success(response);
     } catch (ex) {
       console.log(Messages.ErrorOccurred, ex);
@@ -78,13 +76,13 @@ export class ProductCategoryService {
     }
   }
 
-  async allProductCategory(): Promise<ApiResponse> {
+  async allResourceType(): Promise<ApiResponse> {
     try {
       const req = await this.productCategory.find();
       if (req.length) {
         return Helpers.success(req);
       }
-      return Helpers.fail(Messages.ProductCategoryNotFound);
+      return Helpers.fail(Messages.ResourceTypeNotFound);
     } catch (ex) {
       console.log(Messages.ErrorOccurred, ex);
       return Helpers.fail(Messages.Exception);

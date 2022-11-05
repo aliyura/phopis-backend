@@ -25,7 +25,10 @@ export class ProductTypeService {
   ): Promise<ApiResponse> {
     try {
       const response = await this.productType
-        .findOne({ title: requestDto.title })
+        .findOne({
+          title: requestDto.title,
+          businessId: authenticatedUser.businessId,
+        })
         .exec();
 
       if (response) return Helpers.fail('Product type already exist');
@@ -79,9 +82,11 @@ export class ProductTypeService {
     }
   }
 
-  async allProductType(): Promise<ApiResponse> {
+  async allProductType(authenticatedUser: User): Promise<ApiResponse> {
     try {
-      const req = await this.productType.find();
+      const req = await this.productType.find({
+        businessId: authenticatedUser.businessId,
+      });
       if (req.length) {
         return Helpers.success(req);
       }

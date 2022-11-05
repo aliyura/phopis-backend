@@ -92,6 +92,9 @@ export class UserService {
         return Helpers.fail('Phone Number provided is not valid');
       }
 
+      if (requestDto.accountType == AccountType.ADMIN)
+        return Helpers.fail(Messages.NoPermission);
+
       const startDate = new Date().toISOString().slice(0, 10);
       const endDate = new Date(
         new Date().setFullYear(new Date().getFullYear() + 1),
@@ -107,15 +110,20 @@ export class UserService {
           requestDto.accountType == AccountType.INDIVIDUAL
             ? UserRole.USER
             : UserRole.BUSINESS,
-        subscription: {
-          startDate: startDate,
-          endDate: endDate,
-        },
+
         uuid:
           requestDto.accountType == AccountType.BUSINESS
             ? `bis${Helpers.getUniqueId()}`
             : `ind${Helpers.getUniqueId()}`,
       } as User;
+
+      if (requestDto.accountType == AccountType.BUSINESS) {
+        request.businessId = `bis${Helpers.getUniqueId()}`;
+        request.subscription = {
+          startDate: startDate,
+          endDate: endDate,
+        };
+      }
 
       //adding business id and business name
       if (requestDto.accountType === AccountType.BUSINESS) {
@@ -149,7 +157,7 @@ export class UserService {
           );
 
           const createdUser = await this.findByUserId(account.uuid);
-          return Helpers.success(createdUser);
+          return createdUser;
         } else {
           //removed saved user if process fail somewhere
           await this.user.deleteOne({ uuid: account.uuid });
@@ -205,7 +213,7 @@ export class UserService {
       const request = {
         ...requestDto,
         status: Status.ACTIVE,
-        businessId: authenticatedUser.uuid,
+        businessId: authenticatedUser.businessId,
         business: authenticatedUser.name,
         accountType: AccountType.BUSINESS,
         walletAddress: authenticatedUser.walletAddress,
@@ -221,6 +229,87 @@ export class UserService {
 
       const account = await (await this.user.create(request)).save();
       return Helpers.success(account);
+    } catch (ex) {
+      console.log(Messages.ErrorOccurred, ex);
+      return Helpers.fail(Messages.Exception);
+    }
+  }
+
+  async createUserBranch(
+    authenticatedUser: User,
+    requestDto: UserBranchDto,
+  ): Promise<ApiResponse> {
+    try {
+      if (!Helpers.validPhoneNumber(requestDto.phoneNumber)) {
+        return Helpers.fail('Phone Number provided is not valid');
+      }
+      if (authenticatedUser.role !== UserRole.BUSINESS) {
+        return Helpers.fail(Messages.NoPermission);
+      }
+      const alreadyExistByPhone = await this.existByPhoneNumber(
+        requestDto.phoneNumber,
+      );
+      if (alreadyExistByPhone)
+        return Helpers.fail('Phone number already exist');
+
+      //encrypt password
+      const hash = await this.cryptoService.encryptPassword(
+        requestDto.password,
+      );
+      requestDto.password = hash;
+
+      const startDate = new Date().toISOString().slice(0, 10);
+      const endDate = new Date(
+        new Date().setFullYear(new Date().getFullYear() + 1),
+      )
+        .toISOString()
+        .slice(0, 10);
+      const branchId = `bib${Helpers.getUniqueId()}`;
+
+      const request = {
+        ...requestDto,
+        status: Status.ACTIVE,
+        businessId: authenticatedUser.businessId,
+        business: authenticatedUser.name,
+        branchId: branchId,
+        branch: requestDto.name,
+        businessType: authenticatedUser.businessType,
+        accountType: AccountType.BUSINESS,
+        role: UserRole.BUSINESS,
+        code: Helpers.getCode(),
+        subscription: {
+          startDate: startDate,
+          endDate: endDate,
+        },
+        uuid: `bib${Helpers.getUniqueId()}`,
+      } as any;
+
+      const account = await (await this.user.create(request)).save();
+      if (account) {
+        const walletResponse = await this.walletService.createWallet(
+          account.uuid,
+          account.code,
+        );
+
+        if (walletResponse.success) {
+          const wallet = walletResponse.data;
+          const nData = {
+            walletAddress: wallet.address,
+            walletCode: wallet.code,
+          };
+
+          await this.user.updateOne({ uuid: account.uuid }, nData);
+
+          const createdUser = await this.findByUserId(account.uuid);
+          return Helpers.success(createdUser);
+        } else {
+          //removed saved user if process fail somewhere
+          await this.user.deleteOne({ uuid: account.uuid });
+          return Helpers.fail(walletResponse.message);
+        }
+      } else {
+        return Helpers.fail('Unable to create your account');
+      }
     } catch (ex) {
       console.log(Messages.ErrorOccurred, ex);
       return Helpers.fail(Messages.Exception);
@@ -255,87 +344,6 @@ export class UserService {
         return Helpers.success(saved);
       } else {
         return Helpers.fail(Messages.UserNotFound);
-      }
-    } catch (ex) {
-      console.log(Messages.ErrorOccurred, ex);
-      return Helpers.fail(Messages.Exception);
-    }
-  }
-
-  async createUserBranch(
-    authenticatedUser: User,
-    requestDto: UserBranchDto,
-  ): Promise<ApiResponse> {
-    try {
-      if (!Helpers.validPhoneNumber(requestDto.phoneNumber)) {
-        return Helpers.fail('Phone Number provided is not valid');
-      }
-      if (authenticatedUser.role !== UserRole.BUSINESS) {
-        return Helpers.fail(Messages.NoPermission);
-      }
-      const alreadyExistByPhone = await this.existByPhoneNumber(
-        requestDto.phoneNumber,
-      );
-      if (alreadyExistByPhone)
-        return Helpers.fail('Account already exist with this phone number');
-
-      //encrypt password
-      const hash = await this.cryptoService.encryptPassword(
-        requestDto.password,
-      );
-      requestDto.password = hash;
-
-      const startDate = new Date().toISOString().slice(0, 10);
-      const endDate = new Date(
-        new Date().setFullYear(new Date().getFullYear() + 1),
-      )
-        .toISOString()
-        .slice(0, 10);
-      const branchId = `bib${Helpers.getUniqueId()}`;
-
-      const request = {
-        ...requestDto,
-        status: Status.ACTIVE,
-        businessId: branchId,
-        business: requestDto.name,
-        mainBusinessId: authenticatedUser.uuid,
-        mainBusiness: authenticatedUser.name,
-        businessType: authenticatedUser.businessType,
-        accountType: AccountType.BUSINESS,
-        role: UserRole.BUSINESS,
-        code: Helpers.getCode(),
-        subscription: {
-          startDate: startDate,
-          endDate: endDate,
-        },
-        uuid: branchId,
-      } as any;
-
-      const account = await (await this.user.create(request)).save();
-      if (account) {
-        const walletResponse = await this.walletService.createWallet(
-          account.uuid,
-          account.code,
-        );
-
-        if (walletResponse.success) {
-          const wallet = walletResponse.data;
-          const nData = {
-            walletAddress: wallet.address,
-            walletCode: wallet.code,
-          };
-
-          await this.user.updateOne({ uuid: account.uuid }, nData);
-
-          const createdUser = await this.findByUserId(account.uuid);
-          return Helpers.success(createdUser);
-        } else {
-          //removed saved user if process fail somewhere
-          await this.user.deleteOne({ uuid: account.uuid });
-          return Helpers.fail(walletResponse.message);
-        }
-      } else {
-        return Helpers.fail('Unable to create your account');
       }
     } catch (ex) {
       console.log(Messages.ErrorOccurred, ex);
