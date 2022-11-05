@@ -96,12 +96,12 @@ export class ProductService {
 
   async updateProduct(
     authenticatedUser: User,
-    productId: string,
+    puid: string,
     requestDto: UpdateProductDto,
   ): Promise<ApiResponse> {
     try {
       const existingProduct = await this.product.findOne({
-        puid: productId,
+        puid,
       });
 
       if (!existingProduct) return Helpers.fail('Product not found');
@@ -119,7 +119,7 @@ export class ProductService {
       };
 
       const updated = await this.product.updateOne(
-        { puid: productId },
+        { puid },
         {
           $set: request,
           $push: {
@@ -138,12 +138,12 @@ export class ProductService {
 
   async adjustProduct(
     authenticatedUser: User,
-    productId: string,
+    puid: string,
     requestDto: ProductAdjustDto,
   ): Promise<ApiResponse> {
     try {
       const existingProduct = await this.product.findOne({
-        puid: productId,
+        puid,
       });
 
       if (!existingProduct) return Helpers.fail('Product not found');
@@ -175,7 +175,7 @@ export class ProductService {
       };
 
       const updated = await this.product.updateOne(
-        { puid: productId, uuid: authenticatedUser.uuid },
+        { puid, uuid: authenticatedUser.uuid },
         {
           $set: request,
           $push: {
@@ -194,12 +194,12 @@ export class ProductService {
 
   async uploadProduct(
     authenticatedUser: User,
-    productId: string,
+    puid: string,
     requestDto: ProductUploadDto,
   ): Promise<ApiResponse> {
     try {
       const existingProduct = await this.product.findOne({
-        puid: productId,
+        puid,
       });
 
       if (!existingProduct)
@@ -242,7 +242,7 @@ export class ProductService {
         };
 
         await this.product.updateOne(
-          { puid: productId, uuid: authenticatedUser.uuid },
+          { puid, uuid: authenticatedUser.uuid },
           {
             $set: request,
             $push: {
@@ -251,7 +251,7 @@ export class ProductService {
           },
           { upsert: true },
         );
-        return Helpers.success(await this.product.findOne({ puid: productId }));
+        return Helpers.success(await this.product.findOne({ puid }));
       }
     } catch (ex) {
       console.log(Messages.ErrorOccurred, ex);
@@ -261,11 +261,11 @@ export class ProductService {
 
   async deleteProduct(
     authenticatedUser: User,
-    productId: string,
+    puid: string,
   ): Promise<ApiResponse> {
     try {
       const response = await this.product.deleteOne({
-        puid: productId,
+        puid,
         businessId: authenticatedUser.businessId,
       });
       return Helpers.success(response);

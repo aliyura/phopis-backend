@@ -62,13 +62,13 @@ export class ResourceService {
       }
 
       const code = Helpers.getCode();
-      const resourceId = `res${Helpers.getUniqueId()}`;
+      const ruid = `res${Helpers.getUniqueId()}`;
 
       const request = {
         ...requestDto,
         status: Status.ACTIVE,
         code: code,
-        ruid: resourceId,
+        ruid,
         currentOwnerUuid: authenticatedUser.uuid,
       } as any;
 
@@ -82,12 +82,12 @@ export class ResourceService {
 
   async updateResource(
     authenticatedUser: User,
-    resourceId: string,
+    ruid: string,
     requestDto: UpdateResourceDto,
   ): Promise<ApiResponse> {
     try {
       const existingResource = await this.resource.findOne({
-        ruid: resourceId,
+        ruid,
         uuid: authenticatedUser.uuid,
       });
 
@@ -112,7 +112,7 @@ export class ResourceService {
       };
 
       await this.resource.updateOne(
-        { ruid: resourceId, uuid: authenticatedUser.uuid },
+        { ruid, uuid: authenticatedUser.uuid },
         {
           $set: requestDto,
           $push: {
@@ -122,7 +122,7 @@ export class ResourceService {
       );
       return Helpers.success(
         await this.resource.findOne({
-          ruid: resourceId,
+          ruid,
         }),
       );
     } catch (ex) {
@@ -133,11 +133,11 @@ export class ResourceService {
 
   async deleteResource(
     authenticatedUser: User,
-    resourceId: string,
+    ruid: string,
   ): Promise<ApiResponse> {
     try {
       const existingResource = await this.resource.findOne({
-        ruid: resourceId,
+        ruid,
         uuid: authenticatedUser.uuid,
       });
 
@@ -153,7 +153,7 @@ export class ResourceService {
         return Helpers.fail(Messages.NoPermission);
 
       const response = await this.resource.deleteOne({
-        ruid: resourceId,
+        ruid,
         uuid: authenticatedUser.uuid,
       });
       return Helpers.success(response);
@@ -254,13 +254,13 @@ export class ResourceService {
 
   async updateResourceStatus(
     authenticatedUser: User,
-    resourceId: string,
+    ruid: string,
     status: any,
     requestDto: ResourceStatusUpdateDto,
   ): Promise<ApiResponse> {
     try {
       const existingResource = await this.resource.findOne({
-        ruid: resourceId,
+        ruid,
       });
       if (!existingResource) return Helpers.fail('Resource not found');
 
@@ -295,7 +295,7 @@ export class ResourceService {
       };
 
       await this.resource.updateOne(
-        { ruid: resourceId },
+        { ruid: ruid },
         {
           $set: request,
           $push: {
@@ -307,7 +307,7 @@ export class ResourceService {
 
       return Helpers.success(
         await this.resource.findOne({
-          ruid: resourceId,
+          ruid,
         }),
       );
     } catch (ex) {
@@ -318,12 +318,12 @@ export class ResourceService {
 
   async changeResourceOwnership(
     authenticatedUser: User,
-    resourceId: string,
+    ruid: string,
     requestDto: ResourceOwnershipChangeDto,
   ): Promise<ApiResponse> {
     try {
       const existingResource = await this.resource.findOne({
-        ruid: resourceId,
+        ruid,
       });
 
       if (!existingResource) return Helpers.fail('Resource not found');
@@ -370,7 +370,7 @@ export class ResourceService {
         actionByUser: authenticatedUser.name,
       };
       await this.resource.updateOne(
-        { ruid: resourceId },
+        { ruid: ruid },
         {
           $set: request,
           $push: {

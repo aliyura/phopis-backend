@@ -59,7 +59,6 @@ export class UserUpdateDto {
   @IsOptional() state: string;
   @IsOptional() lga: string;
   @IsOptional() address: string;
-  @IsOptional() regNumber: string;
   @IsOptional() businessTarget: string;
 }
 

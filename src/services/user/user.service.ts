@@ -233,18 +233,29 @@ export class UserService {
     requestDto: UserUpdateDto,
   ): Promise<any> {
     try {
-      if (requestDto && requestDto.phoneNumber) {
-        if (requestDto.phoneNumber !== authenticatedUser.phoneNumber) {
-          const res = await this.findByPhoneNumber(requestDto.phoneNumber);
+      const userResponse = await this.findByUserId(userId);
+      if (userResponse.success) {
+        const user = userResponse.data;
 
-          if (res && res.success) {
-            return Helpers.fail('Account already exist with this phone number');
+        if (requestDto && requestDto.phoneNumber) {
+          if (
+            requestDto.phoneNumber !== authenticatedUser.phoneNumber &&
+            requestDto.phoneNumber !== user.phoneNumber
+          ) {
+            const res = await this.findByPhoneNumber(requestDto.phoneNumber);
+            if (res && res.success) {
+              return Helpers.fail(
+                'Account already exist with this phone number',
+              );
+            }
           }
         }
-      }
 
-      const saved = await this.user.updateOne({ uuid: userId }, requestDto);
-      return Helpers.success(saved);
+        const saved = await this.user.updateOne({ uuid: userId }, requestDto);
+        return Helpers.success(saved);
+      } else {
+        return Helpers.fail(Messages.UserNotFound);
+      }
     } catch (ex) {
       console.log(Messages.ErrorOccurred, ex);
       return Helpers.fail(Messages.Exception);

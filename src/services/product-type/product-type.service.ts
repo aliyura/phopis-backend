@@ -50,18 +50,16 @@ export class ProductTypeService {
   }
 
   async updateProductType(
-    id: string,
+    ptuid: string,
     requestDto: ProductTypeDto,
   ): Promise<ApiResponse> {
     try {
-      const response = await this.productType
-        .findOne({ productTypeId: id })
-        .exec();
+      const response = await this.productType.findOne({ ptuid }).exec();
 
       if (!response) return Helpers.fail(Messages.ProductTypeNotFound);
 
       const saved = await this.productType.updateOne(
-        { productTypeId: id },
+        { ptuid },
         { $set: requestDto },
       );
       return Helpers.success(saved);

@@ -45,18 +45,16 @@ export class ProductSizeService {
   }
 
   async updateProductSize(
-    id: string,
+    psuid: string,
     requestDto: ProductSizeDto,
   ): Promise<ApiResponse> {
     try {
-      const response = await this.productType
-        .findOne({ productTypeId: id })
-        .exec();
+      const response = await this.productType.findOne({ psuid }).exec();
 
       if (!response) return Helpers.fail(Messages.ProductSizeNotFound);
 
       const saved = await this.productType.updateOne(
-        { productTypeId: id },
+        { psuid },
         { $set: requestDto },
       );
       return Helpers.success(saved);
@@ -66,9 +64,9 @@ export class ProductSizeService {
     }
   }
 
-  async deleteProductSize(ptuid: string): Promise<ApiResponse> {
+  async deleteProductSize(psuid: string): Promise<ApiResponse> {
     try {
-      const response = await this.productType.deleteOne({ ptuid }).exec();
+      const response = await this.productType.deleteOne({ psuid }).exec();
       return Helpers.success(response);
     } catch (ex) {
       console.log(Messages.ErrorOccurred, ex);

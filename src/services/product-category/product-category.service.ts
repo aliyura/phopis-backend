@@ -47,18 +47,18 @@ export class ProductCategoryService {
   }
 
   async updateProductCategory(
-    id: string,
+    pcuid: string,
     requestDto: ProductCategoryDto,
   ): Promise<ApiResponse> {
     try {
       const response = await this.productCategory
-        .findOne({ productCategoryId: id })
+        .findOne({ pcuid: pcuid })
         .exec();
 
-      if (!response) return Helpers.fail('Product type not found');
+      if (!response) return Helpers.fail('Product category not found');
 
       const saved = await this.productCategory.updateOne(
-        { productCategoryId: id },
+        { pcuid: pcuid },
         { $set: requestDto },
       );
       return Helpers.success(saved);
@@ -68,9 +68,9 @@ export class ProductCategoryService {
     }
   }
 
-  async deleteProductCategory(rcuid: string): Promise<ApiResponse> {
+  async deleteProductCategory(pcuid: string): Promise<ApiResponse> {
     try {
-      const response = await this.productCategory.deleteOne({ rcuid }).exec();
+      const response = await this.productCategory.deleteOne({ pcuid }).exec();
       return Helpers.success(response);
     } catch (ex) {
       console.log(Messages.ErrorOccurred, ex);
