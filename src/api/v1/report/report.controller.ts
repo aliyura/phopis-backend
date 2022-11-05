@@ -75,4 +75,27 @@ export class ReportController {
     }
     return Helpers.failedHttpResponse(response.message, HttpStatus.NOT_FOUND);
   }
+
+  @UseGuards(AppGuard)
+  @Get('/resource/analytics')
+  async getResourceAnalytics(
+    @Headers('Authorization') token: string,
+  ): Promise<ApiResponse> {
+    const authToken = token.substring(7);
+    const userResponse = await this.userService.authenticatedUserByToken(
+      authToken,
+    );
+    if (!userResponse.success)
+      return Helpers.failedHttpResponse(
+        userResponse.message,
+        HttpStatus.UNAUTHORIZED,
+      );
+    const user = userResponse.data as User;
+
+    const response = await this.reportService.getResourceAnalytics(user);
+    if (response.success && response.data) {
+      return response;
+    }
+    return Helpers.failedHttpResponse(response.message, HttpStatus.NOT_FOUND);
+  }
 }

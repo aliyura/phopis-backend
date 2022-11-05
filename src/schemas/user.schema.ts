@@ -75,7 +75,7 @@ export class User {
   @Prop()
   regNumber: string;
 
-  @Prop({ required: true })
+  @Prop()
   subscription: UserSubscriptionDto;
 
   @Prop()

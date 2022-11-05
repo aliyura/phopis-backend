@@ -35,6 +35,13 @@ export enum BusinessTarget {
   PROSERV = 'PROSERV',
 }
 
+export enum ResourceType {
+  SMARTDEVICE = 'SMARTDEVICE',
+  VEHICLE = 'VEHICLE',
+  HOUSE = 'HOUSE',
+  LAND = 'LAND',
+}
+
 export enum AccountType {
   ADMIN = 'ADMIN',
   BUSINESS = 'BUSINESS',

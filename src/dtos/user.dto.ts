@@ -1,7 +1,7 @@
 import { IsOptional, IsString } from 'class-validator';
 
 export class UserDto {
-  @IsOptional() name: string;
+  @IsString() name: string;
   @IsString() accountType: string;
   @IsString() phoneNumber: string;
   @IsOptional() @IsString() businessType: string;

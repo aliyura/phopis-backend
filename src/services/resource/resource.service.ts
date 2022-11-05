@@ -18,6 +18,7 @@ import {
 import { Messages } from 'src/utils/messages/messages';
 import { WalletService } from '../wallet/wallet.service';
 import { DebitWalletDto } from '../../dtos/wallet.dto';
+import { AccountType } from '../../enums/enums';
 import {
   ResourceOwnershipLog,
   ResourceOwnershipLogDocument,
@@ -69,7 +70,10 @@ export class ResourceService {
         status: Status.ACTIVE,
         code: code,
         ruid,
-        currentOwnerUuid: authenticatedUser.uuid,
+        currentOwnerUuid:
+          authenticatedUser.accountType === AccountType.BUSINESS
+            ? authenticatedUser.businessId
+            : authenticatedUser.uuid,
       } as any;
 
       const saved = await (await this.resource.create(request)).save();
@@ -88,7 +92,6 @@ export class ResourceService {
     try {
       const existingResource = await this.resource.findOne({
         ruid,
-        uuid: authenticatedUser.uuid,
       });
 
       if (!existingResource) return Helpers.fail('Resource not found');
@@ -112,7 +115,7 @@ export class ResourceService {
       };
 
       await this.resource.updateOne(
-        { ruid, uuid: authenticatedUser.uuid },
+        { ruid },
         {
           $set: requestDto,
           $push: {
@@ -138,7 +141,6 @@ export class ResourceService {
     try {
       const existingResource = await this.resource.findOne({
         ruid,
-        uuid: authenticatedUser.uuid,
       });
 
       if (!existingResource) return Helpers.fail('Resource not found');
@@ -154,7 +156,6 @@ export class ResourceService {
 
       const response = await this.resource.deleteOne({
         ruid,
-        uuid: authenticatedUser.uuid,
       });
       return Helpers.success(response);
     } catch (ex) {
@@ -411,7 +412,10 @@ export class ResourceService {
   ): Promise<ApiResponse> {
     try {
       const query = {
-        currentOwnerUuid: authenticatedUser.uuid,
+        currentOwnerUuid:
+          authenticatedUser.accountType === AccountType.BUSINESS
+            ? authenticatedUser.businessId
+            : authenticatedUser.uuid,
       } as any;
 
       if (
@@ -437,7 +441,10 @@ export class ResourceService {
   ): Promise<ApiResponse> {
     try {
       const resources = await this.resource.find({
-        currentOwnerUuid: authenticatedUser.uuid,
+        currentOwnerUuid:
+          authenticatedUser.accountType === AccountType.BUSINESS
+            ? authenticatedUser.businessId
+            : authenticatedUser.uuid,
         $text: { $search: searchString },
       });
       if (resources.length) return Helpers.success(resources);

@@ -17,7 +17,6 @@ import { Helpers } from 'src/helpers';
 import { AccountType, Status, UserRole } from 'src/enums';
 import { SmsService } from '../sms/sms.service';
 import * as NodeCache from 'node-cache';
-import * as capitalize from 'string-capitalize';
 import { Messages } from 'src/utils/messages/messages';
 import { VerificationService } from '../verification/verification.service';
 import { WalletService } from '../wallet/wallet.service';
@@ -31,66 +30,34 @@ export class UserService {
     @InjectModel(User.name) private user: Model<UserDocument>,
     private readonly cryptoService: CryptoService,
     private readonly smsService: SmsService,
-    private readonly verificationService: VerificationService,
     private readonly walletService: WalletService,
     private readonly jwtService: JwtService,
   ) {}
 
   async createUser(requestDto: UserDto): Promise<ApiResponse> {
     try {
-      const alreadyExistByPhone = await this.existByPhoneNumber(
-        requestDto.phoneNumber,
-      );
-      if (alreadyExistByPhone) return Helpers.fail('Account already exist');
+      if (!Helpers.validPhoneNumber(requestDto.phoneNumber)) {
+        return Helpers.fail('Phone Number provided is not valid');
+      }
 
       if (requestDto.accountType == AccountType.INDIVIDUAL) {
         if (!requestDto.nin) return Helpers.fail('User NIN is required');
 
         const alreadyExistByNin = await this.existByNIN(requestDto.nin);
-        if (alreadyExistByNin) return Helpers.fail('Account already exist');
-
-        if (
-          !requestDto.accountType ||
-          !Object.values(AccountType).includes(requestDto.accountType)
-        ) {
-          return Helpers.fail('Invalid account type');
-        }
-
-        const ninResponse = await this.verificationService.verifyNIN(
-          requestDto.nin,
-        );
-
-        if (ninResponse.success && ninResponse.data) {
-          const ninDetails = ninResponse.data;
-          const name = `${ninDetails.firstname} ${
-            ninDetails.middlename === 'undefined' ? '' : ninDetails.middlename
-          } ${ninDetails.surname === 'undefined' ? '' : ninDetails.surname}`;
-          const address = `${ninDetails.residence_AdressLine1} ${ninDetails.residence_Town} `;
-
-          requestDto.name = capitalize(name);
-          requestDto.lga = capitalize(ninDetails.residence_lga);
-          requestDto.state = capitalize(ninDetails.residence_state);
-          requestDto.address = capitalize(address);
-        } else {
-          return Helpers.fail(ninResponse.message);
-        }
+        if (alreadyExistByNin)
+          return Helpers.fail('Account already exist with this NIN');
       }
+
+      const alreadyExistByPhone = await this.existByPhoneNumber(
+        requestDto.phoneNumber,
+      );
+      if (alreadyExistByPhone) return Helpers.fail('Account already exist');
+
       //encrypt password
       const hash = await this.cryptoService.encryptPassword(
         requestDto.password,
       );
       requestDto.password = hash;
-
-      if (requestDto.accountType == AccountType.INDIVIDUAL) {
-        if (requestDto.nin == null) return Helpers.fail('NIN is required');
-
-        if (!Helpers.validNin(requestDto.nin))
-          return Helpers.fail('NIN provided is not valid');
-      }
-
-      if (!Helpers.validPhoneNumber(requestDto.phoneNumber)) {
-        return Helpers.fail('Phone Number provided is not valid');
-      }
 
       if (requestDto.accountType == AccountType.ADMIN)
         return Helpers.fail(Messages.NoPermission);
@@ -117,7 +84,7 @@ export class UserService {
             : `ind${Helpers.getUniqueId()}`,
       } as User;
 
-      if (requestDto.accountType == AccountType.BUSINESS) {
+      if (requestDto.accountType === AccountType.BUSINESS) {
         request.businessId = `bis${Helpers.getUniqueId()}`;
         request.subscription = {
           startDate: startDate,
@@ -667,9 +634,13 @@ export class UserService {
       }
 
       const query = status ? ({ status } as any) : ({} as any);
+      query.mainBusinessId = { $exists: true }; //filter only branches here
+
       if (authenticatedUser.role === UserRole.BUSINESS) {
         query.mainBusinessId = authenticatedUser.uuid;
       }
+
+      console.log(query);
       const count = await this.user.count(query);
       const result = await this.user
         .find(query)
@@ -712,6 +683,8 @@ export class UserService {
       }
 
       const query = { $text: { $search: searchString } } as any;
+      query.mainBusinessId = { $exists: true }; //filter only branches here
+
       if (authenticatedUser.role === UserRole.BUSINESS) {
         query.mainBusinessId = authenticatedUser.uuid;
       }
