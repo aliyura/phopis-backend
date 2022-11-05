@@ -7,7 +7,7 @@ import { ProductDocument, Product } from '../../schemas/product.schema';
 import { UserDocument, User } from 'src/schemas/user.schema';
 import { Status } from 'src/enums';
 import { Messages } from 'src/utils/messages/messages';
-import { ActionType, AccountType } from '../../enums/enums';
+import { ActionType, AccountType, UserRole } from '../../enums/enums';
 import { ProductUploadDto } from '../../dtos/product.dto';
 import {
   ProductSize,
@@ -70,22 +70,28 @@ export class ProductService {
       if (!requestDto.sellingPrice || requestDto.sellingPrice <= 0)
         return Helpers.fail('Product selling price required');
 
+      if (authenticatedUser.role != UserRole.BUSINESS)
+        return Helpers.fail(Messages.NoPermission);
+
       const code = Helpers.getCode();
       const productId = `pro${Helpers.getUniqueId()}`;
+      const businessId = authenticatedUser.businessId || authenticatedUser.uuid;
       const status =
         requestDto.quantity > 0 ? Status.AVAILABLE : Status.UNAVAILABLE;
 
+      console.log(authenticatedUser);
       const request = {
         ...requestDto,
         initialQuantity: requestDto.quantity,
         status: status,
         code: code,
         puid: productId,
-        businessId: authenticatedUser.businessId,
+        businessId: businessId,
         createdBy: authenticatedUser.name,
         createdById: authenticatedUser.uuid,
       } as Product;
 
+      console.log(request);
       const saved = await (await this.product.create(request)).save();
       return Helpers.success(saved);
     } catch (ex) {

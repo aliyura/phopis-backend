@@ -124,6 +124,8 @@ export class SaleService {
         totalAmount = totalAmount - totalDiscount;
         const code = Helpers.getCode();
         const saleId = `sal${Helpers.getUniqueId()}`;
+        const businessId =
+          authenticatedUser.businessId || authenticatedUser.uuid;
 
         const request = {
           customerAccountCode: requestDto.customerAccountCode,
@@ -135,7 +137,7 @@ export class SaleService {
           code: code,
           suid: saleId,
           products: saleRequest,
-          businessId: authenticatedUser.businessId,
+          businessId: businessId,
           createdBy: authenticatedUser.name,
           createdById: authenticatedUser.uuid,
         } as any;
