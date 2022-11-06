@@ -170,7 +170,8 @@ export class ResourceService {
   ): Promise<ApiResponse> {
     try {
       //find the user
-      const resourceOwner = await this.user.findOne({
+
+      const query = {
         code: requestDto.ownerAccountNumber,
         $or: [
           {
@@ -178,18 +179,23 @@ export class ResourceService {
           },
           { regNumber: requestDto.ownerIdentity },
         ],
-      });
+      };
+      const resourceOwner = await this.user.findOne(query);
       if (!resourceOwner) {
         console.log('Resource owner not found');
         return Helpers.fail(
-          'Verification failed -Invalid resource owner details',
+          'Verification failed -Invalid resource owner identity',
         );
       }
 
       //find the resource
+
       const existingResource = await this.resource.findOne({
         code: requestDto.resourceNumber,
-        currentOwnerUuid: resourceOwner.uuid,
+        currentOwnerUuid:
+          authenticatedUser.accountType === AccountType.BUSINESS
+            ? resourceOwner.businessId
+            : resourceOwner.uuid,
       });
       if (!existingResource) {
         console.log('Resource not found');
@@ -198,7 +204,10 @@ export class ResourceService {
         );
       }
 
-      const verificationCharge = Number(process.env.VERIFICATION_CHARGE);
+      let verificationCharge = Number(process.env.VERIFICATION_CHARGE);
+      if (authenticatedUser.accountType == AccountType.BUSINESS)
+        verificationCharge = verificationCharge - 100; //100 naira discount for businesses
+
       const transactionRef = `ver${Helpers.getUniqueId()}`;
       const walletDebitRequest = {
         address: resourceOwner.walletAddress,
@@ -218,6 +227,7 @@ export class ResourceService {
       const dateTime = new Date();
       const response = {
         verified: true,
+        chargedAmount: verificationCharge,
         transactionRef: transactionRef,
         resourceDetail: existingResource,
         ownerDetail: {

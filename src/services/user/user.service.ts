@@ -22,6 +22,8 @@ import { VerificationService } from '../verification/verification.service';
 import { WalletService } from '../wallet/wallet.service';
 import { JwtService } from '@nestjs/jwt';
 import { BusinessUserDto, UserBranchDto } from '../../dtos/user.dto';
+import { WalletActivity } from '../../enums/enums';
+import { LogsService } from '../logs/logs.service';
 
 @Injectable()
 export class UserService {
@@ -32,6 +34,7 @@ export class UserService {
     private readonly smsService: SmsService,
     private readonly walletService: WalletService,
     private readonly jwtService: JwtService,
+    private readonly logService: LogsService,
   ) {}
 
   async createUser(requestDto: UserDto): Promise<ApiResponse> {
@@ -122,6 +125,20 @@ export class UserService {
             requestDto.phoneNumber,
             'Your OTP is ' + verificationOTP,
           );
+
+          const walletLog = {
+            activity: WalletActivity.CREDIT,
+            status: Status.SUCCESSFUL,
+            uuid: wallet.uuid,
+            sender: 'system',
+            recipient: wallet.address,
+            amount: 1000,
+            ref: `ref${Helpers.getUniqueId()}`,
+            channel: 'Transfer',
+            narration: 'Starter bonus',
+          } as any;
+
+          await this.logService.saveWalletLog(walletLog);
 
           const createdUser = await this.findByUserId(account.uuid);
           return createdUser;
@@ -543,6 +560,7 @@ export class UserService {
       }
 
       const query = status ? ({ status } as any) : ({} as any);
+      query.mainBusinessId = { $exists: false };
       if (authenticatedUser.role === UserRole.BUSINESS) {
         query.businessId = authenticatedUser.uuid;
       }
@@ -588,6 +606,7 @@ export class UserService {
       }
 
       const query = { $text: { $search: searchString } } as any;
+      query.mainBusinessId = { $exists: false };
       if (authenticatedUser.role === UserRole.BUSINESS) {
         query.businessId = authenticatedUser.uuid;
       }

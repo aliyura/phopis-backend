@@ -20,9 +20,7 @@ export class VerificationService {
         rejectUnauthorized: false,
       }); //disable certificate error
 
-      console.log('NIN Verification request:', req);
       const response = await axios.get(req, { httpsAgent });
-      console.log('response:', response.data);
       if (
         response.status == HttpStatus.OK &&
         response.data.response !== 'norecord' &&
