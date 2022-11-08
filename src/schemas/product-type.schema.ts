@@ -12,6 +12,9 @@ export class ProductType {
   title: string;
 
   @Prop({ required: true })
+  category: string;
+
+  @Prop({ required: true })
   status: string;
 
   @Prop()

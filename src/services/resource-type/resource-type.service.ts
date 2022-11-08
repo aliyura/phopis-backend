@@ -20,15 +20,15 @@ export class ResourceTypeService {
 
   async createResourceType(requestDto: ResourceTypeDto): Promise<ApiResponse> {
     try {
+      let title = requestDto.title.replace('\\s', '_');
+      title = title.toUpperCase();
+      requestDto.title = title;
+
       const response = await this.productCategory
         .findOne({ title: requestDto.title })
         .exec();
 
       if (response) return Helpers.fail('Resource type already exist');
-
-      let title = requestDto.title.replace('\\s', '_');
-      title = title.toUpperCase();
-      requestDto.title = title;
 
       const request = {
         ...requestDto,

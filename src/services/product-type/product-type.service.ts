@@ -24,6 +24,10 @@ export class ProductTypeService {
     requestDto: ProductTypeDto,
   ): Promise<ApiResponse> {
     try {
+      let title = requestDto.title.replace('\\s', '_');
+      title = title.toUpperCase();
+      requestDto.title = title;
+
       const response = await this.productType
         .findOne({
           title: requestDto.title,
@@ -32,10 +36,6 @@ export class ProductTypeService {
         .exec();
 
       if (response) return Helpers.fail('Product type already exist');
-
-      let title = requestDto.title.replace('\\s', '_');
-      title = title.toUpperCase();
-      requestDto.title = title;
 
       const request = {
         ...requestDto,
