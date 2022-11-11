@@ -28,10 +28,10 @@ export class User {
   business: string;
 
   @Prop()
-  mainBusinessId: string;
+  branchId: string;
 
   @Prop()
-  mainBusiness: string;
+  branch: string;
 
   @Prop({ required: true, unique: true })
   code: number;

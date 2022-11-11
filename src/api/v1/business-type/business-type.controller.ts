@@ -44,6 +44,7 @@ export class BusinessTypeController {
     }
     return Helpers.failedHttpResponse(response.message, HttpStatus.NOT_FOUND);
   }
+  
   @Get('/list')
   async allBusinessType(): Promise<ApiResponse> {
     const response = await this.businessTypeService.allBusinessType();

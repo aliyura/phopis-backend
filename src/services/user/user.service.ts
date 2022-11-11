@@ -18,7 +18,6 @@ import { AccountType, Status, UserRole } from 'src/enums';
 import { SmsService } from '../sms/sms.service';
 import * as NodeCache from 'node-cache';
 import { Messages } from 'src/utils/messages/messages';
-import { VerificationService } from '../verification/verification.service';
 import { WalletService } from '../wallet/wallet.service';
 import { JwtService } from '@nestjs/jwt';
 import { BusinessUserDto, UserBranchDto } from '../../dtos/user.dto';
@@ -87,18 +86,14 @@ export class UserService {
             : `ind${Helpers.getUniqueId()}`,
       } as User;
 
-      if (requestDto.accountType === AccountType.BUSINESS) {
-        request.businessId = `bis${Helpers.getUniqueId()}`;
-        request.subscription = {
-          startDate: startDate,
-          endDate: endDate,
-        };
-      }
-
       //adding business id and business name
       if (requestDto.accountType === AccountType.BUSINESS) {
         request.businessId = request.uuid;
         request.business = request.name;
+        request.subscription = {
+          startDate: startDate,
+          endDate: endDate,
+        };
       }
 
       const account = await (await this.user.create(request)).save();
@@ -285,7 +280,7 @@ export class UserService {
           await this.user.updateOne({ uuid: account.uuid }, nData);
 
           const createdUser = await this.findByUserId(account.uuid);
-          return Helpers.success(createdUser);
+          return createdUser;
         } else {
           //removed saved user if process fail somewhere
           await this.user.deleteOne({ uuid: account.uuid });
@@ -560,10 +555,12 @@ export class UserService {
       }
 
       const query = status ? ({ status } as any) : ({} as any);
-      query.mainBusinessId = { $exists: false };
+      query.branchId = { $exists: false };
+
       if (authenticatedUser.role === UserRole.BUSINESS) {
-        query.businessId = authenticatedUser.uuid;
+        query.businessId = authenticatedUser.businessId;
       }
+
       const count = await this.user.count(query);
       const result = await this.user
         .find(query)
@@ -606,9 +603,9 @@ export class UserService {
       }
 
       const query = { $text: { $search: searchString } } as any;
-      query.mainBusinessId = { $exists: false };
+      query.branchId = { $exists: false };
       if (authenticatedUser.role === UserRole.BUSINESS) {
-        query.businessId = authenticatedUser.uuid;
+        query.businessId = authenticatedUser.businessId;
       }
 
       const count = await this.user.count(query);
@@ -653,13 +650,12 @@ export class UserService {
       }
 
       const query = status ? ({ status } as any) : ({} as any);
-      query.mainBusinessId = { $exists: true }; //filter only branches here
+      query.branchId = { $exists: true }; //filter only branches here
 
       if (authenticatedUser.role === UserRole.BUSINESS) {
-        query.mainBusinessId = authenticatedUser.uuid;
+        query.businessId = authenticatedUser.businessId;
       }
 
-      console.log(query);
       const count = await this.user.count(query);
       const result = await this.user
         .find(query)
@@ -702,10 +698,10 @@ export class UserService {
       }
 
       const query = { $text: { $search: searchString } } as any;
-      query.mainBusinessId = { $exists: true }; //filter only branches here
+      query.branchId = { $exists: true }; //filter only branches here
 
       if (authenticatedUser.role === UserRole.BUSINESS) {
-        query.mainBusinessId = authenticatedUser.uuid;
+        query.businessId = authenticatedUser.businessId;
       }
 
       const count = await this.user.count(query);
