@@ -1,33 +1,36 @@
 import {
   Body,
   Controller,
-  HttpStatus,
-  Post,
-  Query,
+  Delete,
   Get,
   Headers,
-  UseGuards,
+  HttpStatus,
   Param,
+  Post,
+  Put,
+  Query,
+  UseGuards,
 } from '@nestjs/common';
-import { AppGuard } from 'src/services/auth/app.guard';
-import { SaleService } from '../../../services/sale/sale.service';
-import { SaleDto, TransactionDto } from '../../../dtos/sale.dto';
 import { ApiResponse } from 'src/dtos/ApiResponse.dto';
+import { ServiceService } from '../../../services/service/service.service';
+import { ServiceDto, UpdateServiceDto } from '../../../dtos/service.dto';
 import { Helpers } from 'src/helpers';
-import { UserService } from '../../../services/user/user.service';
+import { AppGuard } from 'src/services/auth/app.guard';
 import { User } from 'src/schemas/user.schema';
+import { UserService } from '../../../services/user/user.service';
 
-@Controller('inventory/sale')
-export class SaleController {
+@Controller('inventory/service')
+export class ServiceController {
   constructor(
-    private readonly saleService: SaleService,
-    private readonly userService: UserService,
+    private serviceService: ServiceService,
+    private userService: UserService,
   ) {}
+
   @UseGuards(AppGuard)
   @Post('/')
-  async createSale(
-    @Body() requestDto: SaleDto,
+  async createService(
     @Headers('Authorization') token: string,
+    @Body() requestDto: ServiceDto,
   ): Promise<ApiResponse> {
     const authToken = token.substring(7);
     const userResponse = await this.userService.authenticatedUserByToken(
@@ -46,22 +49,19 @@ export class SaleController {
         HttpStatus.UNAUTHORIZED,
       );
 
-    const response = await this.saleService.createSale(user, requestDto);
+    const response = await this.serviceService.createService(user, requestDto);
     if (response.success) {
       return response;
     }
-    return Helpers.failedHttpResponse2(
-      response.data,
-      response.message,
-      HttpStatus.BAD_REQUEST,
-    );
+    return Helpers.failedHttpResponse(response.message, HttpStatus.BAD_REQUEST);
   }
 
   @UseGuards(AppGuard)
-  @Post('/transaction')
-  async createTransaction(
-    @Body() requestDto: TransactionDto,
+  @Put('/:serviceId')
+  async updateService(
     @Headers('Authorization') token: string,
+    @Param('serviceId') serviceId: string,
+    @Body() requestDto: UpdateServiceDto,
   ): Promise<ApiResponse> {
     const authToken = token.substring(7);
     const userResponse = await this.userService.authenticatedUserByToken(
@@ -80,32 +80,49 @@ export class SaleController {
         HttpStatus.UNAUTHORIZED,
       );
 
-    const response = await this.saleService.createTransaction(user, requestDto);
+    const response = await this.serviceService.updateService(
+      user,
+      serviceId,
+      requestDto,
+    );
     if (response.success) {
       return response;
     }
-    return Helpers.failedHttpResponse2(
-      response.data,
-      response.message,
-      HttpStatus.BAD_REQUEST,
-    );
+    return Helpers.failedHttpResponse(response.message, HttpStatus.BAD_REQUEST);
   }
   @UseGuards(AppGuard)
-  @Get('/detail/:suid')
-  async accountInquiry(@Param('suid') suid: string): Promise<ApiResponse> {
-    const saleResponse = await this.saleService.findById(suid);
-
-    if (saleResponse.success) return saleResponse;
-
-    return Helpers.failedHttpResponse(
-      saleResponse.message,
-      HttpStatus.NOT_FOUND,
+  @Delete('/:serviceId')
+  async deleteService(
+    @Headers('Authorization') token: string,
+    @Param('serviceId') serviceId: string,
+  ): Promise<ApiResponse> {
+    const authToken = token.substring(7);
+    const userResponse = await this.userService.authenticatedUserByToken(
+      authToken,
     );
+    if (!userResponse.success)
+      return Helpers.failedHttpResponse(
+        userResponse.message,
+        HttpStatus.UNAUTHORIZED,
+      );
+    const user = userResponse.data as User;
+
+    if (!Helpers.verifySubscription(user.subscription.endDate))
+      return Helpers.failedHttpResponse(
+        `Your subscription expired on ${user.subscription.endDate}, you need to renew`,
+        HttpStatus.UNAUTHORIZED,
+      );
+
+    const response = await this.serviceService.deleteService(user, serviceId);
+    if (response.success) {
+      return response;
+    }
+    return Helpers.failedHttpResponse(response.message, HttpStatus.BAD_REQUEST);
   }
 
   @UseGuards(AppGuard)
   @Get('/list')
-  async getMySales(
+  async getMyServices(
     @Query('page') page: number,
     @Query('status') status: string,
     @Headers('Authorization') token: string,
@@ -121,7 +138,11 @@ export class SaleController {
       );
     const user = userResponse.data as User;
 
-    const response = await this.saleService.getMySales(page, user, status);
+    const response = await this.serviceService.getMyServices(
+      page,
+      user,
+      status,
+    );
     if (response.success) {
       return response;
     }
@@ -130,7 +151,7 @@ export class SaleController {
 
   @UseGuards(AppGuard)
   @Get('/search')
-  async searchMySales(
+  async searchMyServices(
     @Query('page') page: number,
     @Query('q') searchString: string,
     @Headers('Authorization') token: string,
@@ -146,7 +167,7 @@ export class SaleController {
       );
     const user = userResponse.data as User;
 
-    const response = await this.saleService.searchMySales(
+    const response = await this.serviceService.searchMyServices(
       page,
       user,
       searchString,

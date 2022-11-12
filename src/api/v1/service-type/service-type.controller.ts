@@ -1,32 +1,33 @@
 import {
   Body,
   Controller,
-  HttpStatus,
-  Post,
-  Query,
+  Delete,
   Get,
-  Headers,
-  UseGuards,
+  HttpStatus,
   Param,
+  Post,
+  Headers,
+  Put,
+  UseGuards,
 } from '@nestjs/common';
-import { AppGuard } from 'src/services/auth/app.guard';
-import { SaleService } from '../../../services/sale/sale.service';
-import { SaleDto, TransactionDto } from '../../../dtos/sale.dto';
 import { ApiResponse } from 'src/dtos/ApiResponse.dto';
 import { Helpers } from 'src/helpers';
+import { AppGuard } from 'src/services/auth/app.guard';
+import { ServiceTypeService } from 'src/services/service-type/service-type.service';
+import { ServiceTypeDto } from '../../../dtos/service-type.dto';
+import { User } from '../../../schemas/user.schema';
 import { UserService } from '../../../services/user/user.service';
-import { User } from 'src/schemas/user.schema';
 
-@Controller('inventory/sale')
-export class SaleController {
+@Controller('service-type')
+export class ServiceTypeController {
   constructor(
-    private readonly saleService: SaleService,
-    private readonly userService: UserService,
+    private readonly resourceCategoryService: ServiceTypeService,
+    private userService: UserService,
   ) {}
   @UseGuards(AppGuard)
   @Post('/')
-  async createSale(
-    @Body() requestDto: SaleDto,
+  async createServiceType(
+    @Body() requestDto: ServiceTypeDto,
     @Headers('Authorization') token: string,
   ): Promise<ApiResponse> {
     const authToken = token.substring(7);
@@ -46,112 +47,95 @@ export class SaleController {
         HttpStatus.UNAUTHORIZED,
       );
 
-    const response = await this.saleService.createSale(user, requestDto);
-    if (response.success) {
-      return response;
-    }
-    return Helpers.failedHttpResponse2(
-      response.data,
-      response.message,
-      HttpStatus.BAD_REQUEST,
-    );
-  }
-
-  @UseGuards(AppGuard)
-  @Post('/transaction')
-  async createTransaction(
-    @Body() requestDto: TransactionDto,
-    @Headers('Authorization') token: string,
-  ): Promise<ApiResponse> {
-    const authToken = token.substring(7);
-    const userResponse = await this.userService.authenticatedUserByToken(
-      authToken,
-    );
-    if (!userResponse.success)
-      return Helpers.failedHttpResponse(
-        userResponse.message,
-        HttpStatus.UNAUTHORIZED,
-      );
-    const user = userResponse.data as User;
-
-    if (!Helpers.verifySubscription(user.subscription.endDate))
-      return Helpers.failedHttpResponse(
-        `Your subscription expired on ${user.subscription.endDate}, you need to renew`,
-        HttpStatus.UNAUTHORIZED,
-      );
-
-    const response = await this.saleService.createTransaction(user, requestDto);
-    if (response.success) {
-      return response;
-    }
-    return Helpers.failedHttpResponse2(
-      response.data,
-      response.message,
-      HttpStatus.BAD_REQUEST,
-    );
-  }
-  @UseGuards(AppGuard)
-  @Get('/detail/:suid')
-  async accountInquiry(@Param('suid') suid: string): Promise<ApiResponse> {
-    const saleResponse = await this.saleService.findById(suid);
-
-    if (saleResponse.success) return saleResponse;
-
-    return Helpers.failedHttpResponse(
-      saleResponse.message,
-      HttpStatus.NOT_FOUND,
-    );
-  }
-
-  @UseGuards(AppGuard)
-  @Get('/list')
-  async getMySales(
-    @Query('page') page: number,
-    @Query('status') status: string,
-    @Headers('Authorization') token: string,
-  ): Promise<ApiResponse> {
-    const authToken = token.substring(7);
-    const userResponse = await this.userService.authenticatedUserByToken(
-      authToken,
-    );
-    if (!userResponse.success)
-      return Helpers.failedHttpResponse(
-        userResponse.message,
-        HttpStatus.UNAUTHORIZED,
-      );
-    const user = userResponse.data as User;
-
-    const response = await this.saleService.getMySales(page, user, status);
-    if (response.success) {
-      return response;
-    }
-    return Helpers.failedHttpResponse(response.message, HttpStatus.NOT_FOUND);
-  }
-
-  @UseGuards(AppGuard)
-  @Get('/search')
-  async searchMySales(
-    @Query('page') page: number,
-    @Query('q') searchString: string,
-    @Headers('Authorization') token: string,
-  ): Promise<ApiResponse> {
-    const authToken = token.substring(7);
-    const userResponse = await this.userService.authenticatedUserByToken(
-      authToken,
-    );
-    if (!userResponse.success)
-      return Helpers.failedHttpResponse(
-        userResponse.message,
-        HttpStatus.UNAUTHORIZED,
-      );
-    const user = userResponse.data as User;
-
-    const response = await this.saleService.searchMySales(
-      page,
+    const response = await this.resourceCategoryService.createServiceType(
       user,
-      searchString,
+      requestDto,
     );
     if (response.success) {
+      return response;
+    }
+    return Helpers.failedHttpResponse(response.message, HttpStatus.BAD_REQUEST);
+  }
+  @UseGuards(AppGuard)
+  @Put('/:id')
+  async updateServiceType(
+    @Param('id') id: string,
+    @Headers('Authorization') token: string,
+    @Body() requestDto: ServiceTypeDto,
+  ): Promise<ApiResponse> {
+    const authToken = token.substring(7);
+    const userResponse = await this.userService.authenticatedUserByToken(
+      authToken,
+    );
+    if (!userResponse.success)
+      return Helpers.failedHttpResponse(
+        userResponse.message,
+        HttpStatus.UNAUTHORIZED,
+      );
+    const user = userResponse.data as User;
+
+    if (!Helpers.verifySubscription(user.subscription.endDate))
+      return Helpers.failedHttpResponse(
+        `Your subscription expired on ${user.subscription.endDate}, you need to renew`,
+        HttpStatus.UNAUTHORIZED,
+      );
+
+    const response = await this.resourceCategoryService.updateServiceType(
+      id,
+      requestDto,
+    );
+    if (response.success) {
+      return response;
+    }
+    return Helpers.failedHttpResponse(response.message, HttpStatus.BAD_REQUEST);
+  }
+  @UseGuards(AppGuard)
+  @Delete('/:id')
+  async deleteServiceType(
+    @Param('id') id: string,
+    @Headers('Authorization') token: string,
+  ): Promise<ApiResponse> {
+    const authToken = token.substring(7);
+    const userResponse = await this.userService.authenticatedUserByToken(
+      authToken,
+    );
+    if (!userResponse.success)
+      return Helpers.failedHttpResponse(
+        userResponse.message,
+        HttpStatus.UNAUTHORIZED,
+      );
+    const user = userResponse.data as User;
+
+    if (!Helpers.verifySubscription(user.subscription.endDate))
+      return Helpers.failedHttpResponse(
+        `Your subscription expired on ${user.subscription.endDate}, you need to renew`,
+        HttpStatus.UNAUTHORIZED,
+      );
+
+    const response = await this.resourceCategoryService.deleteServiceType(id);
+    if (response.success) {
+      return response;
+    }
+    return Helpers.failedHttpResponse(response.message, HttpStatus.BAD_REQUEST);
+  }
+
+  @Get('/list')
+  async allServiceType(
+    @Headers('Authorization') token: string,
+  ): Promise<ApiResponse> {
+    const authToken = token.substring(7);
+    const userResponse = await this.userService.authenticatedUserByToken(
+      authToken,
+    );
+    if (!userResponse.success)
+      return Helpers.failedHttpResponse(
+        userResponse.message,
+        HttpStatus.UNAUTHORIZED,
+      );
+    const user = userResponse.data as User;
+
+    const response = await this.resourceCategoryService.allServiceType(user);
+    if (response.success && response.data) {
       return response;
     }
     return Helpers.failedHttpResponse(response.message, HttpStatus.NOT_FOUND);

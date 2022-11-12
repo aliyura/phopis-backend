@@ -35,6 +35,10 @@ export enum BusinessTarget {
   PROSERV = 'PROSERV',
 }
 
+export enum SaleType {
+  PRODUCT = 'PRODUCT',
+  SERVICE = 'SERVICE',
+}
 export enum ResourceType {
   SMARTDEVICE = 'SMARTDEVICE',
   VEHICLE = 'VEHICLE',

@@ -61,6 +61,12 @@ import { Tracking, TrackingSchema } from './schemas/tracking.schema';
 import { BranchController } from './api/v1/branch/branch.controller';
 import { ResourceTypeController } from './api/v1/resource-type/resource-type.controller';
 import { ResourceTypeService } from './services/resource-type/resource-type.service';
+import { Service, ServiceSchema } from './schemas/service.schema';
+import { ServiceType, ServiceTypeSchema } from './schemas/service-type.schema';
+import { ServiceTypeController } from './api/v1/service-type/service-type.controller';
+import { ServiceController } from './api/v1/service/service.controller';
+import { ServiceTypeService } from './services/service-type/service-type.service';
+import { ServiceService } from './services/service/service.service';
 import {
   ResourceType,
   ResourceTypeSchema,
@@ -90,6 +96,10 @@ import {
     MongooseModule.forFeature([{ name: Product.name, schema: ProductSchema }]),
     MongooseModule.forFeature([
       { name: ProductType.name, schema: ProductTypeSchema },
+    ]),
+    MongooseModule.forFeature([{ name: Service.name, schema: ServiceSchema }]),
+    MongooseModule.forFeature([
+      { name: ServiceType.name, schema: ServiceTypeSchema },
     ]),
     MongooseModule.forFeature([
       { name: ProductSize.name, schema: ProductSizeSchema },
@@ -129,6 +139,8 @@ import {
     ReportController,
     TrackingController,
     BranchController,
+    ServiceTypeController,
+    ServiceController,
   ],
   providers: [
     UserService,
@@ -150,6 +162,8 @@ import {
     SaleService,
     ReportService,
     TrackingService,
+    ServiceTypeService,
+    ServiceService,
   ],
 })
 export class AppModule {}

@@ -18,13 +18,16 @@ export class Sale {
   customerPhoneNumber: string;
 
   @Prop({ required: true })
-  products: any[];
+  items: any[];
 
   @Prop({ required: true })
   totalAmount: number;
 
   @Prop({ required: true })
   createdById: string;
+
+  @Prop({ required: true })
+  type: string;
 
   @Prop({ required: true })
   createdBy: string;

@@ -10,6 +10,8 @@ import {
   ProductCategoryDocument,
 } from '../../schemas/product-category.schema';
 import { Messages } from 'src/utils/messages/messages';
+import { AccountType } from '../../enums/enums';
+import { User } from '../../schemas/user.schema';
 
 @Injectable()
 export class ProductCategoryService {
@@ -19,9 +21,13 @@ export class ProductCategoryService {
   ) {}
 
   async createProductCategory(
+    authenticatedUser: User,
     requestDto: ProductCategoryDto,
   ): Promise<ApiResponse> {
     try {
+      if (authenticatedUser.accountType != AccountType.INDIVIDUAL)
+        return Helpers.fail(Messages.NoPermission);
+
       let title = requestDto.title.replace('\\s', '_');
       title = title.toUpperCase();
       requestDto.title = title;

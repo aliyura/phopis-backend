@@ -12,5 +12,8 @@ export enum Messages {
   ProductSizeNotFound = 'Product size not found',
   BusinessTypeNotFound = 'Business type not found',
   ResourceTypeNotFound = 'Resource type not found',
+  ServiceCategoryNotFound = 'Service category not found',
+  ServiceTypeNotFound = 'Service type not found',
+  ServiceNotFound = 'Resource type not found',
   NoPermission = ' You do not have permission to perform this operation',
 }

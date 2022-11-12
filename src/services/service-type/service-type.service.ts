@@ -3,52 +3,48 @@ import { InjectModel } from '@nestjs/mongoose';
 import { ApiResponse } from 'src/dtos/ApiResponse.dto';
 import { Status } from 'src/enums';
 import { Helpers } from 'src/helpers';
-import { ProductTypeDto } from '../../dtos/product-type.dto';
+import { ServiceTypeDto } from '../../dtos/service-type.dto';
 import { Model } from 'mongoose';
 import {
-  ProductType,
-  ProductTypeDocument,
-} from '../../schemas/product-type.schema';
+  ServiceType,
+  ServiceTypeDocument,
+} from '../../schemas/service-type.schema';
 import { Messages } from 'src/utils/messages/messages';
 import { User } from '../../schemas/user.schema';
-import { AccountType } from '../../enums/enums';
 
 @Injectable()
-export class ProductTypeService {
+export class ServiceTypeService {
   constructor(
-    @InjectModel(ProductType.name)
-    private productType: Model<ProductTypeDocument>,
+    @InjectModel(ServiceType.name)
+    private serviceType: Model<ServiceTypeDocument>,
   ) {}
 
-  async createProductType(
+  async createServiceType(
     authenticatedUser: User,
-    requestDto: ProductTypeDto,
+    requestDto: ServiceTypeDto,
   ): Promise<ApiResponse> {
     try {
-      if (authenticatedUser.accountType != AccountType.INDIVIDUAL)
-        return Helpers.fail(Messages.NoPermission);
-
       let title = requestDto.title.replace('\\s', '_');
       title = title.toUpperCase();
       requestDto.title = title;
 
-      const response = await this.productType
+      const response = await this.serviceType
         .findOne({
           title: requestDto.title,
           businessId: authenticatedUser.businessId,
         })
         .exec();
 
-      if (response) return Helpers.fail('Product type already exist');
+      if (response) return Helpers.fail('Service type already exist');
 
       const request = {
         ...requestDto,
         status: Status.ACTIVE,
         businessId: authenticatedUser.businessId,
-        ptuid: `pt${Helpers.getUniqueId()}`,
-      } as ProductType;
+        stuid: `st${Helpers.getUniqueId()}`,
+      } as ServiceType;
 
-      const saved = await this.productType.create(request);
+      const saved = await this.serviceType.create(request);
       return Helpers.success(saved);
     } catch (ex) {
       console.log(Messages.ErrorOccurred, ex);
@@ -56,17 +52,17 @@ export class ProductTypeService {
     }
   }
 
-  async updateProductType(
-    ptuid: string,
-    requestDto: ProductTypeDto,
+  async updateServiceType(
+    stuid: string,
+    requestDto: ServiceTypeDto,
   ): Promise<ApiResponse> {
     try {
-      const response = await this.productType.findOne({ ptuid }).exec();
+      const response = await this.serviceType.findOne({ stuid }).exec();
 
-      if (!response) return Helpers.fail(Messages.ProductTypeNotFound);
+      if (!response) return Helpers.fail(Messages.ServiceTypeNotFound);
 
-      const saved = await this.productType.updateOne(
-        { ptuid },
+      const saved = await this.serviceType.updateOne(
+        { stuid },
         { $set: requestDto },
       );
       return Helpers.success(saved);
@@ -76,9 +72,9 @@ export class ProductTypeService {
     }
   }
 
-  async deleteProductType(ptuid: string): Promise<ApiResponse> {
+  async deleteServiceType(stuid: string): Promise<ApiResponse> {
     try {
-      const response = await this.productType.deleteOne({ ptuid }).exec();
+      const response = await this.serviceType.deleteOne({ stuid }).exec();
       return Helpers.success(response);
     } catch (ex) {
       console.log(Messages.ErrorOccurred, ex);
@@ -86,15 +82,15 @@ export class ProductTypeService {
     }
   }
 
-  async allProductType(authenticatedUser: User): Promise<ApiResponse> {
+  async allServiceType(authenticatedUser: User): Promise<ApiResponse> {
     try {
-      const req = await this.productType.find({
+      const req = await this.serviceType.find({
         businessId: authenticatedUser.businessId,
       });
       if (req.length) {
         return Helpers.success(req);
       }
-      return Helpers.fail(Messages.ProductTypeNotFound);
+      return Helpers.fail(Messages.ServiceTypeNotFound);
     } catch (ex) {
       console.log(Messages.ErrorOccurred, ex);
       return Helpers.fail(Messages.Exception);

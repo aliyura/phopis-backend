@@ -12,7 +12,8 @@ import { Product, ProductDocument } from '../../schemas/product.schema';
 import { User } from '../../schemas/user.schema';
 import { FilterDto } from '../../dtos/report-filter.dto';
 import { ResourceDocument, Resource } from '../../schemas/resource.schema';
-import { ResourceType } from '../../enums/enums';
+import { ResourceType, SaleType } from '../../enums/enums';
+import { ServiceDocument, Service } from '../../schemas/service.schema';
 
 @Injectable()
 export class ReportService {
@@ -20,6 +21,7 @@ export class ReportService {
     @InjectModel(WalletLog.name) private walletLog: Model<WalletLogDocument>,
     @InjectModel(Sale.name) private sale: Model<SaleDocument>,
     @InjectModel(Product.name) private product: Model<ProductDocument>,
+    @InjectModel(Service.name) private service: Model<ServiceDocument>,
     @InjectModel(Resource.name) private resource: Model<ResourceDocument>,
   ) {}
   async getWalletAnalytics(address: string): Promise<ApiResponse> {
@@ -73,12 +75,7 @@ export class ReportService {
       }
 
       let totalDiscount = 0;
-      const products = await this.product.find(query);
-
-      const sales = await this.sale.find({
-        createdById: authenticatedUser.uuid,
-        createdAt: query.createdAt,
-      });
+      const sales = await this.sale.find(query);
 
       if (sales.length) {
         const salesAnalytic = await Promise.all(
@@ -92,35 +89,95 @@ export class ReportService {
         });
       }
 
-      let productAnalyticData;
+      let salesAnalytic = [];
       let total, totalSold, totalLeft, totalIncome;
       total = totalSold = totalLeft = totalIncome = 0;
 
-      if (products.length) {
-        const productAnalytic = await Promise.all(
-          products.map(async (product) => {
-            const totalSold = product.initialQuantity - product.quantity;
-            const totalIncome = product.sellingPrice - product.purchasePrice;
+      if (sales.length) {
+        salesAnalytic = await Promise.all(
+          sales.map(async (sale) => {
+            const itemsAnalytic = await Promise.all(
+              sale.items.map(async (item) => {
+                let itemData = {} as any;
+
+                if (sale.type === SaleType.PRODUCT) {
+                  const product = await this.product.findOne({
+                    puid: item.id,
+                  });
+                  itemData = {
+                    id: product.puid,
+                    name: product.title,
+                    type: product.type,
+                    category: product.category,
+                    total: product.sellingPrice,
+                    totalSold: product.initialQuantity - product.quantity,
+                    totalIncome: product.sellingPrice - product.purchasePrice,
+                    totalLeft: product.quantity,
+                  };
+                } else {
+                  const service = await this.service.findOne({
+                    suid: item.id,
+                  });
+
+                  const totalSold = await this.sale.count({
+                    'items.id': item.id,
+                  });
+
+                  itemData = {
+                    id: service.suid,
+                    name: service.title,
+                    type: service.type,
+                    category: 'N/A',
+                    total: service.charges,
+                    totalSold,
+                    totalLeft: 1,
+                    totalIncome: service.revenue,
+                  };
+                }
+                return itemData;
+              }),
+            );
+
+            let itemId;
+            let itemName;
+            let itemType;
+            let itemCategory;
+            let total;
+            let totalSold;
+            let totalLeft;
+            let totalIncome;
+            total = totalSold = totalLeft = totalIncome = 0;
+
+            itemsAnalytic.forEach((item) => {
+              itemId = item.id;
+              itemName = item.name;
+              itemType = item.type;
+              itemCategory = item.category;
+              total = item.total;
+              totalSold = item.totalSold;
+              totalLeft = item.totalLeft;
+              totalIncome = item.totalIncome * item.totalSold;
+            });
+
             return {
-              productId: product.puid,
-              productName: product.title,
-              productType: product.type,
-              productCategory: product.category,
-              total: product.initialQuantity,
+              itemId,
+              itemName,
+              itemType,
+              itemCategory,
+              total,
               totalSold,
-              totalLeft: product.quantity,
-              totalIncome: totalSold > 0 ? totalIncome * totalSold : 0,
+              totalLeft,
+              totalIncome,
             };
           }),
         );
-
-        productAnalyticData = await productAnalytic.forEach((analytic) => {
-          total = total + analytic.total;
-          totalSold = totalSold + analytic.totalSold;
-          totalLeft = totalLeft + analytic.totalLeft;
-          totalIncome = totalIncome + analytic.totalIncome;
-        });
       }
+      await salesAnalytic.forEach((analytic) => {
+        total = total + analytic.total;
+        totalSold = totalSold + analytic.totalSold;
+        totalLeft = totalLeft + analytic.totalLeft;
+        totalIncome = totalIncome + analytic.totalIncome;
+      });
 
       const analytics = {
         total,
@@ -128,7 +185,7 @@ export class ReportService {
         totalLeft,
         totalIncome,
         totalDiscount,
-        breakdown: productAnalyticData,
+        breakdown: salesAnalytic,
       };
       return Helpers.success(analytics);
     } catch (ex) {

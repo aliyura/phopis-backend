@@ -6,16 +6,24 @@ import { Helpers } from 'src/helpers';
 import { UserDocument, User } from 'src/schemas/user.schema';
 
 import { Messages } from 'src/utils/messages/messages';
-import { SaleDto, SaleProductsDto } from '../../dtos/sale.dto';
+import {
+  SaleDto,
+  SaleProductsDto,
+  TransactionDto,
+  TransactionServicesDto,
+} from '../../dtos/sale.dto';
 import { Product, ProductDocument } from '../../schemas/product.schema';
-import { AccountType, Status, UserRole } from '../../enums/enums';
+import { AccountType, Status, UserRole, SaleType } from '../../enums/enums';
 import { Sale, SaleDocument } from '../../schemas/sale-chema';
+import { Service, ServiceDocument } from '../../schemas/service.schema';
 
 @Injectable()
 export class SaleService {
   constructor(
     @InjectModel(Product.name)
     private product: Model<ProductDocument>,
+    @InjectModel(Service.name)
+    private service: Model<ServiceDocument>,
     @InjectModel(Sale.name)
     private sale: Model<SaleDocument>,
     @InjectModel(User.name)
@@ -27,6 +35,9 @@ export class SaleService {
     requestDto: SaleDto,
   ): Promise<ApiResponse> {
     try {
+      if (authenticatedUser.accountType !== AccountType.BUSINESS) {
+        return Helpers.fail(Messages.NoPermission);
+      }
       if (requestDto.customerAccountCode) {
         const customer = await this.user.findOne({
           code: requestDto.customerAccountCode,
@@ -75,7 +86,7 @@ export class SaleService {
           });
           if (!currentProduct) {
             productCheckPassed = false;
-            return Helpers.failure(request, `Invalid product id`);
+            return Helpers.failure(request, `Product not found`);
           }
 
           if (currentProduct.quantity < request.quantity) {
@@ -88,10 +99,10 @@ export class SaleService {
 
           totalPayable += currentProduct.sellingPrice * request.quantity;
           const response = {
-            productId: request.productId,
-            productName: currentProduct.title,
-            productType: currentProduct.type,
-            productCategory: currentProduct.category,
+            id: request.productId,
+            name: currentProduct.title,
+            type: currentProduct.type,
+            category: currentProduct.category,
             quantity: request.quantity,
             totalPayable,
           };
@@ -113,7 +124,7 @@ export class SaleService {
         const purchasedItems = await Promise.all(
           saleRequest.map(async (sale) => {
             const theProduct = await this.product.findOne({
-              puid: sale.productId,
+              puid: sale.id,
             });
 
             theProduct.quantity = theProduct.quantity - sale.quantity;
@@ -124,8 +135,7 @@ export class SaleService {
         totalAmount = totalAmount - totalDiscount;
         const code = Helpers.getCode();
         const saleId = `sal${Helpers.getUniqueId()}`;
-        const businessId =
-          authenticatedUser.businessId || authenticatedUser.uuid;
+        const businessId = authenticatedUser.businessId;
 
         const request = {
           customerAccountCode: requestDto.customerAccountCode,
@@ -136,13 +146,123 @@ export class SaleService {
           status: Status.SUCCESSFUL,
           code: code,
           suid: saleId,
-          products: saleRequest,
+          type: SaleType.PRODUCT,
+          items: saleRequest,
           businessId: businessId,
           createdBy: authenticatedUser.name,
           createdById: authenticatedUser.uuid,
         } as any;
 
         await this.product.create(purchasedItems);
+        const saved = await (await this.sale.create(request)).save();
+        return Helpers.success(saved);
+      } else {
+        return Helpers.failure(response, 'Unable to complete your request');
+      }
+    } catch (ex) {
+      console.log(Messages.ErrorOccurred, ex);
+      return Helpers.fail(Messages.Exception);
+    }
+  }
+
+  async createTransaction(
+    authenticatedUser: User,
+    requestDto: TransactionDto,
+  ): Promise<ApiResponse> {
+    try {
+      if (authenticatedUser.accountType !== AccountType.BUSINESS) {
+        return Helpers.fail(Messages.NoPermission);
+      }
+      if (requestDto.customerAccountCode) {
+        const customer = await this.user.findOne({
+          code: requestDto.customerAccountCode,
+        });
+        if (customer) {
+          requestDto.customerName = customer.name;
+          requestDto.customerPhoneNumber = customer.phoneNumber;
+        } else {
+          return Helpers.fail('Invalid customer account number');
+        }
+      } else {
+        if (!requestDto.customerName || requestDto.customerName.length < 3) {
+          return Helpers.fail('Valid customer name required');
+        } else if (
+          !requestDto.customerPhoneNumber ||
+          !Helpers.validPhoneNumber(requestDto.customerPhoneNumber)
+        ) {
+          return Helpers.fail('Valid customer phone number required');
+        }
+      }
+
+      if (!requestDto.services.length)
+        return Helpers.fail('Provide transaction service');
+
+      const services = requestDto.services as TransactionServicesDto[];
+      let serviceCheckPassed = true;
+
+      const response = await Promise.all(
+        services.map(async (request) => {
+          let totalPayable = 0;
+
+          //do check
+          if (!request.serviceId) {
+            serviceCheckPassed = false;
+            return Helpers.failure(request, `Service required`);
+          } else if (!request.quantity || request.quantity <= 0) {
+            serviceCheckPassed = false;
+            return Helpers.failure(request, `Provide service quantity`);
+          }
+
+          const currentService = await this.service.findOne({
+            suid: request.serviceId,
+          });
+          if (!currentService) {
+            serviceCheckPassed = false;
+            return Helpers.failure(request, `Service not found`);
+          }
+
+          totalPayable += currentService.charges * request.quantity;
+          const response = {
+            id: request.serviceId,
+            name: currentService.title,
+            type: currentService.type,
+            quantity: request.quantity,
+            totalPayable,
+          };
+          return response;
+        }),
+      );
+
+      if (serviceCheckPassed) {
+        const saleRequest = response as any[];
+        let totalAmount = 0;
+        const totalDiscount = requestDto.discount ? requestDto.discount : 0;
+
+        //get total payable
+        await saleRequest.forEach(async (sale) => {
+          totalAmount += sale.totalPayable;
+        });
+
+        totalAmount = totalAmount - totalDiscount;
+        const code = Helpers.getCode();
+        const transactionId = `tra${Helpers.getUniqueId()}`;
+        const businessId = authenticatedUser.businessId;
+
+        const request = {
+          customerAccountCode: requestDto.customerAccountCode,
+          customerPhoneNumber: requestDto.customerPhoneNumber,
+          customerName: requestDto.customerName,
+          totalAmount,
+          totalDiscount,
+          status: Status.SUCCESSFUL,
+          code: code,
+          type: SaleType.SERVICE,
+          suid: transactionId,
+          items: saleRequest,
+          businessId: businessId,
+          createdBy: authenticatedUser.name,
+          createdById: authenticatedUser.uuid,
+        } as any;
         const saved = await (await this.sale.create(request)).save();
         return Helpers.success(saved);
       } else {
