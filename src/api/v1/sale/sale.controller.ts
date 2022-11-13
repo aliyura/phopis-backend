@@ -106,6 +106,7 @@ export class SaleController {
   @UseGuards(AppGuard)
   @Get('/list')
   async getMySales(
+    @Query('type') type: string,
     @Query('page') page: number,
     @Query('status') status: string,
     @Headers('Authorization') token: string,
@@ -121,7 +122,12 @@ export class SaleController {
       );
     const user = userResponse.data as User;
 
-    const response = await this.saleService.getMySales(page, user, status);
+    const response = await this.saleService.getMySales(
+      page,
+      user,
+      type,
+      status,
+    );
     if (response.success) {
       return response;
     }
@@ -131,6 +137,7 @@ export class SaleController {
   @UseGuards(AppGuard)
   @Get('/search')
   async searchMySales(
+    @Query('type') type: string,
     @Query('page') page: number,
     @Query('q') searchString: string,
     @Headers('Authorization') token: string,
@@ -149,6 +156,7 @@ export class SaleController {
     const response = await this.saleService.searchMySales(
       page,
       user,
+      type,
       searchString,
     );
     if (response.success) {

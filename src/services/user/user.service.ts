@@ -330,6 +330,41 @@ export class UserService {
     }
   }
 
+  async createPIN(authenticatedUser: User, pin: string): Promise<any> {
+    try {
+      if (!pin || pin.length < 4) return Helpers.fail('Valid pin required');
+
+      const hashedPin = await this.cryptoService.encrypt(pin);
+      await this.user.updateOne(
+        { uuid: authenticatedUser.uuid },
+        { pin: hashedPin.content },
+      );
+
+      //return with the latest updated user object
+      return Helpers.success(
+        this.user.findOne({ uuid: authenticatedUser.uuid }),
+      );
+    } catch (ex) {
+      console.log(Messages.ErrorOccurred, ex);
+      return Helpers.fail(Messages.Exception);
+    }
+  }
+
+  async verifyPIN(authenticatedUser: User, pin: string): Promise<any> {
+    try {
+      if (!pin || pin.length < 4) return Helpers.fail('Invalid PIN');
+
+      const hashedPin = authenticatedUser.pin;
+      const decryptedPin = await this.cryptoService.decrypt(hashedPin);
+      if (decryptedPin === pin) return Helpers.success(authenticatedUser);
+
+      return Helpers.fail('Invalid PIN');
+    } catch (ex) {
+      console.log(Messages.ErrorOccurred, ex);
+      return Helpers.fail(Messages.Exception);
+    }
+  }
+
   async activateUser(authenticatedUser: User, userId: string): Promise<any> {
     try {
       if (authenticatedUser.role == UserRole.USER)

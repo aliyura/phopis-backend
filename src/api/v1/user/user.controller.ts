@@ -135,6 +135,58 @@ export class UserController {
   }
 
   @UseGuards(AppGuard)
+  @Put('/create/pin')
+  async createPIN(
+    @Query('pin') pin: string,
+    @Headers('Authorization') token: string,
+  ): Promise<ApiResponse> {
+    const authToken = token.substring(7);
+    const userResponse = await this.userService.authenticatedUserByToken(
+      authToken,
+    );
+    if (!userResponse.success)
+      return Helpers.failedHttpResponse(
+        userResponse.message,
+        HttpStatus.UNAUTHORIZED,
+      );
+
+    if (!userResponse.success) return Helpers.fail(userResponse.message);
+    const user = userResponse.data;
+
+    const response = await this.userService.createPIN(user, pin);
+    if (response.success) {
+      return response;
+    }
+    return Helpers.failedHttpResponse(response.message, HttpStatus.BAD_REQUEST);
+  }
+
+  @UseGuards(AppGuard)
+  @Post('/verify/pin')
+  async verifyPIN(
+    @Query('pin') pin: string,
+    @Headers('Authorization') token: string,
+  ): Promise<ApiResponse> {
+    const authToken = token.substring(7);
+    const userResponse = await this.userService.authenticatedUserByToken(
+      authToken,
+    );
+    if (!userResponse.success)
+      return Helpers.failedHttpResponse(
+        userResponse.message,
+        HttpStatus.UNAUTHORIZED,
+      );
+
+    if (!userResponse.success) return Helpers.fail(userResponse.message);
+    const user = userResponse.data;
+
+    const response = await this.userService.verifyPIN(user, pin);
+    if (response.success) {
+      return response;
+    }
+    return Helpers.failedHttpResponse(response.message, HttpStatus.BAD_REQUEST);
+  }
+
+  @UseGuards(AppGuard)
   @Put('/activate/:userId')
   async activateUser(
     @Param('userId') userId: string,

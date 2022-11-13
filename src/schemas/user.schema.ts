@@ -46,6 +46,9 @@ export class User {
   lga: string;
 
   @Prop()
+  pin: string;
+
+  @Prop()
   address: string;
 
   @Prop()

@@ -32,7 +32,7 @@ export enum WalletActivity {
 export enum BusinessTarget {
   PRODUCT = 'PRODUCT',
   SERVICE = 'SERVICE',
-  PROSERV = 'PROSERV',
+  GENERAL = 'GENERAL',
 }
 
 export enum SaleType {

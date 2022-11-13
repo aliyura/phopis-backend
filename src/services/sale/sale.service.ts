@@ -289,6 +289,7 @@ export class SaleService {
   async getMySales(
     page: number,
     authenticatedUser: User,
+    type,
     status: string,
   ): Promise<ApiResponse> {
     try {
@@ -306,6 +307,10 @@ export class SaleService {
         Object.values(Status).includes(status.toUpperCase() as Status)
       ) {
         query.status = status.toUpperCase();
+      }
+
+      if (type != null && type !== undefined) {
+        query.type = type;
       }
 
       const size = 20;
@@ -342,6 +347,7 @@ export class SaleService {
   async searchMySales(
     page: number,
     authenticatedUser: User,
+    type,
     searchString: string,
   ): Promise<ApiResponse> {
     try {
@@ -356,6 +362,10 @@ export class SaleService {
 
       const size = 20;
       const skip = page || 0;
+
+      if (type != null && type !== undefined) {
+        query.type = type;
+      }
 
       const count = await this.sale.count(query);
       const result = await this.sale
