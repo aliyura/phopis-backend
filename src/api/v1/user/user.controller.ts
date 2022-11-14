@@ -135,9 +135,9 @@ export class UserController {
   }
 
   @UseGuards(AppGuard)
-  @Put('/create/pin')
+  @Post('/create/pin/:pin')
   async createPIN(
-    @Query('pin') pin: string,
+    @Param('pin') pin: string,
     @Headers('Authorization') token: string,
   ): Promise<ApiResponse> {
     const authToken = token.substring(7);
@@ -161,9 +161,9 @@ export class UserController {
   }
 
   @UseGuards(AppGuard)
-  @Post('/verify/pin')
+  @Post('/verify/pin/:pin')
   async verifyPIN(
-    @Query('pin') pin: string,
+    @Param('pin') pin: string,
     @Headers('Authorization') token: string,
   ): Promise<ApiResponse> {
     const authToken = token.substring(7);

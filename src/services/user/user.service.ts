@@ -56,9 +56,7 @@ export class UserService {
       if (alreadyExistByPhone) return Helpers.fail('Account already exist');
 
       //encrypt password
-      const hash = await this.cryptoService.encryptPassword(
-        requestDto.password,
-      );
+      const hash = await this.cryptoService.encrypt(requestDto.password);
       requestDto.password = hash;
 
       if (requestDto.accountType == AccountType.ADMIN)
@@ -177,9 +175,7 @@ export class UserService {
         return Helpers.fail('Account already exist with this NIN');
 
       //encrypt password
-      const hash = await this.cryptoService.encryptPassword(
-        requestDto.password,
-      );
+      const hash = await this.cryptoService.encrypt(requestDto.password);
       requestDto.password = hash;
 
       const startDate = new Date().toISOString().slice(0, 10);
@@ -232,9 +228,7 @@ export class UserService {
         return Helpers.fail('Phone number already exist');
 
       //encrypt password
-      const hash = await this.cryptoService.encryptPassword(
-        requestDto.password,
-      );
+      const hash = await this.cryptoService.encrypt(requestDto.password);
       requestDto.password = hash;
 
       const startDate = new Date().toISOString().slice(0, 10);
@@ -337,13 +331,14 @@ export class UserService {
       const hashedPin = await this.cryptoService.encrypt(pin);
       await this.user.updateOne(
         { uuid: authenticatedUser.uuid },
-        { pin: hashedPin.content },
+        { pin: hashedPin },
       );
 
       //return with the latest updated user object
-      return Helpers.success(
-        this.user.findOne({ uuid: authenticatedUser.uuid }),
-      );
+      const response = await this.user.findOne({
+        uuid: authenticatedUser.uuid,
+      });
+      return Helpers.success(response);
     } catch (ex) {
       console.log(Messages.ErrorOccurred, ex);
       return Helpers.fail(Messages.Exception);
@@ -355,8 +350,8 @@ export class UserService {
       if (!pin || pin.length < 4) return Helpers.fail('Invalid PIN');
 
       const hashedPin = authenticatedUser.pin;
-      const decryptedPin = await this.cryptoService.decrypt(hashedPin);
-      if (decryptedPin === pin) return Helpers.success(authenticatedUser);
+      const yes = await this.cryptoService.compare(hashedPin, pin);
+      if (yes) return Helpers.success(authenticatedUser);
 
       return Helpers.fail('Invalid PIN');
     } catch (ex) {
@@ -461,7 +456,7 @@ export class UserService {
         const systemOtp = await this.cache.get(requestDto.username); //stored OTP in memory
 
         if (requestDto.otp == systemOtp) {
-          const hashedPassword = await this.cryptoService.encryptPassword(
+          const hashedPassword = await this.cryptoService.encrypt(
             requestDto.password,
           );
 

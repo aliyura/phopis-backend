@@ -1,8 +1,7 @@
 FROM node:14-alpine AS builder
 WORKDIR "/app"
 COPY . .
-RUN npm cache clean --force
-RUN npm ci
+RUN npm ci --no-package-lock
 RUN npm run build
 RUN npm prune --production
 FROM node:14-alpine AS production
