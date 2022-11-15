@@ -3,7 +3,6 @@ import {
   Controller,
   Get,
   HttpStatus,
-  Param,
   Post,
   UseGuards,
 } from '@nestjs/common';
@@ -30,21 +29,7 @@ export class BusinessTypeController {
     }
     return Helpers.failedHttpResponse(response.message, HttpStatus.BAD_REQUEST);
   }
-  // FInd Business Type
-  @UseGuards(AppGuard)
-  @Get('/:businessType')
-  async getBusinessType(
-    @Param('businessType') businessType: any,
-  ): Promise<ApiResponse> {
-    const response = await this.businessTypeService.findBusinessType(
-      businessType,
-    );
-    if (response.success) {
-      return response;
-    }
-    return Helpers.failedHttpResponse(response.message, HttpStatus.NOT_FOUND);
-  }
-  
+
   @Get('/list')
   async allBusinessType(): Promise<ApiResponse> {
     const response = await this.businessTypeService.allBusinessType();
