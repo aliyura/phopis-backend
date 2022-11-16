@@ -51,6 +51,22 @@ export class AuthService {
         const user = res.data as User;
         const payload = { username: user.phoneNumber, sub: user.uuid };
         delete user.password;
+
+        //cont business information
+        let business = null;
+        if (user.businessId) {
+          const res = await this.userService.findByUserId(user.businessId);
+          if (res.success) {
+            business = res.data;
+          }
+        }
+
+        //enrich token
+        if (business) {
+          user.businessTarget = business.businessTarget;
+          user.businessType = business.businessType;
+        }
+
         const token = {
           access_token: this.jwtService.sign(payload),
           info: user,
