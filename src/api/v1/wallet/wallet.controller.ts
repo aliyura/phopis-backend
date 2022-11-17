@@ -14,7 +14,7 @@ import { WalletService } from '../../../services/wallet/wallet.service';
 import { UserService } from 'src/services/user/user.service';
 import { User } from '../../../schemas/user.schema';
 import { FundsTransferDto, FundWalletDto } from '../../../dtos/wallet.dto';
-import { LogsService } from '../../../services/logs/logs.service';
+import { LogsService } from 'src/services/logs/logs.service';
 
 @Controller('wallet')
 export class WalletController {
@@ -31,7 +31,9 @@ export class WalletController {
     @Body() fundWalletDto: FundWalletDto,
   ): Promise<ApiResponse> {
     const authToken = token.substring(7);
-    const userResponse = await this.userService.authenticatedUserByToken(authToken);
+    const userResponse = await this.userService.authenticatedUserByToken(
+      authToken,
+    );
     if (!userResponse.success)
       return Helpers.failedHttpResponse(
         userResponse.message,
@@ -55,7 +57,9 @@ export class WalletController {
     @Body() fundTransferDto: FundsTransferDto,
   ): Promise<ApiResponse> {
     const authToken = token.substring(7);
-    const userResponse = await this.userService.authenticatedUserByToken(authToken);
+    const userResponse = await this.userService.authenticatedUserByToken(
+      authToken,
+    );
     if (!userResponse.success)
       return Helpers.failedHttpResponse(
         userResponse.message,
@@ -78,7 +82,9 @@ export class WalletController {
     @Headers('Authorization') token: string,
   ): Promise<ApiResponse> {
     const authToken = token.substring(7);
-    const userResponse = await this.userService.authenticatedUserByToken(authToken);
+    const userResponse = await this.userService.authenticatedUserByToken(
+      authToken,
+    );
     if (!userResponse.success)
       return Helpers.failedHttpResponse(
         userResponse.message,
@@ -100,7 +106,9 @@ export class WalletController {
     @Headers('Authorization') token: string,
   ): Promise<ApiResponse> {
     const authToken = token.substring(7);
-    const userResponse = await this.userService.authenticatedUserByToken(authToken);
+    const userResponse = await this.userService.authenticatedUserByToken(
+      authToken,
+    );
     if (!userResponse.success)
       return Helpers.failedHttpResponse(
         userResponse.message,

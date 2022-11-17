@@ -13,7 +13,7 @@ import {
   DebitWalletDto,
 } from '../../dtos/wallet.dto';
 import { WalletActivity } from '../../enums/enums';
-import { LogsService } from '../logs/logs.service';
+import { LogsService } from 'src/services/logs/logs.service';
 import { User, UserDocument } from '../../schemas/user.schema';
 import { VerificationService } from '../verification/verification.service';
 

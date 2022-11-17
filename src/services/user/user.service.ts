@@ -22,7 +22,7 @@ import { WalletService } from '../wallet/wallet.service';
 import { JwtService } from '@nestjs/jwt';
 import { BusinessUserDto, UserBranchDto } from '../../dtos/user.dto';
 import { WalletActivity } from '../../enums/enums';
-import { LogsService } from '../logs/logs.service';
+import { LogsService } from 'src/services/logs/logs.service';
 
 @Injectable()
 export class UserService {

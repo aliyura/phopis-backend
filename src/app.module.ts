@@ -33,7 +33,7 @@ import { Wallet, WalletSchema } from './schemas/wallet.schema';
 import { WalletService } from './services/wallet/wallet.service';
 import { WalletController } from './api/v1/wallet/wallet.controller';
 import { AppController } from './api/v1/app/app.controller';
-import { LogsService } from './services/logs/logs.service';
+import { LogsService } from 'src/services/logs/logs.service';
 import { WalletLog, WalletLogSchema } from './schemas/wallet-logs.schema';
 import { FileService } from './services/file/file.service';
 import { FileController } from './api/v1/file/file.controller';
