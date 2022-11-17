@@ -71,15 +71,9 @@ import {
   ResourceType,
   ResourceTypeSchema,
 } from './schemas/resource-type.schema';
-
 @Module({
   imports: [
-    ConfigModule.forRoot({
-      load: [config, databaseConfig],
-    }),
-    MongooseModule.forRoot(databaseConfig().dbUrl, {
-      dbName: process.env.DB_NAME,
-    }),
+    MongooseModule.forRoot(process.env.DB_ADDRESS),
     MongooseModule.forFeature([{ name: User.name, schema: UserSchema }]),
     MongooseModule.forFeature([
       { name: BusinessType.name, schema: BusinessTypeSchema },
