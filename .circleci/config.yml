@@ -16,11 +16,13 @@ jobs:
       - run:
          name: Installing dependencies
          command: |
-           npm ci --no-package-lock
+           npm ci
 
       - run:
           name: Packaging
-          command: npm run build
+          command: |
+           npm run build
+           npm prune --production
 
       - run:
           name: Setting up Docker

@@ -1,8 +1,8 @@
 {
   "name": "phopis-backend",
   "version": "0.0.1",
-  "description": "",
-  "author": "",
+  "description": "Resource ownership verification and business management platform",
+  "author": "Syrol Technologies Ltd",
   "private": true,
   "license": "UNLICENSED",
   "scripts": {

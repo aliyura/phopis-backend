@@ -14,7 +14,7 @@ import { WalletService } from '../../../services/wallet/wallet.service';
 import { UserService } from 'src/services/user/user.service';
 import { User } from '../../../schemas/user.schema';
 import { FundsTransferDto, FundWalletDto } from '../../../dtos/wallet.dto';
-import { LogsService } from 'src/services/logs/logs.service';
+import { LogsService } from '../../../services/logs/logs.service';
 
 @Controller('wallet')
 export class WalletController {
