@@ -59,8 +59,8 @@ export class UserService {
       const hash = await this.cryptoService.encrypt(requestDto.password);
       requestDto.password = hash;
 
-      // if (requestDto.accountType == AccountType.ADMIN)
-      //   return Helpers.fail(Messages.NoPermission);
+      if (requestDto.accountType == AccountType.ADMIN)
+        return Helpers.fail(Messages.NoPermission);
 
       const startDate = new Date().toISOString().slice(0, 10);
       const endDate = new Date(
@@ -73,8 +73,15 @@ export class UserService {
         ...requestDto,
         status: Status.INACTIVE,
         code: Helpers.getCode(),
-        role: 'ADMIN',
-        uuid: `adm${Helpers.getUniqueId()}`,
+        role:
+          requestDto.accountType == AccountType.INDIVIDUAL
+            ? UserRole.USER
+            : UserRole.BUSINESS,
+
+        uuid:
+          requestDto.accountType == AccountType.BUSINESS
+            ? `bis${Helpers.getUniqueId()}`
+            : `ind${Helpers.getUniqueId()}`,
       } as User;
 
       //adding business id and business name

@@ -19,10 +19,12 @@ export class AuthController {
 
       //calculate subscription for businesses
       if (user.accountType !== AccountType.INDIVIDUAL) {
-        const daysLeft = Helpers.calculateSubscription(
-          user.subscription.endDate,
-        );
-        user.subscription.daysLeft = daysLeft;
+        if (user.subscription && user.subscription !== undefined) {
+          const daysLeft = Helpers.calculateSubscription(
+            user.subscription.endDate,
+          );
+          user.subscription.daysLeft = daysLeft;
+        }
       }
       response.data.info = user;
       return response;
