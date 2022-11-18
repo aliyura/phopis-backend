@@ -40,7 +40,8 @@ export class BranchController {
     if (!userResponse.success) return Helpers.fail(userResponse.message);
     const user = userResponse.data;
 
-    if (!Helpers.verifySubscription(user.subscription.endDate))
+        if (user.subscription && user.subscription !== undefined)
+      if (!Helpers.verifySubscription(user.subscription.endDate))
       return Helpers.failedHttpResponse(
         `Your subscription expired on ${user.subscription.endDate}, you need to renew`,
         HttpStatus.UNAUTHORIZED,

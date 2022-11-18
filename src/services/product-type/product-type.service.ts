@@ -25,7 +25,7 @@ export class ProductTypeService {
     requestDto: ProductTypeDto,
   ): Promise<ApiResponse> {
     try {
-      if (authenticatedUser.accountType != AccountType.INDIVIDUAL)
+      if (authenticatedUser.accountType === AccountType.INDIVIDUAL)
         return Helpers.fail(Messages.NoPermission);
 
       let title = requestDto.title.replace('\\s', '_');

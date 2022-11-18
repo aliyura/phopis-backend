@@ -41,11 +41,12 @@ export class ProductCategoryController {
       );
     const user = userResponse.data as User;
 
-    if (!Helpers.verifySubscription(user.subscription.endDate))
-      return Helpers.failedHttpResponse(
-        `Your subscription expired on ${user.subscription.endDate}, you need to renew`,
-        HttpStatus.UNAUTHORIZED,
-      );
+    if (user.subscription && user.subscription !== undefined)
+      if (!Helpers.verifySubscription(user.subscription.endDate))
+        return Helpers.failedHttpResponse(
+          `Your subscription expired on ${user.subscription.endDate}, you need to renew`,
+          HttpStatus.UNAUTHORIZED,
+        );
 
     const response = await this.resourceCategoryService.createProductCategory(
       user,
