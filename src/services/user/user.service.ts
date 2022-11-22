@@ -69,6 +69,9 @@ export class UserService {
         .toISOString()
         .slice(0, 10);
 
+      if (requestDto.businessTarget && requestDto.businessTarget !== null)
+        requestDto.businessTarget = requestDto.businessTarget.toUpperCase();
+
       const request = {
         ...requestDto,
         status: Status.INACTIVE,
@@ -369,6 +372,11 @@ export class UserService {
         { uuid: userId },
         { status: Status.ACTIVE },
       );
+      this.smsService.sendMessage(
+        authenticatedUser.phoneNumber,
+        'Welcome to Phopis, manage your resources and  businesses in one place',
+      );
+
       return Helpers.success(saved);
     } catch (ex) {
       console.log(Messages.ErrorOccurred, ex);
