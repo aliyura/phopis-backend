@@ -178,12 +178,7 @@ export class ResourceService {
       if (authenticatedUser.role !== UserRole.USER) {
         query = {
           code: requestDto.ownerAccountNumber,
-          $or: [
-            {
-              nin: requestDto.ownerIdentity,
-            },
-            { regNumber: requestDto.ownerIdentity },
-          ],
+          nin: requestDto.ownerIdentity,
         };
       } else {
         query = {
