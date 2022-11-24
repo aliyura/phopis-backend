@@ -18,7 +18,8 @@ import {
 import { Messages } from 'src/utils/messages/messages';
 import { WalletService } from '../wallet/wallet.service';
 import { DebitWalletDto } from '../../dtos/wallet.dto';
-import { AccountType } from '../../enums/enums';
+import { AccountType, UserRole } from '../../enums/enums';
+import { CryptoService } from '../crypto/crypto.service';
 import {
   ResourceOwnershipLog,
   ResourceOwnershipLogDocument,
@@ -32,6 +33,7 @@ export class ResourceService {
     @InjectModel(ResourceOwnershipLog.name)
     private resourceOwnershipLog: Model<ResourceOwnershipLogDocument>,
     private walletService: WalletService,
+    private cryptoService: CryptoService,
   ) {}
   async createResource(
     authenticatedUser: User,
@@ -171,15 +173,23 @@ export class ResourceService {
     try {
       //find the user
 
-      const query = {
-        code: requestDto.ownerAccountNumber,
-        $or: [
-          {
-            nin: requestDto.ownerIdentity,
-          },
-          { regNumber: requestDto.ownerIdentity },
-        ],
-      };
+      let query = {};
+
+      if (authenticatedUser.role !== UserRole.USER) {
+        query = {
+          code: requestDto.ownerAccountNumber,
+          $or: [
+            {
+              nin: requestDto.ownerIdentity,
+            },
+            { regNumber: requestDto.ownerIdentity },
+          ],
+        };
+      } else {
+        query = {
+          code: requestDto.ownerAccountNumber,
+        };
+      }
       const resourceOwner = await this.user.findOne(query);
       if (!resourceOwner) {
         console.log('Resource owner not found');
@@ -188,8 +198,20 @@ export class ResourceService {
         );
       }
 
-      //find the resource
+      if (authenticatedUser.role !== UserRole.USER) {
+        const cypher = authenticatedUser.pin;
+        const validUser = await this.cryptoService.compare(
+          cypher,
+          requestDto.ownerIdentity,
+        );
+        if (!validUser) {
+          return Helpers.fail(
+            'Verification failed -Invalid resource owner pin',
+          );
+        }
+      }
 
+      //find the resource
       const existingResource = await this.resource.findOne({
         code: requestDto.resourceNumber,
         currentOwnerUuid:

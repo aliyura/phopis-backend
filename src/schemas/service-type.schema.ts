@@ -8,7 +8,7 @@ export class ServiceType {
   @Prop({ type: Types.ObjectId })
   id: string;
 
-  @Prop({ required: true, unique: true })
+  @Prop({ required: true })
   title: string;
 
   @Prop({ required: true })
@@ -17,7 +17,7 @@ export class ServiceType {
   @Prop()
   description: string;
 
-  @Prop({ required: true })
+  @Prop({ required: true, unique: true })
   stuid: string;
 
   @Prop({ required: true })

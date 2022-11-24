@@ -8,7 +8,7 @@ export class ProductType {
   @Prop({ type: Types.ObjectId })
   id: string;
 
-  @Prop({ required: true, unique: true })
+  @Prop({ required: true })
   title: string;
 
   @Prop({ required: true })
@@ -20,7 +20,7 @@ export class ProductType {
   @Prop()
   description: string;
 
-  @Prop({ required: true })
+  @Prop({ required: true, unique: true })
   ptuid: string;
 
   @Prop({ required: true })
