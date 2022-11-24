@@ -430,12 +430,6 @@ export class UserService {
         const userOtp = requestDto.otp;
         const systemOtp = await this.cache.get(requestDto.username); //stored OTP in memory
 
-        const user = res.data as User;
-
-        if (user.accountType === AccountType.BUSINESS) {
-          return Helpers.fail(Messages.NoPermission);
-        }
-
         if (userOtp == systemOtp) {
           await this.user.updateOne(
             { uuid: res.data.uuid },
