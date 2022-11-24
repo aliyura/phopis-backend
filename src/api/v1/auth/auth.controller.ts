@@ -19,7 +19,7 @@ export class AuthController {
 
       //calculate subscription for businesses
       if (user.accountType !== AccountType.INDIVIDUAL) {
-        if (user.subscription && user.subscription !== undefined) {
+        if (user.subscription && user.subscription.endDate) {
           const daysLeft = Helpers.calculateSubscription(
             user.subscription.endDate,
           );

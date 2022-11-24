@@ -116,7 +116,9 @@ export class WalletController {
       );
 
     const user = userResponse.data as User;
-    const response = await this.logService.getWalletLog(user.walletAddress);
+    const response = await this.logService.getWalletLog(
+      user.businessId || user.uuid,
+    );
     if (response.success) {
       return response;
     }

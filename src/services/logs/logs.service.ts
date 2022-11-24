@@ -28,11 +28,11 @@ export class LogsService {
     }
   }
 
-  async getWalletLog(address: string): Promise<ApiResponse> {
+  async getWalletLog(uuid: string): Promise<ApiResponse> {
     try {
-      const walletLogs = await this.walletLog.find({ address }).exec();
-      if (walletLogs) return Helpers.success(walletLogs);
-      return Helpers.fail('No wallet found');
+      const walletLogs = await this.walletLog.find({ uuid }).exec();
+      if (walletLogs.length) return Helpers.success(walletLogs);
+      return Helpers.fail('No transaction found');
     } catch (ex) {
       console.log(Messages.ErrorOccurred, ex);
       return Helpers.fail(Messages.Exception);

@@ -24,7 +24,6 @@ export class WalletService {
     @InjectModel(User.name) private user: Model<UserDocument>,
     private readonly logService: LogsService,
     private readonly smsService: SmsService,
-    private verificationService: VerificationService,
   ) {}
 
   async createWallet(uuid: string, code: number): Promise<ApiResponse> {
