@@ -49,11 +49,6 @@ export class ProductService {
       });
       if (productExistByTitle) return Helpers.fail('Product  already exist');
 
-      const categoryExist = await this.category.findOne({
-        title: requestDto.category,
-      });
-      if (!categoryExist) return Helpers.fail('Category does not exist');
-
       const typeExist = await this.productType.findOne({
         title: requestDto.type,
       });
@@ -79,9 +74,9 @@ export class ProductService {
       const status =
         requestDto.quantity > 0 ? Status.AVAILABLE : Status.UNAVAILABLE;
 
-      console.log(authenticatedUser);
       const request = {
         ...requestDto,
+        category: typeExist.category,
         initialQuantity: requestDto.quantity,
         status: status,
         code: code,

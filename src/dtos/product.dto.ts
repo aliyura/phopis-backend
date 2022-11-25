@@ -9,7 +9,6 @@ import {
 export class ProductDto {
   @IsString() title: string;
   @IsString() @IsUppercase() type: string;
-  @IsString() @IsUppercase() category: string;
   @IsOptional() purchasePrice: number;
   @IsNumber() sellingPrice: number;
   @IsString() @IsUppercase() size: string;

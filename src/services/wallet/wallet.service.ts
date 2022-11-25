@@ -259,9 +259,9 @@ export class WalletService {
     }
   }
 
-  async findWalletByAddress(uuid: string): Promise<ApiResponse> {
+  async findWalletByAddress(address: string): Promise<ApiResponse> {
     try {
-      const wallet = await this.wallet.findOne({ uuid }).exec();
+      const wallet = await this.wallet.findOne({ address }).exec();
 
       if (wallet) return Helpers.success(wallet);
 
