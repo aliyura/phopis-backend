@@ -24,10 +24,10 @@ export class ReportService {
     @InjectModel(Service.name) private service: Model<ServiceDocument>,
     @InjectModel(Resource.name) private resource: Model<ResourceDocument>,
   ) {}
-  async getWalletAnalytics(address: string): Promise<ApiResponse> {
+  async getWalletAnalytics(uuid: string): Promise<ApiResponse> {
     try {
       const response = await this.walletLog.find({
-        address,
+        uuid,
       });
 
       if (response) {

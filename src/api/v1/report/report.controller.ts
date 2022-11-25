@@ -38,7 +38,7 @@ export class ReportController {
 
     const user = userResponse.data as User;
     const response = await this.reportService.getWalletAnalytics(
-      user.walletAddress,
+      user.businessId || user.uuid,
     );
     if (response.success) {
       return response;
