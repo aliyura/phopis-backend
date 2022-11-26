@@ -88,9 +88,11 @@ export class ProductTypeService {
 
   async allProductType(authenticatedUser: User): Promise<ApiResponse> {
     try {
-      const req = await this.productType.find({
-        businessId: authenticatedUser.businessId,
-      });
+      const req = await this.productType
+        .find({
+          businessId: authenticatedUser.businessId,
+        })
+        .sort({ createdAt: -1 });
       if (req.length) {
         return Helpers.success(req);
       }

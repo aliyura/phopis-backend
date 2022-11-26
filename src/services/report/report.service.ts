@@ -53,6 +53,61 @@ export class ReportService {
     }
   }
 
+  async getProductInventory(authenticatedUser: User) {
+    const query = {
+      $or: [
+        { businessId: authenticatedUser.businessId },
+        { businessId: authenticatedUser.uuid },
+      ],
+    };
+
+    const products = await this.product.find(query).sort({ createdAt: -1 });
+
+    if (products.length) {
+      const productAnalytic = await Promise.all(
+        products.map(async (product) => {
+          return {
+            sold: product.initialQuantity - product.quantity,
+            left: product.quantity,
+          };
+        }),
+      );
+
+      let sold, left;
+      sold = left = 0;
+      await productAnalytic.forEach((analytic) => {
+        sold = sold + analytic.sold;
+        left = left + analytic.left;
+      });
+
+      const analytics = {
+        sold,
+        left,
+      };
+      return Helpers.success(analytics);
+    } else {
+      return Helpers.fail('No product found');
+    }
+  }
+
+  async getServicesInventory(authenticatedUser: User) {
+    const query = {
+      $or: [
+        { businessId: authenticatedUser.businessId },
+        { businessId: authenticatedUser.uuid },
+      ],
+    };
+    const count = await this.service.count(query);
+    if (count) {
+      const analytics = {
+        sold: '*',
+        left: count,
+      };
+      return Helpers.success(analytics);
+    } else {
+      return Helpers.fail('No service found');
+    }
+  }
   async getInventoryAnalytics(
     authenticatedUser: User,
     requestDto: FilterDto,
@@ -75,7 +130,8 @@ export class ReportService {
       }
 
       let totalDiscount = 0;
-      const sales = await this.sale.find(query);
+      const saleData = await this.sale.find(query).sort({ createdAt: -1 });
+      const sales = saleData as any;
 
       if (sales.length) {
         const salesAnalytic = await Promise.all(
@@ -113,6 +169,7 @@ export class ReportService {
                     totalSold: product.initialQuantity - product.quantity,
                     totalIncome: product.sellingPrice - product.purchasePrice,
                     totalLeft: product.quantity,
+                    transDate: sale.createAt,
                   };
                 } else {
                   const service = await this.service.findOne({
@@ -132,20 +189,22 @@ export class ReportService {
                     totalSold,
                     totalLeft: 1,
                     totalIncome: service.revenue,
+                    transDate: sale.createdAt,
                   };
                 }
                 return itemData;
               }),
             );
 
-            let itemId;
-            let itemName;
-            let itemType;
-            let itemCategory;
-            let total;
-            let totalSold;
-            let totalLeft;
-            let totalIncome;
+            let itemId,
+              itemName,
+              itemType,
+              itemCategory,
+              total,
+              totalSold,
+              totalLeft,
+              totalIncome,
+              transDate;
             total = totalSold = totalLeft = totalIncome = 0;
 
             itemsAnalytic.forEach((item) => {
@@ -156,7 +215,11 @@ export class ReportService {
               total = item.total;
               totalSold = item.totalSold;
               totalLeft = item.totalLeft;
-              totalIncome = item.totalIncome * item.totalSold;
+              totalIncome =
+                itemType === SaleType.PRODUCT
+                  ? item.totalIncome * item.totalSold
+                  : item.totalIncome;
+              transDate = item.transDate;
             });
 
             return {
@@ -168,6 +231,7 @@ export class ReportService {
               totalSold,
               totalLeft,
               totalIncome,
+              transDate,
             };
           }),
         );
@@ -203,7 +267,7 @@ export class ReportService {
             : authenticatedUser.uuid,
       } as any;
 
-      const resources = await this.resource.find(query);
+      const resources = await this.resource.find(query).sort({ createdAt: -1 });
 
       const analytic = {
         All: 0,

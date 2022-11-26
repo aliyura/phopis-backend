@@ -47,6 +47,52 @@ export class ReportController {
   }
 
   @UseGuards(AppGuard)
+  @Get('/product/inventory')
+  async getProductInventory(
+    @Headers('Authorization') token: string,
+  ): Promise<ApiResponse> {
+    const authToken = token.substring(7);
+    const userResponse = await this.userService.authenticatedUserByToken(
+      authToken,
+    );
+    if (!userResponse.success)
+      return Helpers.failedHttpResponse(
+        userResponse.message,
+        HttpStatus.UNAUTHORIZED,
+      );
+    const user = userResponse.data as User;
+
+    const response = await this.reportService.getProductInventory(user);
+    if (response.success && response.data) {
+      return response;
+    }
+    return Helpers.failedHttpResponse(response.message, HttpStatus.NOT_FOUND);
+  }
+
+  @UseGuards(AppGuard)
+  @Get('/service/inventory')
+  async getServiceInventory(
+    @Headers('Authorization') token: string,
+  ): Promise<ApiResponse> {
+    const authToken = token.substring(7);
+    const userResponse = await this.userService.authenticatedUserByToken(
+      authToken,
+    );
+    if (!userResponse.success)
+      return Helpers.failedHttpResponse(
+        userResponse.message,
+        HttpStatus.UNAUTHORIZED,
+      );
+    const user = userResponse.data as User;
+
+    const response = await this.reportService.getServicesInventory(user);
+    if (response.success && response.data) {
+      return response;
+    }
+    return Helpers.failedHttpResponse(response.message, HttpStatus.NOT_FOUND);
+  }
+
+  @UseGuards(AppGuard)
   @Get('/inventory/analytics')
   async getInventoryAnalytics(
     @Query('from') from: string,

@@ -452,7 +452,7 @@ export class ResourceService {
         query.status = status.toUpperCase();
       }
 
-      const resources = await this.resource.find(query);
+      const resources = await this.resource.find(query).sort({ createdAt: -1 });
       if (resources.length) return Helpers.success(resources);
 
       return Helpers.fail('No Resource found');
@@ -467,13 +467,15 @@ export class ResourceService {
     searchString: string,
   ): Promise<ApiResponse> {
     try {
-      const resources = await this.resource.find({
-        currentOwnerUuid:
-          authenticatedUser.accountType === AccountType.BUSINESS
-            ? authenticatedUser.businessId
-            : authenticatedUser.uuid,
-        $text: { $search: searchString },
-      });
+      const resources = await this.resource
+        .find({
+          currentOwnerUuid:
+            authenticatedUser.accountType === AccountType.BUSINESS
+              ? authenticatedUser.businessId
+              : authenticatedUser.uuid,
+          $text: { $search: searchString },
+        })
+        .sort({ createdAt: -1 });
       if (resources.length) return Helpers.success(resources);
 
       return Helpers.fail('No Resource found');
@@ -547,9 +549,11 @@ export class ResourceService {
 
   async getResourceOwnershipLog(authenticatedUser: User): Promise<ApiResponse> {
     try {
-      const resources = await this.resourceOwnershipLog.find({
-        ownerUuid: authenticatedUser.uuid,
-      });
+      const resources = await this.resourceOwnershipLog
+        .find({
+          ownerUuid: authenticatedUser.uuid,
+        })
+        .sort({ createdAt: -1 });
       if (resources.length) return Helpers.success(resources);
 
       return Helpers.fail('No Resource found');

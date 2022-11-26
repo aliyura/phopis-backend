@@ -148,7 +148,8 @@ export class ServiceService {
       const result = await this.service
         .find(query)
         .skip(skip * size)
-        .limit(size);
+        .limit(size)
+        .sort({ createdAt: -1 });
 
       if (result.length) {
         const totalPages = Math.round(count / size);
@@ -192,7 +193,8 @@ export class ServiceService {
       const result = await this.service
         .find(query)
         .skip(skip * size)
-        .limit(size);
+        .limit(size)
+        .sort({ createdAt: -1 });
 
       if (result.length) {
         const totalPages = Math.round(count / size);

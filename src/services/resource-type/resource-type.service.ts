@@ -78,7 +78,7 @@ export class ResourceTypeService {
 
   async allResourceType(): Promise<ApiResponse> {
     try {
-      const req = await this.productCategory.find();
+      const req = await this.productCategory.find().sort({ createdAt: -1 });
       if (req.length) {
         return Helpers.success(req);
       }

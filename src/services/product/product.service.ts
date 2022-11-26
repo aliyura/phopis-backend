@@ -300,7 +300,8 @@ export class ProductService {
       const result = await this.product
         .find(query)
         .skip(skip * size)
-        .limit(size);
+        .limit(size)
+        .sort({ createdAt: -1 });
 
       if (result.length) {
         const totalPages = Math.round(count / size);
@@ -344,7 +345,8 @@ export class ProductService {
       const result = await this.product
         .find(query)
         .skip(skip * size)
-        .limit(size);
+        .limit(size)
+        .sort({ createdAt: -1 });
 
       if (result.length) {
         const totalPages = Math.round(count / size);

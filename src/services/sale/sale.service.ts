@@ -320,7 +320,8 @@ export class SaleService {
       const result = await this.sale
         .find(query)
         .skip(skip * size)
-        .limit(size);
+        .limit(size)
+        .sort({ createdAt: -1 });
 
       if (result.length) {
         const totalPages = Math.round(count / size);
@@ -371,7 +372,8 @@ export class SaleService {
       const result = await this.sale
         .find(query)
         .skip(skip * size)
-        .limit(size);
+        .limit(size)
+        .sort({ createdAt: -1 });
 
       if (result.length) {
         const totalPages = Math.round(count / size);

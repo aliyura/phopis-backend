@@ -84,9 +84,11 @@ export class ServiceTypeService {
 
   async allServiceType(authenticatedUser: User): Promise<ApiResponse> {
     try {
-      const req = await this.serviceType.find({
-        businessId: authenticatedUser.businessId,
-      });
+      const req = await this.serviceType
+        .find({
+          businessId: authenticatedUser.businessId,
+        })
+        .sort({ createdAt: -1 });
       if (req.length) {
         return Helpers.success(req);
       }

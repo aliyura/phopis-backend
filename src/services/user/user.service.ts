@@ -597,7 +597,8 @@ export class UserService {
       const result = await this.user
         .find(query)
         .skip(skip * size)
-        .limit(size);
+        .limit(size)
+        .sort({ createdAt: -1 });
 
       if (result.length) {
         const totalPages = Math.round(count / size);
@@ -644,7 +645,8 @@ export class UserService {
       const result = await this.user
         .find(query)
         .skip(skip * size)
-        .limit(size);
+        .limit(size)
+        .sort({ createdAt: -1 });
 
       if (result.length) {
         const totalPages = Math.round(count / size);
@@ -692,7 +694,8 @@ export class UserService {
       const result = await this.user
         .find(query)
         .skip(skip * size)
-        .limit(size);
+        .limit(size)
+        .sort({ createdAt: -1 });
 
       if (result.length) {
         const totalPages = Math.round(count / size);

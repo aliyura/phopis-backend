@@ -30,7 +30,10 @@ export class LogsService {
 
   async getWalletLog(uuid: string): Promise<ApiResponse> {
     try {
-      const walletLogs = await this.walletLog.find({ uuid }).exec();
+      const walletLogs = await this.walletLog
+        .find({ uuid })
+        .sort({ createdAt: -1 })
+        .exec();
       if (walletLogs.length) return Helpers.success(walletLogs);
       return Helpers.fail('No transaction found');
     } catch (ex) {
