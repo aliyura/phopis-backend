@@ -24,6 +24,12 @@ export class Sale {
   totalAmount: number;
 
   @Prop({ required: true })
+  totalRevenue: number;
+
+  @Prop()
+  totalDiscount: number;
+
+  @Prop({ required: true })
   createdById: string;
 
   @Prop({ required: true })
@@ -37,9 +43,6 @@ export class Sale {
 
   @Prop({ required: true, unique: true })
   code: number;
-
-  @Prop()
-  totalDiscount: number;
 
   @Prop({ required: true, unique: true })
   suid: string;

@@ -131,6 +131,17 @@ export class Helpers {
     return diffDays;
   }
 
+  static calculatePOSTransactionCharges(transactionAmount: number): number {
+    const charge = 100;
+    const count = Math.abs(transactionAmount / 10000);
+    const percentage = count.toString().split('.');
+    let totalCharge = charge * Number(percentage[0]);
+    if (percentage.length > 1) {
+      totalCharge = totalCharge + charge;
+    }
+    return totalCharge;
+  }
+
   static verifySubscription(endDate: string) {
     const daysLeft = this.calculateSubscription(endDate) as number;
     if (!daysLeft) return false;

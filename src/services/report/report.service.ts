@@ -146,8 +146,8 @@ export class ReportService {
       }
 
       let salesAnalytic = [];
-      let total, totalSold, totalLeft, totalIncome;
-      total = totalSold = totalLeft = totalIncome = 0;
+      let total, totalSold, totalLeft, totalRevenue;
+      total = totalSold = totalLeft = totalRevenue = 0;
 
       if (sales.length) {
         salesAnalytic = await Promise.all(
@@ -167,7 +167,7 @@ export class ReportService {
                     category: product.category,
                     total: product.sellingPrice,
                     totalSold: product.initialQuantity - product.quantity,
-                    totalIncome: product.sellingPrice - product.purchasePrice,
+                    totalRevenue: item.totalRevenue,
                     totalLeft: product.quantity,
                     transDate: sale.createAt,
                   };
@@ -175,7 +175,6 @@ export class ReportService {
                   const service = await this.service.findOne({
                     suid: item.id,
                   });
-
                   const totalSold = await this.sale.count({
                     'items.id': item.id,
                   });
@@ -188,7 +187,7 @@ export class ReportService {
                     total: service.charges,
                     totalSold,
                     totalLeft: 1,
-                    totalIncome: service.revenue,
+                    totalRevenue: item.totalRevenue,
                     transDate: sale.createdAt,
                   };
                 }
@@ -203,9 +202,9 @@ export class ReportService {
               total,
               totalSold,
               totalLeft,
-              totalIncome,
+              totalRevenue,
               transDate;
-            total = totalSold = totalLeft = totalIncome = 0;
+            total = totalSold = totalLeft = totalRevenue = 0;
 
             itemsAnalytic.forEach((item) => {
               itemId = item.id;
@@ -215,10 +214,7 @@ export class ReportService {
               total = item.total;
               totalSold = item.totalSold;
               totalLeft = item.totalLeft;
-              totalIncome =
-                itemType === SaleType.PRODUCT
-                  ? item.totalIncome * item.totalSold
-                  : item.totalIncome;
+              totalRevenue = item.totalRevenue;
               transDate = item.transDate;
             });
 
@@ -230,7 +226,7 @@ export class ReportService {
               total,
               totalSold,
               totalLeft,
-              totalIncome,
+              totalRevenue,
               transDate,
             };
           }),
@@ -240,14 +236,14 @@ export class ReportService {
         total = total + analytic.total;
         totalSold = totalSold + analytic.totalSold;
         totalLeft = totalLeft + analytic.totalLeft;
-        totalIncome = totalIncome + analytic.totalIncome;
+        totalRevenue = totalRevenue + analytic.totalRevenue;
       });
 
       const analytics = {
         total,
         totalSold,
         totalLeft,
-        totalIncome,
+        totalRevenue,
         totalDiscount,
         breakdown: salesAnalytic,
       };

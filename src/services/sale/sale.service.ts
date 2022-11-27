@@ -98,6 +98,10 @@ export class SaleService {
           }
 
           totalPayable += currentProduct.sellingPrice * request.quantity;
+          const totalRevenue =
+            (currentProduct.purchasePrice - currentProduct.sellingPrice) *
+            request.quantity;
+
           const response = {
             id: request.productId,
             name: currentProduct.title,
@@ -105,6 +109,7 @@ export class SaleService {
             category: currentProduct.category,
             quantity: request.quantity,
             totalPayable,
+            totalRevenue,
           };
           return response;
         }),
@@ -112,12 +117,14 @@ export class SaleService {
 
       if (productCheckPassed) {
         const saleRequest = response as any[];
-        let totalAmount = 0;
+        let totalAmount, totalRevenue;
+        totalAmount = totalRevenue = 0;
         const totalDiscount = requestDto.discount ? requestDto.discount : 0;
 
         //get total payable
         await saleRequest.forEach(async (sale) => {
           totalAmount += sale.totalPayable;
+          totalRevenue += sale.totalRevenue;
         });
 
         //update purchased items
@@ -143,6 +150,7 @@ export class SaleService {
           customerName: requestDto.customerName,
           totalAmount,
           totalDiscount,
+          totalRevenue,
           status: Status.SUCCESSFUL,
           code: code,
           suid: saleId,
@@ -216,18 +224,24 @@ export class SaleService {
           const currentService = await this.service.findOne({
             suid: request.serviceId,
           });
+
           if (!currentService) {
             serviceCheckPassed = false;
             return Helpers.failure(request, `Service not found`);
           }
 
           totalPayable += currentService.charges * request.quantity;
+          let totalRevenue = currentService.revenue * request.quantity;
+          if (currentService.type === 'POS')
+            totalRevenue = Helpers.calculatePOSTransactionCharges(totalPayable);
+
           const response = {
             id: request.serviceId,
             name: currentService.title,
             type: currentService.type,
             quantity: request.quantity,
             totalPayable,
+            totalRevenue,
           };
           return response;
         }),
@@ -235,12 +249,14 @@ export class SaleService {
 
       if (serviceCheckPassed) {
         const saleRequest = response as any[];
-        let totalAmount = 0;
+        let totalAmount, totalRevenue;
+        totalAmount = totalRevenue = 0;
         const totalDiscount = requestDto.discount ? requestDto.discount : 0;
 
         //get total payable
         await saleRequest.forEach(async (sale) => {
           totalAmount += sale.totalPayable;
+          totalRevenue += sale.totalRevenue;
         });
 
         totalAmount = totalAmount - totalDiscount;
@@ -253,6 +269,7 @@ export class SaleService {
           customerPhoneNumber: requestDto.customerPhoneNumber,
           customerName: requestDto.customerName,
           totalAmount,
+          totalRevenue,
           totalDiscount,
           status: Status.SUCCESSFUL,
           code: code,
