@@ -20,9 +20,16 @@ import * as NodeCache from 'node-cache';
 import { Messages } from 'src/utils/messages/messages';
 import { WalletService } from '../wallet/wallet.service';
 import { JwtService } from '@nestjs/jwt';
-import { BusinessUserDto, UserBranchDto } from '../../dtos/user.dto';
-import { WalletActivity } from '../../enums/enums';
+import {
+  BusinessUserDto,
+  UserBranchDto,
+  ContactDetail,
+} from '../../dtos/user.dto';
+import { WalletActivity, ActionKey } from '../../enums/enums';
 import { LogsService } from '../logs/logs.service';
+import { AdditionalInfoRequest } from '../../dtos/additional-info-request.dto';
+import { ServiceDetail, ProductDetail } from '../../dtos/user.dto';
+import { Console } from 'console';
 
 @Injectable()
 export class UserService {
@@ -500,6 +507,205 @@ export class UserService {
     }
   }
 
+  async addAdditionalInfo(
+    authenticatedUser: User,
+    requestDto: AdditionalInfoRequest,
+  ): Promise<ApiResponse> {
+    try {
+      const user = authenticatedUser;
+
+      if (!requestDto.key || !requestDto.value)
+        return Helpers.fail('Provide valid key value details');
+      if (!user.additionalInfo) user.additionalInfo = {} as any;
+
+      if (requestDto.key === ActionKey.CONTACT) {
+        const contacts = user.additionalInfo.contacts || [];
+        const request = requestDto.value as ContactDetail;
+        const alreadyExist = await contacts.some((data) => {
+          return data.value === request.value;
+        });
+        if (alreadyExist) return Helpers.fail('Contact already exist');
+
+        request.id = `cont${Helpers.getUniqueId()}`;
+        contacts.push(request);
+        user.additionalInfo.contacts = contacts;
+      } else if (requestDto.key === ActionKey.SERVICE) {
+        const services = user.additionalInfo.services || [];
+        const request = requestDto.value as ServiceDetail;
+        const alreadyExist = await services.some((data) => {
+          return data.title === request.title;
+        });
+        if (alreadyExist) return Helpers.fail('Service already exist');
+
+        request.id = `serv${Helpers.getUniqueId()}`;
+        services.push(request);
+        user.additionalInfo.services = services;
+      } else if (requestDto.key === ActionKey.PRODUCT) {
+        const products = user.additionalInfo.products || [];
+        const request = requestDto.value as ProductDetail;
+        const alreadyExist = await products.some((data) => {
+          return data.title === request.title;
+        });
+        if (alreadyExist) return Helpers.fail('Product already exist');
+
+        request.id = `prod${Helpers.getUniqueId()}`;
+        products.push(request);
+        user.additionalInfo.services = products;
+      } else if (requestDto.key === ActionKey.KEYWORD) {
+        const keywords = user.additionalInfo.keywords || [];
+        const request = requestDto.value || ([] as string[]);
+        const alreadyExist = keywords.some((data) => request.includes(data));
+        if (alreadyExist) return Helpers.fail('Some keyword already exist');
+
+        const keywordBase = keywords.concat(request);
+        user.additionalInfo.keywords = keywordBase;
+      } else if (requestDto.key === ActionKey.PRIMARYCOLOR) {
+        user.additionalInfo.primaryColor = requestDto.value;
+      } else if (requestDto.key === ActionKey.SECONDARYCOLOR) {
+        user.additionalInfo.secondaryColor = requestDto.value;
+      } else if (requestDto.key === ActionKey.LOGO) {
+        user.additionalInfo.logo = requestDto.value;
+      } else if (requestDto.key === ActionKey.DESCRIPTION) {
+        user.additionalInfo.description = requestDto.value;
+      } else {
+        return Helpers.fail('Invalid request key');
+      }
+      const saved = await (await this.user.create(user)).save();
+      return Helpers.success(saved);
+    } catch (ex) {
+      console.log(Messages.ErrorOccurred, ex);
+      return Helpers.fail(Messages.Exception);
+    }
+  }
+
+  async updateAdditionalInfo(
+    authenticatedUser: User,
+    requestDto: AdditionalInfoRequest,
+  ): Promise<ApiResponse> {
+    try {
+      const user = authenticatedUser;
+
+      if (!requestDto.key || !requestDto.value)
+        return Helpers.fail('Provide valid key value details');
+      if (!user.additionalInfo) user.additionalInfo = {} as any;
+
+      if (requestDto.key === ActionKey.CONTACT) {
+        const contacts = user.additionalInfo.contacts || [];
+        const request = requestDto.value as ContactDetail;
+        const existingContact = await contacts.find(
+          (item) => item.id === request.id,
+        );
+        if (!existingContact) return Helpers.fail('Contact not found');
+
+        if (request.value) existingContact.value = request.value;
+
+        const base = await contacts.filter((item) => item.id !== request.id);
+        base.push(existingContact);
+        user.additionalInfo.contacts = base;
+      } else if (requestDto.key === ActionKey.SERVICE) {
+        const services = user.additionalInfo.services || [];
+        const request = requestDto.value as ServiceDetail;
+        const existingService = await services.find(
+          (item) => item.id === request.id,
+        );
+        if (!existingService) return Helpers.fail('Service not found');
+
+        if (request.title) existingService.title = request.title;
+        if (request.image) existingService.image = request.image;
+        if (request.description)
+          existingService.description = request.description;
+
+        const base = await services.filter((item) => item.id !== request.id);
+        base.push(existingService);
+        user.additionalInfo.services = base;
+      } else if (requestDto.key === ActionKey.PRODUCT) {
+        const products = user.additionalInfo.products || [];
+        const request = requestDto.value as ProductDetail;
+        const existingProduct = await products.find(
+          (item) => item.id === request.id,
+        );
+        if (!existingProduct) return Helpers.fail('Product not found');
+
+        if (request.title) existingProduct.title = request.title;
+        if (request.image) existingProduct.image = request.image;
+        if (request.price) existingProduct.price = request.price;
+        if (request.description)
+          existingProduct.description = request.description;
+
+        const base = await products.filter((item) => item.id !== request.id);
+        base.push(existingProduct);
+        user.additionalInfo.products = base;
+      } else if (requestDto.key === ActionKey.PRIMARYCOLOR) {
+        user.additionalInfo.primaryColor = requestDto.value;
+      } else if (requestDto.key === ActionKey.SECONDARYCOLOR) {
+        user.additionalInfo.secondaryColor = requestDto.value;
+      } else if (requestDto.key === ActionKey.LOGO) {
+        user.additionalInfo.logo = requestDto.value;
+      } else if (requestDto.key === ActionKey.DESCRIPTION) {
+        user.additionalInfo.description = requestDto.value;
+      } else {
+        return Helpers.fail('Invalid request key');
+      }
+      const saved = await (await this.user.create(user)).save();
+      return Helpers.success(saved);
+    } catch (ex) {
+      console.log(Messages.ErrorOccurred, ex);
+      return Helpers.fail(Messages.Exception);
+    }
+  }
+
+  async deleteAdditionalInfo(
+    authenticatedUser: User,
+    requestDto: AdditionalInfoRequest,
+  ): Promise<ApiResponse> {
+    try {
+      const user = authenticatedUser;
+
+      if (!requestDto.key || !requestDto.value)
+        return Helpers.fail('Provide valid key value details');
+      if (!user.additionalInfo) user.additionalInfo = {} as any;
+
+      if (requestDto.key === ActionKey.CONTACT) {
+        const contacts = user.additionalInfo.contacts || [];
+        const id = requestDto.value as string;
+        const exist = await contacts.find((item) => item.id === id);
+        if (!exist) return Helpers.fail('Contact not found');
+        const base = await contacts.filter((item) => item.id !== id);
+        user.additionalInfo.contacts = base;
+      } else if (requestDto.key === ActionKey.SERVICE) {
+        const services = user.additionalInfo.services || [];
+        const id = requestDto.value as string;
+        const exist = await services.find((item) => item.id === id);
+        if (!exist) return Helpers.fail('Service not found');
+
+        const base = await services.filter((item) => item.id !== id);
+        user.additionalInfo.services = base;
+      } else if (requestDto.key === ActionKey.PRODUCT) {
+        const products = user.additionalInfo.products || [];
+        const id = requestDto.value as string;
+        const existingProduct = await products.find((item) => item.id === id);
+        if (!existingProduct) return Helpers.fail('Product not found');
+
+        const base = await products.filter((item) => item.id !== id);
+        user.additionalInfo.products = base;
+      } else if (requestDto.key === ActionKey.PRIMARYCOLOR) {
+        user.additionalInfo.primaryColor = null;
+      } else if (requestDto.key === ActionKey.SECONDARYCOLOR) {
+        user.additionalInfo.secondaryColor = null;
+      } else if (requestDto.key === ActionKey.LOGO) {
+        user.additionalInfo.logo = null;
+      } else if (requestDto.key === ActionKey.DESCRIPTION) {
+        user.additionalInfo.description = null;
+      } else {
+        return Helpers.fail('Invalid request key');
+      }
+      const saved = await (await this.user.create(user)).save();
+      return Helpers.success(saved);
+    } catch (ex) {
+      console.log(Messages.ErrorOccurred, ex);
+      return Helpers.fail(Messages.Exception);
+    }
+  }
   async findByUserId(userId: string): Promise<ApiResponse> {
     try {
       const response = await this.user.findOne({ uuid: userId }).exec();

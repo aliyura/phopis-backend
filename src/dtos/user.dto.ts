@@ -71,3 +71,33 @@ export class UserSubscriptionDto {
   @IsString() startDate: string;
   @IsString() endDate: string;
 }
+
+export class ContactDetail {
+  @IsOptional() id: string;
+  @IsOptional() key: string;
+  @IsOptional() value: string;
+}
+export class ServiceDetail {
+  @IsOptional() id: string;
+  @IsOptional() title: string;
+  @IsOptional() description: string;
+  @IsOptional() image: string;
+}
+
+export class ProductDetail {
+  @IsOptional() id: string;
+  @IsOptional() title: string;
+  @IsOptional() description: string;
+  @IsOptional() price: number;
+  @IsOptional() image: string;
+}
+export class AdditionalInfoDto {
+  @IsOptional() primaryColor: string;
+  @IsOptional() secondaryColor: string;
+  @IsOptional() logo: string;
+  @IsOptional() description: string;
+  @IsOptional() services: ServiceDetail[];
+  @IsOptional() contacts: ContactDetail[];
+  @IsOptional() keywords: string[];
+  @IsOptional() products: ProductDetail[];
+}

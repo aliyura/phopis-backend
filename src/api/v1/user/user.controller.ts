@@ -23,6 +23,7 @@ import { ApiResponse } from '../../../dtos/ApiResponse.dto';
 import { ResetPasswordDto, BusinessUserDto } from '../../../dtos/user.dto';
 import { UserRole } from '../../../enums/enums';
 import { Messages } from '../../../utils/messages/messages';
+import { AdditionalInfoRequest } from '../../../dtos/additional-info-request.dto';
 
 @Controller('user')
 export class UserController {
@@ -239,6 +240,58 @@ export class UserController {
     return Helpers.failedHttpResponse(response.message, HttpStatus.BAD_REQUEST);
   }
 
+  @Post('/additional/information')
+  async addAdditionalInfo(
+    @Body() requestDto: AdditionalInfoRequest,
+    @Headers('Authorization') token: string,
+  ): Promise<ApiResponse> {
+    const authToken = token.substring(7);
+    const userResponse = await this.userService.authenticatedUserByToken(
+      authToken,
+    );
+    if (!userResponse.success)
+      return Helpers.failedHttpResponse(
+        userResponse.message,
+        HttpStatus.UNAUTHORIZED,
+      );
+
+    if (!userResponse.success) return Helpers.fail(userResponse.message);
+    const user = userResponse.data;
+
+    const response = await this.userService.addAdditionalInfo(user, requestDto);
+    if (response.success) {
+      return response;
+    }
+    return Helpers.failedHttpResponse(response.message, HttpStatus.BAD_REQUEST);
+  }
+
+  @Put('/additional/information')
+  async updateAdditionalInfo(
+    @Body() requestDto: AdditionalInfoRequest,
+    @Headers('Authorization') token: string,
+  ): Promise<ApiResponse> {
+    const authToken = token.substring(7);
+    const userResponse = await this.userService.authenticatedUserByToken(
+      authToken,
+    );
+    if (!userResponse.success)
+      return Helpers.failedHttpResponse(
+        userResponse.message,
+        HttpStatus.UNAUTHORIZED,
+      );
+
+    if (!userResponse.success) return Helpers.fail(userResponse.message);
+    const user = userResponse.data;
+
+    const response = await this.userService.updateAdditionalInfo(
+      user,
+      requestDto,
+    );
+    if (response.success) {
+      return response;
+    }
+    return Helpers.failedHttpResponse(response.message, HttpStatus.BAD_REQUEST);
+  }
   @UseGuards(AppGuard)
   @Get('/')
   async getUser(@Headers('Authorization') token: string): Promise<ApiResponse> {

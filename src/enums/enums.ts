@@ -46,6 +46,16 @@ export enum ResourceType {
   LAND = 'LAND',
 }
 
+export enum ActionKey {
+  CONTACT = 'CONTACT',
+  SERVICE = 'SERVICE',
+  PRIMARYCOLOR = 'PRIMARYCOLOR',
+  SECONDARYCOLOR = 'SECONDARYCOLOR',
+  LOGO = 'LOGO',
+  DESCRIPTION = 'DESCRIPTION',
+  KEYWORD = 'KEYWORD',
+  PRODUCT = 'PRODUCT',
+}
 export enum AccountType {
   ADMIN = 'ADMIN',
   BUSINESS = 'BUSINESS',

@@ -1,6 +1,6 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { Document, Types } from 'mongoose';
-import { UserSubscriptionDto } from '../dtos/user.dto';
+import { UserSubscriptionDto, AdditionalInfoDto } from '../dtos/user.dto';
 
 export type UserDocument = User & Document;
 
@@ -78,8 +78,14 @@ export class User {
   @Prop()
   regNumber: string;
 
+  @Prop({ unique: true })
+  alias: string;
+
   @Prop()
   subscription: UserSubscriptionDto;
+
+  @Prop()
+  additionalInfo: AdditionalInfoDto;
 
   @Prop()
   subscriptionHistory: any[];
