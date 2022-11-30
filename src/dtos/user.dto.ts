@@ -55,11 +55,11 @@ export class AuthUserDto {
 
 export class UserUpdateDto {
   @IsOptional() name: string;
-  @IsOptional() phoneNumber: string;
-  @IsOptional() state: string;
-  @IsOptional() lga: string;
+  @IsOptional() alias: string;
+  @IsOptional() primaryColor: string;
+  @IsOptional() secondaryColor: string;
+  @IsOptional() description: string;
   @IsOptional() address: string;
-  @IsOptional() businessTarget: string;
 }
 
 export class UserAuthDto {
@@ -91,6 +91,13 @@ export class ProductDetail {
   @IsOptional() price: number;
   @IsOptional() image: string;
 }
+
+export class ReviewDetail {
+  @IsOptional() id: string;
+  @IsOptional() name: string;
+  @IsOptional() rate: number;
+  @IsOptional() description: string;
+}
 export class AdditionalInfoDto {
   @IsOptional() primaryColor: string;
   @IsOptional() secondaryColor: string;
@@ -100,4 +107,6 @@ export class AdditionalInfoDto {
   @IsOptional() contacts: ContactDetail[];
   @IsOptional() keywords: string[];
   @IsOptional() products: ProductDetail[];
+  @IsOptional() reviews: ReviewDetail[];
+  @IsOptional() visits: number;
 }

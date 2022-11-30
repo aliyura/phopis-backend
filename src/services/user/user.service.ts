@@ -308,23 +308,44 @@ export class UserService {
       const userResponse = await this.findByUserId(userId);
       if (userResponse.success) {
         const user = userResponse.data;
+        const request = {} as any;
 
-        if (requestDto && requestDto.phoneNumber) {
-          if (
-            requestDto.phoneNumber !== authenticatedUser.phoneNumber &&
-            requestDto.phoneNumber !== user.phoneNumber
-          ) {
-            const res = await this.findByPhoneNumber(requestDto.phoneNumber);
-            if (res && res.success) {
-              return Helpers.fail(
-                'Account already exist with this phone number',
-              );
+        if (requestDto.alias && requestDto.alias != '') {
+          let alias = requestDto.alias.replace('\\s', '');
+          alias = alias.toLowerCase();
+          requestDto.alias = alias;
+        }
+
+        if (requestDto.alias && requestDto.alias != '') {
+          const aliasUser = await this.findByAlias(requestDto.alias);
+          if (aliasUser.success) {
+            const aliasUserProfile = aliasUser.data;
+            if (aliasUserProfile.uuid !== user.uuid) {
+              return Helpers.fail('This alias is already taken');
             }
           }
         }
 
-        const saved = await this.user.updateOne({ uuid: userId }, requestDto);
-        return Helpers.success(saved);
+        if (requestDto.name && requestDto.name !== '')
+          request.name = requestDto.name;
+        if (requestDto.alias && requestDto.alias !== '')
+          request.alias = requestDto.alias;
+        if (requestDto.address && requestDto.address !== '')
+          request.address = requestDto.address;
+
+        //update additional information
+        const additionalInfo = {} as any;
+        if (requestDto.description && requestDto.description !== '')
+          additionalInfo.description = requestDto.description;
+        if (requestDto.primaryColor && requestDto.primaryColor !== '')
+          additionalInfo.primaryColor = requestDto.primaryColor;
+        if (requestDto.secondaryColor && requestDto.secondaryColor !== '')
+          additionalInfo.secondaryColor = requestDto.secondaryColor;
+
+        request.additionalInfo = additionalInfo;
+
+        await this.user.updateOne({ uuid: userId }, request);
+        return Helpers.success(await this.user.findOne({ uuid: userId }));
       } else {
         return Helpers.fail(Messages.UserNotFound);
       }
@@ -718,6 +739,17 @@ export class UserService {
     }
   }
 
+  async findByAlias(alias: string): Promise<ApiResponse> {
+    try {
+      const response = await this.user.findOne({ alias }).exec();
+      if (response) return Helpers.success(response);
+
+      return Helpers.fail(Messages.UserNotFound);
+    } catch (ex) {
+      console.log(Messages.ErrorOccurred, ex);
+      return Helpers.fail(Messages.Exception);
+    }
+  }
   async findByUserCode(code: number): Promise<ApiResponse> {
     try {
       const response = await this.user.findOne({ code }).exec();
