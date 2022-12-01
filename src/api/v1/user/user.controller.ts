@@ -9,6 +9,7 @@ import {
   UseGuards,
   Query,
   Param,
+  Delete,
 } from '@nestjs/common';
 import { UserDto } from 'src/dtos';
 import { Helpers } from 'src/helpers';
@@ -266,7 +267,7 @@ export class UserController {
   }
 
   @Put('/additional/information')
-  async updateAdditionalInfo(
+  async deleteAdditionalInfo(
     @Body() requestDto: AdditionalInfoRequest,
     @Headers('Authorization') token: string,
   ): Promise<ApiResponse> {
@@ -283,7 +284,7 @@ export class UserController {
     if (!userResponse.success) return Helpers.fail(userResponse.message);
     const user = userResponse.data;
 
-    const response = await this.userService.updateAdditionalInfo(
+    const response = await this.userService.deleteAdditionalInfo(
       user,
       requestDto,
     );
@@ -318,6 +319,17 @@ export class UserController {
   async accountInquiry(@Param('code') code: number): Promise<ApiResponse> {
     const userResponse = await this.userService.findByUserCode(code);
 
+    if (userResponse.success) return userResponse;
+
+    return Helpers.failedHttpResponse(
+      userResponse.message,
+      HttpStatus.NOT_FOUND,
+    );
+  }
+
+  @Get('/business/retrieve/:alias')
+  async findUserByAlias(@Param('alias') alias: string): Promise<ApiResponse> {
+    const userResponse = await this.userService.findByAlias(alias);
     if (userResponse.success) return userResponse;
 
     return Helpers.failedHttpResponse(

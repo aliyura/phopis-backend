@@ -326,15 +326,20 @@ export class UserService {
           }
         }
 
+        const additionalInfo = {} as any;
+
         if (requestDto.name && requestDto.name !== '')
           request.name = requestDto.name;
         if (requestDto.alias && requestDto.alias !== '')
           request.alias = requestDto.alias;
         if (requestDto.address && requestDto.address !== '')
           request.address = requestDto.address;
+        if (requestDto.dp && requestDto.dp !== '') {
+          request.dp = requestDto.dp;
+          additionalInfo.logo = requestDto.dp;
+        }
 
         //update additional information
-        const additionalInfo = {} as any;
         if (requestDto.description && requestDto.description !== '')
           additionalInfo.description = requestDto.description;
         if (requestDto.primaryColor && requestDto.primaryColor !== '')
@@ -534,7 +539,6 @@ export class UserService {
   ): Promise<ApiResponse> {
     try {
       const user = authenticatedUser;
-
       if (!requestDto.key || !requestDto.value)
         return Helpers.fail('Provide valid key value details');
       if (!user.additionalInfo) user.additionalInfo = {} as any;
@@ -571,7 +575,7 @@ export class UserService {
 
         request.id = `prod${Helpers.getUniqueId()}`;
         products.push(request);
-        user.additionalInfo.services = products;
+        user.additionalInfo.products = products;
       } else if (requestDto.key === ActionKey.KEYWORD) {
         const keywords = user.additionalInfo.keywords || [];
         const request = requestDto.value || ([] as string[]);
@@ -580,19 +584,13 @@ export class UserService {
 
         const keywordBase = keywords.concat(request);
         user.additionalInfo.keywords = keywordBase;
-      } else if (requestDto.key === ActionKey.PRIMARYCOLOR) {
-        user.additionalInfo.primaryColor = requestDto.value;
-      } else if (requestDto.key === ActionKey.SECONDARYCOLOR) {
-        user.additionalInfo.secondaryColor = requestDto.value;
-      } else if (requestDto.key === ActionKey.LOGO) {
-        user.additionalInfo.logo = requestDto.value;
-      } else if (requestDto.key === ActionKey.DESCRIPTION) {
-        user.additionalInfo.description = requestDto.value;
       } else {
         return Helpers.fail('Invalid request key');
       }
-      const saved = await (await this.user.create(user)).save();
-      return Helpers.success(saved);
+      await this.user.updateOne({ uuid: authenticatedUser.uuid }, user);
+      return Helpers.success(
+        await this.user.findOne({ uuid: authenticatedUser.uuid }),
+      );
     } catch (ex) {
       console.log(Messages.ErrorOccurred, ex);
       return Helpers.fail(Messages.Exception);
@@ -656,19 +654,13 @@ export class UserService {
         const base = await products.filter((item) => item.id !== request.id);
         base.push(existingProduct);
         user.additionalInfo.products = base;
-      } else if (requestDto.key === ActionKey.PRIMARYCOLOR) {
-        user.additionalInfo.primaryColor = requestDto.value;
-      } else if (requestDto.key === ActionKey.SECONDARYCOLOR) {
-        user.additionalInfo.secondaryColor = requestDto.value;
-      } else if (requestDto.key === ActionKey.LOGO) {
-        user.additionalInfo.logo = requestDto.value;
-      } else if (requestDto.key === ActionKey.DESCRIPTION) {
-        user.additionalInfo.description = requestDto.value;
       } else {
         return Helpers.fail('Invalid request key');
       }
-      const saved = await (await this.user.create(user)).save();
-      return Helpers.success(saved);
+      await this.user.updateOne({ uuid: authenticatedUser.uuid }, user);
+      return Helpers.success(
+        await this.user.findOne({ uuid: authenticatedUser.uuid }),
+      );
     } catch (ex) {
       console.log(Messages.ErrorOccurred, ex);
       return Helpers.fail(Messages.Exception);
@@ -709,19 +701,13 @@ export class UserService {
 
         const base = await products.filter((item) => item.id !== id);
         user.additionalInfo.products = base;
-      } else if (requestDto.key === ActionKey.PRIMARYCOLOR) {
-        user.additionalInfo.primaryColor = null;
-      } else if (requestDto.key === ActionKey.SECONDARYCOLOR) {
-        user.additionalInfo.secondaryColor = null;
-      } else if (requestDto.key === ActionKey.LOGO) {
-        user.additionalInfo.logo = null;
-      } else if (requestDto.key === ActionKey.DESCRIPTION) {
-        user.additionalInfo.description = null;
       } else {
         return Helpers.fail('Invalid request key');
       }
-      const saved = await (await this.user.create(user)).save();
-      return Helpers.success(saved);
+      await this.user.updateOne({ uuid: authenticatedUser.uuid }, user);
+      return Helpers.success(
+        await this.user.findOne({ uuid: authenticatedUser.uuid }),
+      );
     } catch (ex) {
       console.log(Messages.ErrorOccurred, ex);
       return Helpers.fail(Messages.Exception);

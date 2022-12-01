@@ -60,6 +60,7 @@ export class UserUpdateDto {
   @IsOptional() secondaryColor: string;
   @IsOptional() description: string;
   @IsOptional() address: string;
+  @IsOptional() dp: string;
 }
 
 export class UserAuthDto {
