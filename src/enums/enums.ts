@@ -51,6 +51,7 @@ export enum ActionKey {
   SERVICE = 'SERVICE',
   KEYWORD = 'KEYWORD',
   PRODUCT = 'PRODUCT',
+  SOCIALMEDIALINK = 'SOCIALMEDIALINK',
 }
 export enum AccountType {
   ADMIN = 'ADMIN',

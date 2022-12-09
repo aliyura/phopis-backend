@@ -56,11 +56,13 @@ export class AuthUserDto {
 export class UserUpdateDto {
   @IsOptional() name: string;
   @IsOptional() alias: string;
-  @IsOptional() primaryColor: string;
-  @IsOptional() secondaryColor: string;
+  @IsOptional() color: string;
+  @IsOptional() shortDescription: string;
   @IsOptional() description: string;
   @IsOptional() address: string;
   @IsOptional() dp: string;
+  @IsOptional() map: string;
+  
 }
 
 export class UserAuthDto {
@@ -73,7 +75,7 @@ export class UserSubscriptionDto {
   @IsString() endDate: string;
 }
 
-export class ContactDetail {
+export class KeyValue {
   @IsOptional() id: string;
   @IsOptional() key: string;
   @IsOptional() value: string;
@@ -100,14 +102,16 @@ export class ReviewDetail {
   @IsOptional() description: string;
 }
 export class AdditionalInfoDto {
-  @IsOptional() primaryColor: string;
-  @IsOptional() secondaryColor: string;
-  @IsOptional() logo: string;
+  @IsOptional() shortDescription: string;
   @IsOptional() description: string;
+  @IsOptional() color: string;
+  @IsOptional() logo: string;
   @IsOptional() services: ServiceDetail[];
-  @IsOptional() contacts: ContactDetail[];
+  @IsOptional() contacts: KeyValue[];
+  @IsOptional() socialMediaLinks: KeyValue[];
   @IsOptional() keywords: string[];
   @IsOptional() products: ProductDetail[];
   @IsOptional() reviews: ReviewDetail[];
   @IsOptional() visits: number;
+  @IsOptional() map: string;
 }

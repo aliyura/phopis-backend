@@ -20,11 +20,7 @@ import * as NodeCache from 'node-cache';
 import { Messages } from 'src/utils/messages/messages';
 import { WalletService } from '../wallet/wallet.service';
 import { JwtService } from '@nestjs/jwt';
-import {
-  BusinessUserDto,
-  UserBranchDto,
-  ContactDetail,
-} from '../../dtos/user.dto';
+import { BusinessUserDto, UserBranchDto, KeyValue } from '../../dtos/user.dto';
 import { WalletActivity, ActionKey } from '../../enums/enums';
 import { LogsService } from '../logs/logs.service';
 import { AdditionalInfoRequest } from '../../dtos/additional-info-request.dto';
@@ -340,12 +336,17 @@ export class UserService {
         }
 
         //update additional information
+        if (requestDto.shortDescription && requestDto.shortDescription !== '')
+          additionalInfo.shortDescription = requestDto.shortDescription;
+
         if (requestDto.description && requestDto.description !== '')
           additionalInfo.description = requestDto.description;
-        if (requestDto.primaryColor && requestDto.primaryColor !== '')
-          additionalInfo.primaryColor = requestDto.primaryColor;
-        if (requestDto.secondaryColor && requestDto.secondaryColor !== '')
-          additionalInfo.secondaryColor = requestDto.secondaryColor;
+
+        if (requestDto.color && requestDto.color !== '')
+          additionalInfo.color = requestDto.color;
+
+        if (requestDto.map && requestDto.map !== '')
+          additionalInfo.map = requestDto.map;
 
         request.additionalInfo = additionalInfo;
 
@@ -545,7 +546,7 @@ export class UserService {
 
       if (requestDto.key === ActionKey.CONTACT) {
         const contacts = user.additionalInfo.contacts || [];
-        const request = requestDto.value as ContactDetail;
+        const request = requestDto.value as KeyValue;
         const alreadyExist = await contacts.some((data) => {
           return data.value === request.value;
         });
@@ -554,6 +555,17 @@ export class UserService {
         request.id = `cont${Helpers.getUniqueId()}`;
         contacts.push(request);
         user.additionalInfo.contacts = contacts;
+      } else if (requestDto.key === ActionKey.SOCIALMEDIALINK) {
+        const links = user.additionalInfo.socialMediaLinks || [];
+        const request = requestDto.value as KeyValue;
+        const alreadyExist = await links.some((data) => {
+          return data.value === request.value;
+        });
+        if (alreadyExist) return Helpers.fail('Link already exist');
+
+        request.id = `link${Helpers.getUniqueId()}`;
+        links.push(request);
+        user.additionalInfo.socialMediaLinks = links;
       } else if (requestDto.key === ActionKey.SERVICE) {
         const services = user.additionalInfo.services || [];
         const request = requestDto.value as ServiceDetail;
@@ -596,77 +608,6 @@ export class UserService {
       return Helpers.fail(Messages.Exception);
     }
   }
-
-  async updateAdditionalInfo(
-    authenticatedUser: User,
-    requestDto: AdditionalInfoRequest,
-  ): Promise<ApiResponse> {
-    try {
-      const user = authenticatedUser;
-
-      if (!requestDto.key || !requestDto.value)
-        return Helpers.fail('Provide valid key value details');
-      if (!user.additionalInfo) user.additionalInfo = {} as any;
-
-      if (requestDto.key === ActionKey.CONTACT) {
-        const contacts = user.additionalInfo.contacts || [];
-        const request = requestDto.value as ContactDetail;
-        const existingContact = await contacts.find(
-          (item) => item.id === request.id,
-        );
-        if (!existingContact) return Helpers.fail('Contact not found');
-
-        if (request.value) existingContact.value = request.value;
-
-        const base = await contacts.filter((item) => item.id !== request.id);
-        base.push(existingContact);
-        user.additionalInfo.contacts = base;
-      } else if (requestDto.key === ActionKey.SERVICE) {
-        const services = user.additionalInfo.services || [];
-        const request = requestDto.value as ServiceDetail;
-        const existingService = await services.find(
-          (item) => item.id === request.id,
-        );
-        if (!existingService) return Helpers.fail('Service not found');
-
-        if (request.title) existingService.title = request.title;
-        if (request.image) existingService.image = request.image;
-        if (request.description)
-          existingService.description = request.description;
-
-        const base = await services.filter((item) => item.id !== request.id);
-        base.push(existingService);
-        user.additionalInfo.services = base;
-      } else if (requestDto.key === ActionKey.PRODUCT) {
-        const products = user.additionalInfo.products || [];
-        const request = requestDto.value as ProductDetail;
-        const existingProduct = await products.find(
-          (item) => item.id === request.id,
-        );
-        if (!existingProduct) return Helpers.fail('Product not found');
-
-        if (request.title) existingProduct.title = request.title;
-        if (request.image) existingProduct.image = request.image;
-        if (request.price) existingProduct.price = request.price;
-        if (request.description)
-          existingProduct.description = request.description;
-
-        const base = await products.filter((item) => item.id !== request.id);
-        base.push(existingProduct);
-        user.additionalInfo.products = base;
-      } else {
-        return Helpers.fail('Invalid request key');
-      }
-      await this.user.updateOne({ uuid: authenticatedUser.uuid }, user);
-      return Helpers.success(
-        await this.user.findOne({ uuid: authenticatedUser.uuid }),
-      );
-    } catch (ex) {
-      console.log(Messages.ErrorOccurred, ex);
-      return Helpers.fail(Messages.Exception);
-    }
-  }
-
   async deleteAdditionalInfo(
     authenticatedUser: User,
     requestDto: AdditionalInfoRequest,
@@ -685,6 +626,13 @@ export class UserService {
         if (!exist) return Helpers.fail('Contact not found');
         const base = await contacts.filter((item) => item.id !== id);
         user.additionalInfo.contacts = base;
+      } else if (requestDto.key === ActionKey.SOCIALMEDIALINK) {
+        const links = user.additionalInfo.socialMediaLinks || [];
+        const id = requestDto.value as string;
+        const exist = await links.find((item) => item.id === id);
+        if (!exist) return Helpers.fail('Link not found');
+        const base = await links.filter((item) => item.id !== id);
+        user.additionalInfo.socialMediaLinks = base;
       } else if (requestDto.key === ActionKey.SERVICE) {
         const services = user.additionalInfo.services || [];
         const id = requestDto.value as string;

@@ -99,7 +99,7 @@ export class SaleService {
 
           totalPayable += currentProduct.sellingPrice * request.quantity;
           const totalRevenue =
-            (currentProduct.purchasePrice - currentProduct.sellingPrice) *
+            (currentProduct.sellingPrice - currentProduct.purchasePrice) *
             request.quantity;
 
           const response = {

@@ -123,6 +123,36 @@ export class ReportController {
   }
 
   @UseGuards(AppGuard)
+  @Get('/inventory/analytics/download')
+  async downloadInventoryAnalytics(
+    @Query('from') from: string,
+    @Query('to') to: string,
+    @Headers('Authorization') token: string,
+  ): Promise<ApiResponse> {
+    const authToken = token.substring(7);
+    const userResponse = await this.userService.authenticatedUserByToken(
+      authToken,
+    );
+    if (!userResponse.success)
+      return Helpers.failedHttpResponse(
+        userResponse.message,
+        HttpStatus.UNAUTHORIZED,
+      );
+    const user = userResponse.data as User;
+
+    const requestDto = { from, to } as FilterDto;
+
+    const response = await this.reportService.downloadInventoryAnalytics(
+      user,
+      requestDto,
+    );
+    if (response.success && response.data) {
+      return response;
+    }
+    return Helpers.failedHttpResponse(response.message, HttpStatus.NOT_FOUND);
+  }
+
+  @UseGuards(AppGuard)
   @Get('/resource/analytics')
   async getResourceAnalytics(
     @Headers('Authorization') token: string,

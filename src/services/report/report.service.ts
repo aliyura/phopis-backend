@@ -12,8 +12,11 @@ import { Product, ProductDocument } from '../../schemas/product.schema';
 import { User } from '../../schemas/user.schema';
 import { FilterDto } from '../../dtos/report-filter.dto';
 import { ResourceDocument, Resource } from '../../schemas/resource.schema';
-import { ResourceType, SaleType } from '../../enums/enums';
+import { ResourceType, SaleType, UserRole } from '../../enums/enums';
 import { ServiceDocument, Service } from '../../schemas/service.schema';
+import * as json2csv from 'json2csv';
+import * as path from 'path';
+import * as fs from 'fs';
 
 @Injectable()
 export class ReportService {
@@ -155,7 +158,6 @@ export class ReportService {
             const itemsAnalytic = await Promise.all(
               sale.items.map(async (item) => {
                 let itemData = {} as any;
-
                 if (sale.type === SaleType.PRODUCT) {
                   const product = await this.product.findOne({
                     puid: item.id,
@@ -165,9 +167,9 @@ export class ReportService {
                     name: product.title,
                     type: product.type,
                     category: product.category,
-                    total: product.sellingPrice,
+                    total: sale.totalAmount,
                     totalSold: product.initialQuantity - product.quantity,
-                    totalRevenue: item.totalRevenue,
+                    totalRevenue: sale.totalRevenue,
                     totalLeft: product.quantity,
                     transDate: sale.createAt,
                   };
@@ -184,10 +186,10 @@ export class ReportService {
                     name: service.title,
                     type: service.type,
                     category: 'N/A',
-                    total: service.charges,
+                    total: sale.totalAmount,
                     totalSold,
                     totalLeft: 1,
-                    totalRevenue: item.totalRevenue,
+                    totalRevenue: sale.totalRevenue,
                     transDate: sale.createdAt,
                   };
                 }
@@ -224,9 +226,9 @@ export class ReportService {
               itemType,
               itemCategory,
               total,
+              totalRevenue,
               totalSold,
               totalLeft,
-              totalRevenue,
               transDate,
             };
           }),
@@ -252,6 +254,65 @@ export class ReportService {
       console.log(Messages.ErrorOccurred, ex);
       return Helpers.fail(Messages.Exception);
     }
+  }
+
+  async downloadInventoryAnalytics(
+    authenticatedUser: User,
+    requestDto: FilterDto,
+  ): Promise<ApiResponse> {
+    const reportResponse = await this.getInventoryAnalytics(
+      authenticatedUser,
+      requestDto,
+    );
+
+    const response = {} as any;
+
+    if (reportResponse.success) {
+      const data = reportResponse.data;
+      const filePath = path.join(__dirname, '../../../', 'public', 'exports');
+      const fields = [
+        'itemId',
+        'itemName',
+        'itemType',
+        'itemCategory',
+        'total',
+        'totalRevenue',
+        'totalSold',
+        'totalLeft',
+        'transDate',
+      ];
+      let csv;
+      try {
+        const breakdown = [];
+        if (authenticatedUser.role === UserRole.USER) {
+          data.breakdown.forEach((item) => {
+            if (authenticatedUser.role === UserRole.USER)
+              item.totalRevenue = '****';
+            breakdown.push(item);
+          });
+        }
+        csv = await json2csv.parse(
+          authenticatedUser.role === UserRole.USER ? breakdown : data.breakdown,
+          { fields },
+        );
+      } catch (err) {
+        console.log(err);
+        return Helpers.fail('Unable to generate CSV');
+      }
+      if (!fs.existsSync(filePath)) {
+        fs.mkdirSync(filePath, { recursive: true });
+      }
+
+      const fileName = 'report-' + authenticatedUser.uuid + '.csv';
+      try {
+        await fs.writeFileSync(filePath + '/' + fileName, csv);
+      } catch (ex) {
+        return Helpers.fail('Unable to build CSV');
+      }
+      response.url = process.env.APP_URL + `/public/exports/${fileName}`;
+      response.type = 'CSV';
+    }
+    return Helpers.success(response);
   }
 
   async getResourceAnalytics(authenticatedUser: User): Promise<ApiResponse> {

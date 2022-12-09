@@ -94,6 +94,10 @@ export class Helpers {
     );
   }
 
+  static generateTimestamp(): string {
+    return new Date().toISOString().slice(-24).replace(/\D/g, '').slice(0, 14);
+  }
+
   static validNin(nin: string): boolean {
     if (nin.length < 11 || nin.length > 11) return false;
     if (!nin.match(/^[0-9]+$/)) return false;
