@@ -834,8 +834,50 @@ export class UserService {
               : 0,
         });
       }
-
       return Helpers.fail(Messages.NoUserFound);
+    } catch (ex) {
+      console.log(Messages.ErrorOccurred, ex);
+      return Helpers.fail(Messages.Exception);
+    }
+  }
+
+  async searchBusiness(
+    page: number,
+    searchString: string,
+  ): Promise<ApiResponse> {
+    try {
+      const size = 50;
+      const skip = page || 0;
+
+      const query = {
+        accountType: AccountType.BUSINESS,
+        role: UserRole.BUSINESS,
+        $text: { $search: searchString },
+      };
+
+      const count = await this.user.count(query);
+      const result = await this.user
+        .find(query)
+        .skip(skip * size)
+        .limit(size)
+        .sort({ createdAt: -1 });
+
+      if (result.length) {
+        const totalPages = Math.round(count / size);
+        return Helpers.success({
+          page: result,
+          size: size,
+          currentPage: Number(skip),
+          totalPages:
+            totalPages > 0
+              ? totalPages
+              : count > 0 && result.length > 0
+              ? 1
+              : 0,
+        });
+      }
+
+      return Helpers.fail('Search not found');
     } catch (ex) {
       console.log(Messages.ErrorOccurred, ex);
       return Helpers.fail(Messages.Exception);

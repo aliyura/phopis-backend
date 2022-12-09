@@ -399,4 +399,13 @@ export class UserController {
       );
     }
   }
+  @Get('/business/search')
+  async searchBusiness(
+    @Query('page') page: number,
+    @Query('q') searchText: string,
+  ): Promise<ApiResponse> {
+    const users = await this.userService.searchBusiness(page, searchText);
+    if (users.success) return users;
+    return Helpers.failedHttpResponse(users.message, HttpStatus.NOT_FOUND);
+  }
 }
