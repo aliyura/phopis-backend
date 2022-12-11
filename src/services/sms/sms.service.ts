@@ -18,7 +18,7 @@ export class SmsService {
       const req = `${baseURL}?api_token=${apiKey}&from=${appName}&to=${recipient}&body=${message}&dnd=2`;
       console.log('SMS request:', req);
       const response = await axios.get(req);
-      console.log(response);
+      console.log(response.data);
       if (response.status == HttpStatus.OK)
         return Helpers.success(response.data);
 

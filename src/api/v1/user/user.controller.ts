@@ -9,7 +9,6 @@ import {
   UseGuards,
   Query,
   Param,
-  Delete,
 } from '@nestjs/common';
 import { UserDto } from 'src/dtos';
 import { Helpers } from 'src/helpers';
