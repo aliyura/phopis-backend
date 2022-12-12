@@ -72,6 +72,11 @@ export class UserService {
         .toISOString()
         .slice(0, 10);
 
+      if (requestDto.referee) {
+        const refereeExist = await this.findByUserCode(requestDto.referee);
+        if (!refereeExist) return Helpers.fail('Invalid referral code');
+      }
+
       if (requestDto.businessTarget && requestDto.businessTarget !== null)
         requestDto.businessTarget = requestDto.businessTarget.toUpperCase();
 
@@ -101,7 +106,12 @@ export class UserService {
       }
 
       const account = await (await this.user.create(request)).save();
+
       if (account) {
+        //set referral code
+        if (account.referee)
+          await this.cache.set(account.uuid, account.referee);
+
         const walletResponse = await this.walletService.createWallet(
           account.uuid,
           account.code,
@@ -118,10 +128,6 @@ export class UserService {
 
           const verificationOTP = Helpers.getCode();
           await this.cache.set(requestDto.phoneNumber, verificationOTP);
-          //set referral code
-          if (account.referee && account.referee != null) {
-            await this.cache.set(account.uuid, account.referee);
-          }
 
           //send otp to the user;
           await this.smsService.sendMessage(
