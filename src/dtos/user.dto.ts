@@ -1,4 +1,4 @@
-import { IsOptional, IsString } from 'class-validator';
+import { IsOptional, IsString, IsNumber } from 'class-validator';
 
 export class UserDto {
   @IsString() name: string;
@@ -9,7 +9,9 @@ export class UserDto {
   @IsOptional() @IsString() lga: string;
   @IsOptional() @IsString() address: string;
   @IsOptional() @IsString() regNumber: string;
-  @IsOptional() @IsString() nin: string;
+  @IsOptional() @IsNumber() nin: string;
+  @IsOptional() @IsString() alias: string;
+  @IsOptional() @IsNumber() referee: number;
   @IsOptional() @IsString() businessTarget: string;
   @IsString() password: string;
   @IsOptional() @IsString() role: string;
@@ -62,7 +64,6 @@ export class UserUpdateDto {
   @IsOptional() address: string;
   @IsOptional() dp: string;
   @IsOptional() map: string;
-  
 }
 
 export class UserAuthDto {

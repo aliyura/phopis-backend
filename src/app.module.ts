@@ -68,6 +68,10 @@ import { ServiceController } from './api/v1/service/service.controller';
 import { ServiceTypeService } from './services/service-type/service-type.service';
 import { ServiceService } from './services/service/service.service';
 import {
+  WalletWithdrawal,
+  WalletWithdrawalSchema,
+} from './schemas/wallet-withdrawal.schema';
+import {
   ResourceType,
   ResourceTypeSchema,
 } from './schemas/resource-type.schema';
@@ -105,6 +109,9 @@ import {
       { name: ResourceOwnershipLog.name, schema: ResourceOwnershipLogSchema },
     ]),
     MongooseModule.forFeature([{ name: Wallet.name, schema: WalletSchema }]),
+    MongooseModule.forFeature([
+      { name: WalletWithdrawal.name, schema: WalletWithdrawalSchema },
+    ]),
     MongooseModule.forFeature([
       { name: WalletLog.name, schema: WalletLogSchema },
     ]),

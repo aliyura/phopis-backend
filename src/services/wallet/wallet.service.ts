@@ -11,16 +11,20 @@ import {
   FundWalletDto,
   FundsTransferDto,
   DebitWalletDto,
+  WithdrawalRequestDto,
 } from '../../dtos/wallet.dto';
 import { WalletActivity } from '../../enums/enums';
 import { LogsService } from '../logs/logs.service';
 import { User, UserDocument } from '../../schemas/user.schema';
-import { VerificationService } from '../verification/verification.service';
+import { WalletWithdrawal } from '../../schemas/wallet-withdrawal.schema';
+import { WithdrawalStatusDto } from '../../dtos/wallet.dto';
 
 @Injectable()
 export class WalletService {
   constructor(
     @InjectModel(Wallet.name) private wallet: Model<WalletDocument>,
+    @InjectModel(WalletWithdrawal.name)
+    private walletWithdrawal: Model<WalletWithdrawal>,
     @InjectModel(User.name) private user: Model<UserDocument>,
     private readonly logService: LogsService,
     private readonly smsService: SmsService,
@@ -244,6 +248,124 @@ export class WalletService {
       console.log(Messages.ErrorOccurred, ex);
       return Helpers.fail(Messages.Exception);
     }
+  }
+
+  async withdrawFunds(
+    address: string,
+    request: WithdrawalRequestDto,
+  ): Promise<ApiResponse> {
+    try {
+      const wallet = await this.wallet.findOne({ address }).exec();
+      if (!wallet) return Helpers.fail('Wallet not found');
+      const user = await this.user.findOne({ uuid: wallet.uuid });
+      if (!user) return Helpers.fail('User not found');
+
+      if (request.amount < 5000)
+        return Helpers.fail("Oops! You can't withdraw below 5k");
+
+      if (wallet.balance < request.amount)
+        return Helpers.fail('Insufficient funds');
+
+      const existingWithdrawalRequest = await this.walletWithdrawal.findOne({
+        uuid: user.uuid,
+        walletId: user.walletAddress,
+        status: Status.PENDING,
+      });
+
+      if (existingWithdrawalRequest)
+        return Helpers.fail('Oops! You have pending withdrawal request!');
+
+      const withdrawalRequest = {
+        uuid: user.uuid,
+        walletId: user.walletAddress,
+        amount: request.amount,
+        accountName: request.accountName,
+        accountNumber: request.accountNumber,
+        accountType: request.accountType,
+        requestId: `ref${Helpers.getUniqueId()}`,
+        status: Status.PENDING,
+      } as WalletWithdrawal;
+
+      const savedRequest = await (
+        await this.walletWithdrawal.create(withdrawalRequest)
+      ).save();
+
+      //notification
+      await this.smsService.sendMessage(
+        user.phoneNumber,
+        `We received your request to withdraw  ${Helpers.convertToMoney(
+          request.amount,
+        )} to  ${request.accountNumber} ${
+          request.accountType
+        }, We will get back in 48/hrs`,
+      );
+
+      await this.smsService.sendMessage(
+        '08064160204',
+        `You have wallet withdrawal request from ${user.name} ${
+          user.phoneNumber
+        },  ${Helpers.convertToMoney(request.amount)} to  ${
+          request.accountNumber
+        } ${request.accountType}, Get back to them soon`,
+      );
+
+      return Helpers.success(savedRequest);
+    } catch (ex) {
+      console.log(Messages.ErrorOccurred, ex);
+      return Helpers.fail(Messages.Exception);
+    }
+  }
+
+  async updateWithdrawalStatus(
+    request: WithdrawalStatusDto,
+  ): Promise<ApiResponse> {
+    try {
+      const existingWithdrawalRequest = await this.walletWithdrawal.findOne({
+        requestId: request.requestId,
+      });
+
+      if (!existingWithdrawalRequest)
+        return Helpers.fail('Withdrawal Request not found');
+
+      const user = await this.user.findOne({
+        uuid: existingWithdrawalRequest.uuid,
+      });
+      if (!user) return Helpers.fail('User not found');
+
+      existingWithdrawalRequest.status = request.status;
+      existingWithdrawalRequest.statusReason = request.reason;
+
+      let message;
+
+      if (request.status === Status.CANCELED)
+        message = `Your  withdrawal request ${existingWithdrawalRequest.requestId} has been canceled "${request.reason}"`;
+      else if (request.status === Status.INPROGRESS)
+        message = `Your  withdrawal request ${existingWithdrawalRequest.requestId} is under review`;
+      else if (request.status === Status.SUCCESSFUL)
+        message = `Your  withdrawal request ${existingWithdrawalRequest.requestId} has been approved, you should receive the funds shortly.`;
+      else return Helpers.fail('Invalid withdrawal request status');
+
+      //notification
+      await this.smsService.sendMessage(user.phoneNumber, message);
+      const savedRequest = await (
+        await this.walletWithdrawal.create(existingWithdrawalRequest)
+      ).save();
+
+      return Helpers.success(savedRequest);
+    } catch (ex) {
+      console.log(Messages.ErrorOccurred, ex);
+      return Helpers.fail(Messages.Exception);
+    }
+  }
+
+  async getWithdrawalRequests(walletAddress: string): Promise<ApiResponse> {
+    const requests = await this.walletWithdrawal.find({
+      walletId: walletAddress,
+    });
+    if (requests.length > 0) {
+      return Helpers.success(requests);
+    }
+    return Helpers.fail('No withdrawal request found');
   }
 
   async findWalletByUuid(uuid: string): Promise<ApiResponse> {

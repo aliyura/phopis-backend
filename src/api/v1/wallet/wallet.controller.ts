@@ -5,6 +5,7 @@ import {
   Headers,
   HttpStatus,
   Post,
+  Put,
   UseGuards,
 } from '@nestjs/common';
 import { ApiResponse } from 'src/dtos/ApiResponse.dto';
@@ -13,7 +14,12 @@ import { AppGuard } from 'src/services/auth/app.guard';
 import { WalletService } from '../../../services/wallet/wallet.service';
 import { UserService } from 'src/services/user/user.service';
 import { User } from '../../../schemas/user.schema';
-import { FundsTransferDto, FundWalletDto } from '../../../dtos/wallet.dto';
+import {
+  FundsTransferDto,
+  FundWalletDto,
+  WithdrawalRequestDto,
+  WithdrawalStatusDto,
+} from '../../../dtos/wallet.dto';
 import { LogsService } from '../../../services/logs/logs.service';
 
 @Controller('wallet')
@@ -77,6 +83,56 @@ export class WalletController {
   }
 
   @UseGuards(AppGuard)
+  @Post('/withdraw')
+  async withdrawFunds(
+    @Headers('Authorization') token: string,
+    @Body() requestDto: WithdrawalRequestDto,
+  ): Promise<ApiResponse> {
+    const authToken = token.substring(7);
+    const userResponse = await this.userService.authenticatedUserByToken(
+      authToken,
+    );
+    if (!userResponse.success)
+      return Helpers.failedHttpResponse(
+        userResponse.message,
+        HttpStatus.UNAUTHORIZED,
+      );
+
+    const currentUser = userResponse.data as User;
+    const response = await this.walletService.withdrawFunds(
+      currentUser.walletAddress,
+      requestDto,
+    );
+    if (response.success) return response;
+
+    return Helpers.failedHttpResponse(response.message, HttpStatus.BAD_REQUEST);
+  }
+
+  @UseGuards(AppGuard)
+  @Put('/withdrawal/status')
+  async updateWithdrawalStatus(
+    @Headers('Authorization') token: string,
+    @Body() requestDto: WithdrawalStatusDto,
+  ): Promise<ApiResponse> {
+    const authToken = token.substring(7);
+    const userResponse = await this.userService.authenticatedUserByToken(
+      authToken,
+    );
+    if (!userResponse.success)
+      return Helpers.failedHttpResponse(
+        userResponse.message,
+        HttpStatus.UNAUTHORIZED,
+      );
+
+    const response = await this.walletService.updateWithdrawalStatus(
+      requestDto,
+    );
+    if (response.success) return response;
+
+    return Helpers.failedHttpResponse(response.message, HttpStatus.BAD_REQUEST);
+  }
+
+  @UseGuards(AppGuard)
   @Get('/')
   async getWallet(
     @Headers('Authorization') token: string,
@@ -116,7 +172,30 @@ export class WalletController {
       );
 
     const user = userResponse.data as User;
-    const response = await this.logService.getWalletLog(
+    const response = await this.logService.getWalletLog(user.walletAddress);
+    if (response.success) {
+      return response;
+    }
+    return Helpers.failedHttpResponse(response.message, HttpStatus.NOT_FOUND);
+  }
+
+  @UseGuards(AppGuard)
+  @Get('/withdrawal/requests')
+  async getWalletWithdrawals(
+    @Headers('Authorization') token: string,
+  ): Promise<ApiResponse> {
+    const authToken = token.substring(7);
+    const userResponse = await this.userService.authenticatedUserByToken(
+      authToken,
+    );
+    if (!userResponse.success)
+      return Helpers.failedHttpResponse(
+        userResponse.message,
+        HttpStatus.UNAUTHORIZED,
+      );
+
+    const user = userResponse.data as User;
+    const response = await this.walletService.getWithdrawalRequests(
       user.businessId || user.uuid,
     );
     if (response.success) {

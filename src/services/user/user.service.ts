@@ -25,7 +25,7 @@ import { WalletActivity, ActionKey } from '../../enums/enums';
 import { LogsService } from '../logs/logs.service';
 import { AdditionalInfoRequest } from '../../dtos/additional-info-request.dto';
 import { ServiceDetail, ProductDetail } from '../../dtos/user.dto';
-import { Console } from 'console';
+import { FundWalletDto } from '../../dtos/wallet.dto';
 
 @Injectable()
 export class UserService {
@@ -118,6 +118,10 @@ export class UserService {
 
           const verificationOTP = Helpers.getCode();
           await this.cache.set(requestDto.phoneNumber, verificationOTP);
+          //set referral code
+          if (account.referee && account.referee != null) {
+            await this.cache.set(account.uuid, account.referee);
+          }
 
           //send otp to the user;
           await this.smsService.sendMessage(
@@ -461,14 +465,42 @@ export class UserService {
     try {
       const res = await this.findByPhoneNumberOrNin(requestDto.username);
       if (res && res.success) {
+        const user = res.data;
         const userOtp = requestDto.otp;
         const systemOtp = await this.cache.get(requestDto.username); //stored OTP in memory
-
         if (userOtp == systemOtp) {
           await this.user.updateOne(
             { uuid: res.data.uuid },
             { $set: { status: Status.ACTIVE } },
           );
+
+          if (user.referee) {
+            const systemReferralCode = await this.cache.get(user.uuid);
+            if (systemReferralCode) {
+              const referredUser = await this.findByUserCode(
+                Number(systemReferralCode),
+              );
+
+              if (referredUser.success) {
+                //credit the refereed user
+
+                const fundingRequest = {
+                  paymentRef: `pay${Helpers.getUniqueId()}`,
+                  transactionId: Helpers.getCode(),
+                  channel: 'Referral program',
+                  amount: 100,
+                } as FundWalletDto;
+
+                await this.walletService.fundWallet(
+                  referredUser.data.walletAddress,
+                  fundingRequest,
+                );
+                this.cache.del(user.uuid);
+              } else {
+                console.error('Referred user not found');
+              }
+            }
+          }
 
           this.cache.del(requestDto.username);
           const updatedUser = await this.user.findOne({ uuid: res.data.uuid });

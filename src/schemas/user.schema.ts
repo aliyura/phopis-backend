@@ -82,6 +82,9 @@ export class User {
   alias: string;
 
   @Prop()
+  referee: number;
+
+  @Prop()
   subscription: UserSubscriptionDto;
 
   @Prop()

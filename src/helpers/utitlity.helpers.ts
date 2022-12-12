@@ -93,7 +93,6 @@ export class Helpers {
       'NGN' + formatCurrency(num, opts).toString().replace('undefined', '')
     );
   }
-
   static generateTimestamp(): string {
     return new Date().toISOString().slice(-24).replace(/\D/g, '').slice(0, 14);
   }

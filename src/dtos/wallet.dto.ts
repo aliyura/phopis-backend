@@ -20,6 +20,18 @@ export class FundsTransferDto {
   @IsNumber() amount: number;
 }
 
+export class WithdrawalRequestDto {
+  @IsString() accountNumber: string;
+  @IsString() accountName: string;
+  @IsString() accountType: string;
+  @IsNumber() amount: number;
+}
+
+export class WithdrawalStatusDto {
+  @IsString() requestId: string;
+  @IsString() status: string;
+  @IsString() reason: string;
+}
 export class WalletLogDto {
   @IsString() uuid: string;
   @IsString() activity: string;
