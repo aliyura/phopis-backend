@@ -11,10 +11,10 @@ export class Sale {
   @Prop({ required: true })
   customerAccountCode: string;
 
-  @Prop({ required: true })
+  @Prop()
   customerName: string;
 
-  @Prop({ required: true })
+  @Prop()
   customerPhoneNumber: string;
 
   @Prop({ required: true })

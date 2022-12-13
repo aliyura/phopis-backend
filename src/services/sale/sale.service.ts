@@ -38,6 +38,7 @@ export class SaleService {
       if (authenticatedUser.accountType !== AccountType.BUSINESS) {
         return Helpers.fail(Messages.NoPermission);
       }
+
       if (requestDto.customerAccountCode) {
         const customer = await this.user.findOne({
           code: requestDto.customerAccountCode,
@@ -47,15 +48,6 @@ export class SaleService {
           requestDto.customerPhoneNumber = customer.phoneNumber;
         } else {
           return Helpers.fail('Invalid customer account number');
-        }
-      } else {
-        if (!requestDto.customerName || requestDto.customerName.length < 3) {
-          return Helpers.fail('Valid customer name required');
-        } else if (
-          !requestDto.customerPhoneNumber ||
-          !Helpers.validPhoneNumber(requestDto.customerPhoneNumber)
-        ) {
-          return Helpers.fail('Valid customer phone number required');
         }
       }
 
@@ -139,7 +131,14 @@ export class SaleService {
           }),
         );
 
-        totalAmount = totalAmount - totalDiscount;
+        if (totalRevenue >= totalDiscount) {
+          totalRevenue = totalRevenue - totalDiscount;
+        } else {
+          const removedAmount = totalRevenue;
+          totalRevenue = 0;
+          totalAmount = totalAmount - (totalDiscount - removedAmount);
+        }
+
         const code = Helpers.getCode();
         const saleId = `sal${Helpers.getUniqueId()}`;
         const businessId = authenticatedUser.businessId;
@@ -190,15 +189,6 @@ export class SaleService {
           requestDto.customerPhoneNumber = customer.phoneNumber;
         } else {
           return Helpers.fail('Invalid customer account number');
-        }
-      } else {
-        if (!requestDto.customerName || requestDto.customerName.length < 3) {
-          return Helpers.fail('Valid customer name required');
-        } else if (
-          !requestDto.customerPhoneNumber ||
-          !Helpers.validPhoneNumber(requestDto.customerPhoneNumber)
-        ) {
-          return Helpers.fail('Valid customer phone number required');
         }
       }
 
@@ -259,7 +249,14 @@ export class SaleService {
           totalRevenue += sale.totalRevenue;
         });
 
-        totalAmount = totalAmount - totalDiscount;
+        if (totalRevenue >= totalDiscount) {
+          totalRevenue = totalRevenue - totalDiscount;
+        } else {
+          const removedAmount = totalRevenue;
+          totalRevenue = 0;
+          totalAmount = totalAmount - (totalDiscount - removedAmount);
+        }
+
         const code = Helpers.getCode();
         const transactionId = `tra${Helpers.getUniqueId()}`;
         const businessId = authenticatedUser.businessId;

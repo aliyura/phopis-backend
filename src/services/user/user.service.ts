@@ -82,7 +82,10 @@ export class UserService {
 
       const request = {
         ...requestDto,
-        status: Status.INACTIVE,
+        status:
+          requestDto.accountType === AccountType.INDIVIDUAL
+            ? Status.INACTIVE
+            : Status.ACTIVE,
         code: Helpers.getCode(),
         role:
           requestDto.accountType == AccountType.INDIVIDUAL
@@ -126,14 +129,16 @@ export class UserService {
 
           await this.user.updateOne({ uuid: account.uuid }, nData);
 
-          const verificationOTP = Helpers.getCode();
-          await this.cache.set(requestDto.phoneNumber, verificationOTP);
+          if (account.accountType === AccountType.INDIVIDUAL) {
+            const verificationOTP = Helpers.getCode();
+            await this.cache.set(requestDto.phoneNumber, verificationOTP);
 
-          //send otp to the user;
-          await this.smsService.sendMessage(
-            requestDto.phoneNumber,
-            'Your OTP is ' + verificationOTP,
-          );
+            //send otp to the user;
+            await this.smsService.sendMessage(
+              requestDto.phoneNumber,
+              'Your OTP is ' + verificationOTP,
+            );
+          }
 
           const walletLog = {
             activity: WalletActivity.CREDIT,
