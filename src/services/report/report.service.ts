@@ -113,24 +113,23 @@ export class ReportService {
   }
   async getInventoryAnalytics(
     authenticatedUser: User,
-    requestDto: FilterDto,
+    filterDto: FilterDto,
   ): Promise<ApiResponse> {
     try {
       const query = {} as any;
       if (authenticatedUser.accountType === AccountType.BUSINESS) {
         query.businessId = authenticatedUser.businessId;
       }
-      if (requestDto.from || requestDto.to) {
-        if (!requestDto.from) requestDto.from = new Date().toISOString();
-        if (!requestDto.to) requestDto.to = new Date().toISOString();
 
-        const isoFrom = new Date(requestDto.from).toISOString();
-        const isoTo = new Date(requestDto.to).toISOString();
-        query.createdAt = {
-          $gt: isoFrom,
-          $lt: isoTo,
-        };
+      if (!filterDto.from && !filterDto.to) {
+        filterDto.from = Helpers.formatDate(new Date());
+        filterDto.to = Helpers.formatDate(new Date());
       }
+      query.createdAt = {
+        $gt: filterDto.from,
+        $lt: filterDto.to,
+      };
+      console.log(query);
 
       let totalDiscount = 0;
       const saleData = await this.sale.find(query).sort({ createdAt: -1 });

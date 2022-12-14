@@ -16,6 +16,7 @@ import { Product, ProductDocument } from '../../schemas/product.schema';
 import { AccountType, Status, UserRole, SaleType } from '../../enums/enums';
 import { Sale, SaleDocument } from '../../schemas/sale-chema';
 import { Service, ServiceDocument } from '../../schemas/service.schema';
+import { FilterDto } from 'src/dtos/report-filter.dto';
 
 @Injectable()
 export class SaleService {
@@ -301,6 +302,7 @@ export class SaleService {
   }
 
   async getMySales(
+    filterDto: FilterDto,
     page: number,
     authenticatedUser: User,
     type,
@@ -326,6 +328,17 @@ export class SaleService {
       if (type != null && type !== undefined) {
         query.type = type;
       }
+
+      if (!filterDto.from && !filterDto.to) {
+        filterDto.from = Helpers.formatDate(new Date());
+        filterDto.to = Helpers.formatDate(new Date());
+      }
+      query.createdAt = {
+        $gt: filterDto.from,
+        $lt: filterDto.to,
+      };
+
+      console.log(query);
 
       const size = 20;
       const skip = page || 0;
@@ -360,6 +373,7 @@ export class SaleService {
   }
 
   async searchMySales(
+    filterDto: FilterDto,
     page: number,
     authenticatedUser: User,
     type,
@@ -381,6 +395,16 @@ export class SaleService {
       if (type != null && type !== undefined) {
         query.type = type;
       }
+
+      if (!filterDto.from && !filterDto.to) {
+        filterDto.from = Helpers.formatDate(new Date());
+        filterDto.to = Helpers.formatDate(new Date());
+      }
+      query.createdAt = {
+        $gt: filterDto.from,
+        $lt: filterDto.to,
+      };
+      console.log(query);
 
       const count = await this.sale.count(query);
       const result = await this.sale

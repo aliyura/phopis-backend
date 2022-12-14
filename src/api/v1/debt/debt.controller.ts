@@ -1,33 +1,39 @@
 import {
   Body,
   Controller,
-  HttpStatus,
-  Post,
-  Query,
+  Delete,
   Get,
-  Headers,
-  UseGuards,
+  HttpStatus,
   Param,
+  Post,
+  Headers,
+  Put,
+  UseGuards,
+  Query,
 } from '@nestjs/common';
-import { AppGuard } from 'src/services/auth/app.guard';
-import { SaleService } from '../../../services/sale/sale.service';
-import { SaleDto, TransactionDto } from '../../../dtos/sale.dto';
 import { ApiResponse } from 'src/dtos/ApiResponse.dto';
 import { Helpers } from 'src/helpers';
+import { AppGuard } from 'src/services/auth/app.guard';
+import { DebtService } from 'src/services/debt/debt.service';
+import {
+  DebtDto,
+  DebtRepaymentDto,
+  UpdateDebtDto,
+} from '../../../dtos/debt.dto';
+import { User } from '../../../schemas/user.schema';
 import { UserService } from '../../../services/user/user.service';
-import { User } from 'src/schemas/user.schema';
-import { FilterDto } from 'src/dtos/report-filter.dto';
+import { FilterDto } from '../../../dtos/report-filter.dto';
 
-@Controller('inventory/sale')
-export class SaleController {
+@Controller('debt')
+export class DebtController {
   constructor(
-    private readonly saleService: SaleService,
-    private readonly userService: UserService,
+    private readonly debtService: DebtService,
+    private userService: UserService,
   ) {}
   @UseGuards(AppGuard)
   @Post('/')
-  async createSale(
-    @Body() requestDto: SaleDto,
+  async createDebt(
+    @Body() requestDto: DebtDto,
     @Headers('Authorization') token: string,
   ): Promise<ApiResponse> {
     const authToken = token.substring(7);
@@ -48,21 +54,78 @@ export class SaleController {
           HttpStatus.UNAUTHORIZED,
         );
 
-    const response = await this.saleService.createSale(user, requestDto);
+    const response = await this.debtService.createDebt(user, requestDto);
     if (response.success) {
       return response;
     }
-    return Helpers.failedHttpResponse2(
-      response.data,
-      response.message,
-      HttpStatus.BAD_REQUEST,
+    return Helpers.failedHttpResponse(response.message, HttpStatus.BAD_REQUEST);
+  }
+  @UseGuards(AppGuard)
+  @Put('/:id')
+  async updateDebt(
+    @Param('id') id: string,
+    @Headers('Authorization') token: string,
+    @Body() requestDto: UpdateDebtDto,
+  ): Promise<ApiResponse> {
+    const authToken = token.substring(7);
+    const userResponse = await this.userService.authenticatedUserByToken(
+      authToken,
     );
+    if (!userResponse.success)
+      return Helpers.failedHttpResponse(
+        userResponse.message,
+        HttpStatus.UNAUTHORIZED,
+      );
+    const user = userResponse.data as User;
+
+    if (user.subscription && user.subscription !== undefined)
+      if (!Helpers.verifySubscription(user.subscription.endDate))
+        return Helpers.failedHttpResponse(
+          `Your subscription expired on ${user.subscription.endDate}, you need to renew`,
+          HttpStatus.UNAUTHORIZED,
+        );
+
+    const response = await this.debtService.updateDebt(id, requestDto);
+    if (response.success) {
+      return response;
+    }
+    return Helpers.failedHttpResponse(response.message, HttpStatus.BAD_REQUEST);
   }
 
   @UseGuards(AppGuard)
-  @Post('/transaction')
-  async createTransaction(
-    @Body() requestDto: TransactionDto,
+  @Post('/repayment')
+  async repayDebt(
+    @Headers('Authorization') token: string,
+    @Body() requestDto: DebtRepaymentDto,
+  ): Promise<ApiResponse> {
+    const authToken = token.substring(7);
+    const userResponse = await this.userService.authenticatedUserByToken(
+      authToken,
+    );
+    if (!userResponse.success)
+      return Helpers.failedHttpResponse(
+        userResponse.message,
+        HttpStatus.UNAUTHORIZED,
+      );
+    const user = userResponse.data as User;
+
+    if (user.subscription && user.subscription !== undefined)
+      if (!Helpers.verifySubscription(user.subscription.endDate))
+        return Helpers.failedHttpResponse(
+          `Your subscription expired on ${user.subscription.endDate}, you need to renew`,
+          HttpStatus.UNAUTHORIZED,
+        );
+
+    const response = await this.debtService.debtRepayment(user, requestDto);
+    if (response.success) {
+      return response;
+    }
+    return Helpers.failedHttpResponse(response.message, HttpStatus.BAD_REQUEST);
+  }
+  @UseGuards(AppGuard)
+  @Delete('/:id')
+  async deleteDebt(
+    @Param('id') id: string,
     @Headers('Authorization') token: string,
   ): Promise<ApiResponse> {
     const authToken = token.substring(7);
@@ -83,33 +146,16 @@ export class SaleController {
           HttpStatus.UNAUTHORIZED,
         );
 
-    const response = await this.saleService.createTransaction(user, requestDto);
+    const response = await this.debtService.deleteDebt(id);
     if (response.success) {
       return response;
     }
-    return Helpers.failedHttpResponse2(
-      response.data,
-      response.message,
-      HttpStatus.BAD_REQUEST,
-    );
-  }
-  @UseGuards(AppGuard)
-  @Get('/detail/:suid')
-  async accountInquiry(@Param('suid') suid: string): Promise<ApiResponse> {
-    const saleResponse = await this.saleService.findById(suid);
-
-    if (saleResponse.success) return saleResponse;
-
-    return Helpers.failedHttpResponse(
-      saleResponse.message,
-      HttpStatus.NOT_FOUND,
-    );
+    return Helpers.failedHttpResponse(response.message, HttpStatus.BAD_REQUEST);
   }
 
   @UseGuards(AppGuard)
   @Get('/list')
-  async getMySales(
-    @Query('type') type: string,
+  async getMyProducts(
     @Query('page') page: number,
     @Query('status') status: string,
     @Query('from') from: string,
@@ -129,11 +175,10 @@ export class SaleController {
 
     const filterDto = { from, to } as FilterDto;
 
-    const response = await this.saleService.getMySales(
+    const response = await this.debtService.getDebts(
       filterDto,
       page,
       user,
-      type,
       status,
     );
     if (response.success) {
@@ -144,8 +189,7 @@ export class SaleController {
 
   @UseGuards(AppGuard)
   @Get('/search')
-  async searchMySales(
-    @Query('type') type: string,
+  async searchDebts(
     @Query('page') page: number,
     @Query('q') searchString: string,
     @Query('from') from: string,
@@ -164,11 +208,11 @@ export class SaleController {
     const user = userResponse.data as User;
 
     const filterDto = { from, to } as FilterDto;
-    const response = await this.saleService.searchMySales(
+
+    const response = await this.debtService.searchDebts(
       filterDto,
       page,
       user,
-      type,
       searchString,
     );
     if (response.success) {

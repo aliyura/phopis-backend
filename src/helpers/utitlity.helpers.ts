@@ -97,6 +97,12 @@ export class Helpers {
     return new Date().toISOString().slice(-24).replace(/\D/g, '').slice(0, 14);
   }
 
+  static formatDate(t: Date): string {
+    const date = ('0' + t.getDate()).slice(-2);
+    const month = ('0' + (t.getMonth() + 1)).slice(-2);
+    const year = t.getFullYear();
+    return `${year}-${month}-${date}`;
+  }
   static validNin(nin: string): boolean {
     if (nin.length < 11 || nin.length > 11) return false;
     if (!nin.match(/^[0-9]+$/)) return false;

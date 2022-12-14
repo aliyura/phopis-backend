@@ -75,6 +75,9 @@ import {
   ResourceType,
   ResourceTypeSchema,
 } from './schemas/resource-type.schema';
+import { DebtService } from './services/debt/debt.service';
+import { Debt, DebtSchema } from './schemas/debt.schema';
+import { DebtController } from './api/v1/debt/debt.controller';
 @Module({
   imports: [
     MongooseModule.forRoot(process.env.DB_ADDRESS),
@@ -115,7 +118,7 @@ import {
     MongooseModule.forFeature([
       { name: WalletLog.name, schema: WalletLogSchema },
     ]),
-
+    MongooseModule.forFeature([{ name: Debt.name, schema: DebtSchema }]),
     MongooseModule.forFeature([{ name: Sale.name, schema: SaleSchema }]),
     JwtModule.register({
       secret: process.env.APP_SECRET,
@@ -142,6 +145,7 @@ import {
     BranchController,
     ServiceTypeController,
     ServiceController,
+    DebtController,
   ],
   providers: [
     UserService,
@@ -165,6 +169,7 @@ import {
     TrackingService,
     ServiceTypeService,
     ServiceService,
+    DebtService,
   ],
 })
 export class AppModule {}
