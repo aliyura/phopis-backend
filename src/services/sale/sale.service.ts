@@ -330,13 +330,16 @@ export class SaleService {
       }
 
       if (!filterDto.from && !filterDto.to) {
-        filterDto.from = Helpers.formatDate(new Date());
-        filterDto.to = Helpers.formatDate(new Date());
+        query.createdAt = {
+          $gte: Helpers.formatDate(new Date()),
+          $lt: Helpers.formatToNextDay(new Date()),
+        };
+      } else {
+        query.createdAt = {
+          $gte: Helpers.formatDate(new Date(filterDto.from)),
+          $lt: Helpers.formatToNextDay(new Date(filterDto.to)),
+        };
       }
-      query.createdAt = {
-        $gt: filterDto.from,
-        $lt: filterDto.to,
-      };
 
       console.log(query);
 
@@ -397,13 +400,17 @@ export class SaleService {
       }
 
       if (!filterDto.from && !filterDto.to) {
-        filterDto.from = Helpers.formatDate(new Date());
-        filterDto.to = Helpers.formatDate(new Date());
+        query.createdAt = {
+          $gte: Helpers.formatDate(new Date()),
+          $lt: Helpers.formatToNextDay(new Date()),
+        };
+      } else {
+        query.createdAt = {
+          $gte: Helpers.formatDate(new Date(filterDto.from)),
+          $lt: Helpers.formatToNextDay(new Date(filterDto.to)),
+        };
       }
-      query.createdAt = {
-        $gt: filterDto.from,
-        $lt: filterDto.to,
-      };
+
       console.log(query);
 
       const count = await this.sale.count(query);

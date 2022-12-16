@@ -144,13 +144,14 @@ export class DebtService {
       }
 
       if (filterDto.from && filterDto.to) {
-        const isoFrom = new Date(filterDto.from).toISOString();
-        const isoTo = new Date(filterDto.to).toISOString();
+        const from = new Date(filterDto.from);
+        const to = new Date(filterDto.to);
         query.createdAt = {
-          $gt: isoFrom,
-          $lt: isoTo,
+          $gte: Helpers.formatDate(from),
+          $lt: Helpers.formatDate(to),
         };
       }
+
       console.log(query);
 
       const size = 20;
@@ -200,13 +201,14 @@ export class DebtService {
       }
 
       if (filterDto.from && filterDto.to) {
-        const isoFrom = new Date(filterDto.from).toISOString();
-        const isoTo = new Date(filterDto.to).toISOString();
+        const from = new Date(filterDto.from);
+        const to = new Date(filterDto.to);
         query.createdAt = {
-          $gt: isoFrom,
-          $lt: isoTo,
+          $gte: Helpers.formatDate(from),
+          $lt: Helpers.formatDate(to),
         };
       }
+
       console.log(query);
 
       const size = 20;

@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
-import { Model } from 'mongoose';
+import mongoose, { Model } from 'mongoose';
 import { ApiResponse } from 'src/dtos/ApiResponse.dto';
 import { WalletLog } from 'src/schemas/wallet-logs.schema';
 import { WalletLogDocument } from '../../schemas/wallet-logs.schema';
@@ -122,13 +122,16 @@ export class ReportService {
       }
 
       if (!filterDto.from && !filterDto.to) {
-        filterDto.from = Helpers.formatDate(new Date());
-        filterDto.to = Helpers.formatDate(new Date());
+        query.createdAt = {
+          $gte: Helpers.formatDate(new Date()),
+          $lt: Helpers.formatToNextDay(new Date()),
+        };
+      } else {
+        query.createdAt = {
+          $gte: Helpers.formatDate(new Date(filterDto.from)),
+          $lt: Helpers.formatToNextDay(new Date(filterDto.to)),
+        };
       }
-      query.createdAt = {
-        $gt: filterDto.from,
-        $lt: filterDto.to,
-      };
       console.log(query);
 
       let totalDiscount = 0;

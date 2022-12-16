@@ -103,6 +103,18 @@ export class Helpers {
     const year = t.getFullYear();
     return `${year}-${month}-${date}`;
   }
+
+  static formatToNextDay(t: Date): string {
+    const date = ('0' + t.getDate()).slice(-2);
+    const month = ('0' + (t.getMonth() + 1)).slice(-2);
+    const year = t.getFullYear();
+
+    const today = new Date();
+    const todayDate = ('0' + today.getDate()).slice(-2);
+    let nextDay = date;
+    if (date == todayDate) nextDay = (Number(date) + 1).toString();
+    return `${year}-${month}-${nextDay}`;
+  }
   static validNin(nin: string): boolean {
     if (nin.length < 11 || nin.length > 11) return false;
     if (!nin.match(/^[0-9]+$/)) return false;
