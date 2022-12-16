@@ -148,7 +148,7 @@ export class DebtService {
         const to = new Date(filterDto.to);
         query.createdAt = {
           $gte: Helpers.formatDate(from),
-          $lt: Helpers.formatDate(to),
+          $lt: Helpers.formatToNextDay(to),
         };
       }
 
@@ -205,7 +205,7 @@ export class DebtService {
         const to = new Date(filterDto.to);
         query.createdAt = {
           $gte: Helpers.formatDate(from),
-          $lt: Helpers.formatDate(to),
+          $lt: Helpers.formatToNextDay(to),
         };
       }
 
