@@ -32,8 +32,9 @@ export class ServiceService {
 
       const serviceExistByTitle = await this.service.findOne({
         title: requestDto.title,
+        businessId: authenticatedUser.businessId,
       });
-      if (serviceExistByTitle) return Helpers.fail('Service  already exist');
+      if (serviceExistByTitle) return Helpers.fail('Service already exist');
 
       const typeExist = await this.serviceType.findOne({
         title: requestDto.type,

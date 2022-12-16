@@ -46,6 +46,7 @@ export class ProductService {
     try {
       const productExistByTitle = await this.product.findOne({
         title: requestDto.title,
+        businessId: authenticatedUser.businessId,
       });
       if (productExistByTitle) return Helpers.fail('Product  already exist');
 
@@ -68,16 +69,20 @@ export class ProductService {
       if (authenticatedUser.role != UserRole.BUSINESS)
         return Helpers.fail(Messages.NoPermission);
 
+      let quantityBased = false;
       const code = Helpers.getCode();
       const productId = `pro${Helpers.getUniqueId()}`;
       const businessId = authenticatedUser.businessId || authenticatedUser.uuid;
-      const status =
-        requestDto.quantity > 0 ? Status.AVAILABLE : Status.UNAVAILABLE;
+
+      if (requestDto.quantity && Number(requestDto.quantity) > 0)
+        quantityBased = true;
+      const status = quantityBased ? Status.AVAILABLE : Status.ACTIVE;
 
       const request = {
         ...requestDto,
+        quantityBased,
         category: typeExist.category,
-        initialQuantity: requestDto.quantity,
+        initialQuantity: quantityBased ? requestDto.quantity : 0,
         status: status,
         code: code,
         puid: productId,
@@ -85,8 +90,6 @@ export class ProductService {
         createdBy: authenticatedUser.name,
         createdById: authenticatedUser.uuid,
       } as Product;
-
-      console.log(request);
       const saved = await (await this.product.create(request)).save();
       return Helpers.success(saved);
     } catch (ex) {
@@ -104,7 +107,6 @@ export class ProductService {
       const existingProduct = await this.product.findOne({
         puid,
       });
-
       if (!existingProduct) return Helpers.fail('Product not found');
 
       const request = {
@@ -120,7 +122,7 @@ export class ProductService {
       };
 
       const updated = await this.product.updateOne(
-        { puid },
+        { puid, businessId: authenticatedUser.businessId },
         {
           $set: request,
           $push: {
@@ -145,6 +147,7 @@ export class ProductService {
     try {
       const existingProduct = await this.product.findOne({
         puid,
+        businessId: authenticatedUser.businessId,
       });
 
       if (!existingProduct) return Helpers.fail('Product not found');
@@ -164,8 +167,10 @@ export class ProductService {
 
       const status = quantity > 0 ? Status.AVAILABLE : Status.UNAVAILABLE;
       const request = {
+        quantity,
         initialQuantity,
         status,
+        quantityBased: initialQuantity > 0 ? true : false,
       };
       const updateHistory = {
         ...requestDto,
@@ -176,7 +181,7 @@ export class ProductService {
       };
 
       const updated = await this.product.updateOne(
-        { puid, uuid: authenticatedUser.uuid },
+        { puid, businessId: authenticatedUser.businessId },
         {
           $set: request,
           $push: {
@@ -221,6 +226,7 @@ export class ProductService {
         delete existingProduct._id; //removing previous id
         existingProduct.quantity = quantity;
         existingProduct.initialQuantity = quantity;
+        existingProduct.quantityBased = quantity > 0 ? true : false;
         existingProduct.status = status;
         existingProduct.code = Helpers.getCode();
         existingProduct.puid = await Helpers.getUniqueId();
@@ -232,6 +238,7 @@ export class ProductService {
         const request = {
           initialQuantity,
           quantity,
+          quantityBased: quantity > 0 ? true : false,
           status,
         };
         const updateHistory = {

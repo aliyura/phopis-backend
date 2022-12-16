@@ -18,6 +18,7 @@ import * as json2csv from 'json2csv';
 import * as path from 'path';
 import * as fs from 'fs';
 import { DebtDocument, Debt } from '../../schemas/debt.schema';
+import { ExpenseDocument, Expense } from '../../schemas/expense.schema';
 
 @Injectable()
 export class ReportService {
@@ -27,6 +28,7 @@ export class ReportService {
     @InjectModel(Product.name) private product: Model<ProductDocument>,
     @InjectModel(Service.name) private service: Model<ServiceDocument>,
     @InjectModel(Debt.name) private debt: Model<DebtDocument>,
+    @InjectModel(Expense.name) private expense: Model<ExpenseDocument>,
     @InjectModel(Resource.name) private resource: Model<ResourceDocument>,
   ) {}
   async getWalletAnalytics(uuid: string): Promise<ApiResponse> {
@@ -395,6 +397,51 @@ export class ReportService {
           counter++;
           analytic.totalAmount += debt.amount;
           analytic.totalCleared += debt.clearedAmount;
+        });
+        analytic.count = counter;
+      }
+      return Helpers.success(analytic);
+    } catch (ex) {
+      console.log(Messages.ErrorOccurred, ex);
+      return Helpers.fail(Messages.Exception);
+    }
+  }
+
+  async getExpenseAnalytics(
+    filterDto: FilterDto,
+    authenticatedUser: User,
+  ): Promise<ApiResponse> {
+    try {
+      const query = {
+        currentOwnerUuid:
+          authenticatedUser.accountType === AccountType.BUSINESS
+            ? authenticatedUser.businessId
+            : authenticatedUser.uuid,
+      } as any;
+
+      if (!filterDto.from && !filterDto.to) {
+        query.createdAt = {
+          $gte: Helpers.formatDate(new Date()),
+          $lt: Helpers.formatToNextDay(new Date()),
+        };
+      } else {
+        query.createdAt = {
+          $gte: Helpers.formatDate(new Date(filterDto.from)),
+          $lt: Helpers.formatToNextDay(new Date(filterDto.to)),
+        };
+      }
+      const expenses = await this.expense.find(query);
+
+      const analytic = {
+        count: 0,
+        totalAmount: 0,
+      };
+      let counter = 0;
+
+      if (expenses.length) {
+        await expenses.forEach((debt) => {
+          counter++;
+          analytic.totalAmount += debt.amount;
         });
         analytic.count = counter;
       }

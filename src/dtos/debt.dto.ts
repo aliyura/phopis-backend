@@ -1,7 +1,6 @@
 import { IsOptional, IsString, IsNumber } from 'class-validator';
 
 export class DebtDto {
-  @IsString() title: string;
   @IsNumber() amount: number;
   @IsString() debtorName: string;
   @IsString() debtorPhoneNumber: string;

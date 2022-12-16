@@ -82,12 +82,14 @@ export class SaleService {
             return Helpers.failure(request, `Product not found`);
           }
 
-          if (currentProduct.quantity < request.quantity) {
-            productCheckPassed = false;
-            return Helpers.failure(
-              request,
-              `Out of stuck, (${currentProduct.quantity}) ${currentProduct.title} left`,
-            );
+          if (currentProduct.quantityBased) {
+            if (currentProduct.quantity < request.quantity) {
+              productCheckPassed = false;
+              return Helpers.failure(
+                request,
+                `Out of stuck, (${currentProduct.quantity}) ${currentProduct.title} left`,
+              );
+            }
           }
 
           totalPayable += currentProduct.sellingPrice * request.quantity;
@@ -127,7 +129,9 @@ export class SaleService {
               puid: sale.id,
             });
 
-            theProduct.quantity = theProduct.quantity - sale.quantity;
+            if (theProduct.quantityBased)
+              theProduct.quantity = theProduct.quantity - sale.quantity;
+
             return theProduct;
           }),
         );

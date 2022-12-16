@@ -1,24 +1,18 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { Document, Types } from 'mongoose';
 
-export type DebtDocument = Debt & Document;
+export type ExpenseDocument = Expense & Document;
 
 @Schema({ timestamps: true })
-export class Debt {
+export class Expense {
   @Prop({ type: Types.ObjectId })
   id: string;
 
   @Prop({ required: true })
   amount: number;
 
-  @Prop()
-  clearedAmount: number;
-
   @Prop({ required: true })
-  debtorName: string;
-
-  @Prop({ required: true })
-  debtorPhoneNumber: string;
+  title: string;
 
   @Prop()
   description: string;
@@ -27,13 +21,10 @@ export class Debt {
   code: number;
 
   @Prop({ required: true, unique: true })
-  duid: string;
+  euid: string;
 
   @Prop()
-  repaymentDate: string;
-
-  @Prop()
-  lastPaidDate: string;
+  expenseDate: string;
 
   @Prop({ required: true })
   createdById: string;
@@ -45,15 +36,9 @@ export class Debt {
   businessId: string;
 
   @Prop()
-  statusChangeHistory: any[];
-
-  @Prop()
   updateHistory: any[];
-
-  @Prop({ required: true })
-  status: string;
 }
 
-export const DebtSchema = SchemaFactory.createForClass(Debt).index({
+export const ExpenseSchema = SchemaFactory.createForClass(Expense).index({
   '$**': 'text',
 });

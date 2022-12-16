@@ -23,10 +23,13 @@ export class Product {
   @Prop({ required: true })
   sellingPrice: number;
 
-  @Prop({ required: true })
+  @Prop()
+  quantityBased: boolean;
+
+  @Prop()
   quantity: number;
 
-  @Prop({ required: true })
+  @Prop()
   initialQuantity: number;
 
   @Prop({ required: true })

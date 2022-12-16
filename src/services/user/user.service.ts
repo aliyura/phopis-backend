@@ -111,10 +111,26 @@ export class UserService {
       const account = await (await this.user.create(request)).save();
 
       if (account) {
-        //set referral code
-        if (account.referee)
-          await this.cache.set(account.uuid, account.referee);
+        //pay referee
+        if (account.referee && account.accountType === AccountType.BUSINESS) {
+          const referredUser = await this.findByUserCode(account.referee);
+          if (referredUser.success) {
+            //credit the refereed user
+            const fundingRequest = {
+              paymentRef: `pay${Helpers.getUniqueId()}`,
+              transactionId: Helpers.getCode(),
+              channel: 'Referral program',
+              amount: 50,
+            } as FundWalletDto;
 
+            await this.walletService.fundWallet(
+              referredUser.data.walletAddress,
+              fundingRequest,
+            );
+          } else {
+            console.error('Referred user not found');
+          }
+        }
         const walletResponse = await this.walletService.createWallet(
           account.uuid,
           account.code,
@@ -484,35 +500,6 @@ export class UserService {
             { uuid: res.data.uuid },
             { $set: { status: Status.ACTIVE } },
           );
-
-          if (user.referee) {
-            const systemReferralCode = await this.cache.get(user.uuid);
-            if (systemReferralCode) {
-              const referredUser = await this.findByUserCode(
-                Number(systemReferralCode),
-              );
-
-              if (referredUser.success) {
-                //credit the refereed user
-
-                const fundingRequest = {
-                  paymentRef: `pay${Helpers.getUniqueId()}`,
-                  transactionId: Helpers.getCode(),
-                  channel: 'Referral program',
-                  amount: 100,
-                } as FundWalletDto;
-
-                await this.walletService.fundWallet(
-                  referredUser.data.walletAddress,
-                  fundingRequest,
-                );
-                this.cache.del(user.uuid);
-              } else {
-                console.error('Referred user not found');
-              }
-            }
-          }
-
           this.cache.del(requestDto.username);
           const updatedUser = await this.user.findOne({ uuid: res.data.uuid });
           return Helpers.success(updatedUser);

@@ -78,6 +78,9 @@ import {
 import { DebtService } from './services/debt/debt.service';
 import { Debt, DebtSchema } from './schemas/debt.schema';
 import { DebtController } from './api/v1/debt/debt.controller';
+import { ExpenseService } from './services/expense/expense.service';
+import { ExpenseController } from './api/v1/expense/expense.controller';
+import { Expense, ExpenseSchema } from './schemas/expense.schema';
 @Module({
   imports: [
     MongooseModule.forRoot(process.env.DB_ADDRESS),
@@ -118,6 +121,7 @@ import { DebtController } from './api/v1/debt/debt.controller';
     MongooseModule.forFeature([
       { name: WalletLog.name, schema: WalletLogSchema },
     ]),
+    MongooseModule.forFeature([{ name: Expense.name, schema: ExpenseSchema }]),
     MongooseModule.forFeature([{ name: Debt.name, schema: DebtSchema }]),
     MongooseModule.forFeature([{ name: Sale.name, schema: SaleSchema }]),
     JwtModule.register({
@@ -146,6 +150,7 @@ import { DebtController } from './api/v1/debt/debt.controller';
     ServiceTypeController,
     ServiceController,
     DebtController,
+    ExpenseController,
   ],
   providers: [
     UserService,
@@ -170,6 +175,7 @@ import { DebtController } from './api/v1/debt/debt.controller';
     ServiceTypeService,
     ServiceService,
     DebtService,
+    ExpenseService,
   ],
 })
 export class AppModule {}

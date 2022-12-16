@@ -205,4 +205,33 @@ export class ReportController {
     }
     return Helpers.failedHttpResponse(response.message, HttpStatus.NOT_FOUND);
   }
+
+  @UseGuards(AppGuard)
+  @Get('/expense/analytics')
+  async expenseAnalytics(
+    @Query('from') from: string,
+    @Query('to') to: string,
+    @Headers('Authorization') token: string,
+  ): Promise<ApiResponse> {
+    const authToken = token.substring(7);
+    const userResponse = await this.userService.authenticatedUserByToken(
+      authToken,
+    );
+    if (!userResponse.success)
+      return Helpers.failedHttpResponse(
+        userResponse.message,
+        HttpStatus.UNAUTHORIZED,
+      );
+    const user = userResponse.data as User;
+    const requestDto = { from, to } as FilterDto;
+
+    const response = await this.reportService.getDebtAnalytics(
+      requestDto,
+      user,
+    );
+    if (response.success && response.data) {
+      return response;
+    }
+    return Helpers.failedHttpResponse(response.message, HttpStatus.NOT_FOUND);
+  }
 }
