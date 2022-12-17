@@ -43,12 +43,12 @@ export class ServiceController {
       );
     const user = userResponse.data as User;
 
-        if (user.subscription && user.subscription !== undefined)
+    if (user.subscription && user.subscription !== undefined)
       if (!Helpers.verifySubscription(user.subscription.endDate))
-      return Helpers.failedHttpResponse(
-        `Your subscription expired on ${user.subscription.endDate}, you need to renew`,
-        HttpStatus.UNAUTHORIZED,
-      );
+        return Helpers.failedHttpResponse(
+          `Your subscription expired on ${user.subscription.endDate}, you need to renew`,
+          HttpStatus.UNAUTHORIZED,
+        );
 
     const response = await this.serviceService.createService(user, requestDto);
     if (response.success) {
@@ -75,12 +75,12 @@ export class ServiceController {
       );
     const user = userResponse.data as User;
 
-        if (user.subscription && user.subscription !== undefined)
+    if (user.subscription && user.subscription !== undefined)
       if (!Helpers.verifySubscription(user.subscription.endDate))
-      return Helpers.failedHttpResponse(
-        `Your subscription expired on ${user.subscription.endDate}, you need to renew`,
-        HttpStatus.UNAUTHORIZED,
-      );
+        return Helpers.failedHttpResponse(
+          `Your subscription expired on ${user.subscription.endDate}, you need to renew`,
+          HttpStatus.UNAUTHORIZED,
+        );
 
     const response = await this.serviceService.updateService(
       user,
@@ -109,12 +109,12 @@ export class ServiceController {
       );
     const user = userResponse.data as User;
 
-        if (user.subscription && user.subscription !== undefined)
+    if (user.subscription && user.subscription !== undefined)
       if (!Helpers.verifySubscription(user.subscription.endDate))
-      return Helpers.failedHttpResponse(
-        `Your subscription expired on ${user.subscription.endDate}, you need to renew`,
-        HttpStatus.UNAUTHORIZED,
-      );
+        return Helpers.failedHttpResponse(
+          `Your subscription expired on ${user.subscription.endDate}, you need to renew`,
+          HttpStatus.UNAUTHORIZED,
+        );
 
     const response = await this.serviceService.deleteService(user, serviceId);
     if (response.success) {
@@ -171,6 +171,63 @@ export class ServiceController {
     const user = userResponse.data as User;
 
     const response = await this.serviceService.searchMyServices(
+      page,
+      user,
+      searchString,
+    );
+    if (response.success) {
+      return response;
+    }
+    return Helpers.failedHttpResponse(response.message, HttpStatus.NOT_FOUND);
+  }
+  @UseGuards(AppGuard)
+  @Get('/list/pos')
+  async getPOSServices(
+    @Query('page') page: number,
+    @Query('status') status: string,
+    @Headers('Authorization') token: string,
+  ): Promise<ApiResponse> {
+    const authToken = token.substring(7);
+    const userResponse = await this.userService.authenticatedUserByToken(
+      authToken,
+    );
+    if (!userResponse.success)
+      return Helpers.failedHttpResponse(
+        userResponse.message,
+        HttpStatus.UNAUTHORIZED,
+      );
+    const user = userResponse.data as User;
+
+    const response = await this.serviceService.getPOSServices(
+      page,
+      user,
+      status,
+    );
+    if (response.success) {
+      return response;
+    }
+    return Helpers.failedHttpResponse(response.message, HttpStatus.NOT_FOUND);
+  }
+
+  @UseGuards(AppGuard)
+  @Get('/search/pos')
+  async searchPOSServices(
+    @Query('page') page: number,
+    @Query('q') searchString: string,
+    @Headers('Authorization') token: string,
+  ): Promise<ApiResponse> {
+    const authToken = token.substring(7);
+    const userResponse = await this.userService.authenticatedUserByToken(
+      authToken,
+    );
+    if (!userResponse.success)
+      return Helpers.failedHttpResponse(
+        userResponse.message,
+        HttpStatus.UNAUTHORIZED,
+      );
+    const user = userResponse.data as User;
+
+    const response = await this.serviceService.searchPOSServices(
       page,
       user,
       searchString,

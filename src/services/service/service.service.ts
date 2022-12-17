@@ -218,4 +218,95 @@ export class ServiceService {
       return Helpers.fail(Messages.Exception);
     }
   }
+
+  async getPOSServices(
+    page: number,
+    authenticatedUser: User,
+    status: string,
+  ): Promise<ApiResponse> {
+    try {
+      const query = {
+        type: 'POS',
+      } as any;
+      if (
+        status &&
+        Object.values(Status).includes(status.toUpperCase() as Status)
+      ) {
+        query.status = status.toUpperCase();
+      }
+
+      const size = 20;
+      const skip = page || 0;
+
+      const count = await this.service.count(query);
+      const result = await this.service
+        .find(query)
+        .skip(skip * size)
+        .limit(size)
+        .sort({ createdAt: -1 });
+
+      if (result.length) {
+        const totalPages = Math.round(count / size);
+        return Helpers.success({
+          page: result,
+          size: size,
+          currentPage: Number(skip),
+          totalPages:
+            totalPages > 0
+              ? totalPages
+              : count > 0 && result.length > 0
+              ? 1
+              : 0,
+        });
+      }
+
+      return Helpers.fail('No Service found');
+    } catch (ex) {
+      console.log(Messages.ErrorOccurred, ex);
+      return Helpers.fail(Messages.Exception);
+    }
+  }
+
+  async searchPOSServices(
+    page: number,
+    authenticatedUser: User,
+    searchString: string,
+  ): Promise<ApiResponse> {
+    try {
+      const query = {
+        type: 'POS',
+        $text: { $search: searchString },
+      } as any;
+
+      const size = 20;
+      const skip = page || 0;
+
+      const count = await this.service.count(query);
+      const result = await this.service
+        .find(query)
+        .skip(skip * size)
+        .limit(size)
+        .sort({ createdAt: -1 });
+
+      if (result.length) {
+        const totalPages = Math.round(count / size);
+        return Helpers.success({
+          page: result,
+          size: size,
+          currentPage: Number(skip),
+          totalPages:
+            totalPages > 0
+              ? totalPages
+              : count > 0 && result.length > 0
+              ? 1
+              : 0,
+        });
+      }
+
+      return Helpers.fail('No Service found');
+    } catch (ex) {
+      console.log(Messages.ErrorOccurred, ex);
+      return Helpers.fail(Messages.Exception);
+    }
+  }
 }
