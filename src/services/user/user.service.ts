@@ -120,7 +120,7 @@ export class UserService {
               paymentRef: `pay${Helpers.getUniqueId()}`,
               transactionId: Helpers.getCode(),
               channel: 'Referral program',
-              amount: 50,
+              amount: 100,
             } as FundWalletDto;
 
             await this.walletService.fundWallet(
