@@ -36,8 +36,6 @@ export class SaleService {
     requestDto: SaleDto,
   ): Promise<ApiResponse> {
     try {
-      console.log('Sale request:', requestDto);
-
       if (authenticatedUser.accountType !== AccountType.BUSINESS) {
         return Helpers.fail(Messages.NoPermission);
       }
@@ -79,8 +77,6 @@ export class SaleService {
           const currentProduct = await this.product.findOne({
             puid: request.productId,
           });
-
-          console.log('each', currentProduct);
           if (!currentProduct) {
             productCheckPassed = false;
             return Helpers.failure(request, `Product not found`);
@@ -97,12 +93,6 @@ export class SaleService {
           }
 
           totalPayable += currentProduct.sellingPrice * request.quantity;
-
-          console.log(
-            'currentProduct.sellingPrice * request.quantity',
-            currentProduct.sellingPrice * request.quantity,
-          );
-          console.log('totalPayable', totalPayable);
           const totalRevenue =
             (currentProduct.sellingPrice - currentProduct.purchasePrice) *
             request.quantity;
@@ -116,8 +106,6 @@ export class SaleService {
             totalPayable,
             totalRevenue,
           };
-
-          console.log('sub total', response);
           return response;
         }),
       );
@@ -156,8 +144,6 @@ export class SaleService {
           totalAmount = totalAmount - (totalDiscount - removedAmount);
         }
 
-        console.log('totalAmount', totalAmount);
-
         const code = Helpers.getCode();
         const saleId = `sal${Helpers.getUniqueId()}`;
         const businessId = authenticatedUser.businessId;
@@ -178,8 +164,6 @@ export class SaleService {
           createdBy: authenticatedUser.name,
           createdById: authenticatedUser.uuid,
         } as any;
-
-        console.log('Total', request);
 
         await this.product.create(purchasedItems);
         const saved = await (await this.sale.create(request)).save();
