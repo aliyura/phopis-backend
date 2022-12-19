@@ -36,6 +36,8 @@ export class SaleService {
     requestDto: SaleDto,
   ): Promise<ApiResponse> {
     try {
+      console.log('Sale request:', requestDto);
+
       if (authenticatedUser.accountType !== AccountType.BUSINESS) {
         return Helpers.fail(Messages.NoPermission);
       }
