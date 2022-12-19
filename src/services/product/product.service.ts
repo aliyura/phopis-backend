@@ -273,8 +273,7 @@ export class ProductService {
   ): Promise<ApiResponse> {
     try {
       const query = {} as any;
-      if (authenticatedUser.role === UserRole.BUSINESS)
-        query.businessId = authenticatedUser.businessId;
+      query.businessId = authenticatedUser.businessId || authenticatedUser.uuid;
 
       if (
         status &&
@@ -324,9 +323,7 @@ export class ProductService {
       const query = {
         $text: { $search: searchString },
       } as any;
-      if (authenticatedUser.accountType === AccountType.BUSINESS) {
-        query.businessId = authenticatedUser.businessId;
-      }
+      query.businessId = authenticatedUser.businessId || authenticatedUser.uuid;
 
       const size = 20;
       const skip = page || 0;

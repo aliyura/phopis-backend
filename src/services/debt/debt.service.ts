@@ -133,8 +133,7 @@ export class DebtService {
   ): Promise<ApiResponse> {
     try {
       const query = {} as any;
-      if (authenticatedUser.role === UserRole.BUSINESS)
-        query.businessId = authenticatedUser.businessId;
+      query.businessId = authenticatedUser.businessId || authenticatedUser.uuid;
 
       if (
         status &&
@@ -196,9 +195,7 @@ export class DebtService {
       const query = {
         $text: { $search: searchString },
       } as any;
-      if (authenticatedUser.accountType === AccountType.BUSINESS) {
-        query.businessId = authenticatedUser.businessId;
-      }
+      query.businessId = authenticatedUser.businessId || authenticatedUser.uuid;
 
       if (filterDto.from && filterDto.to) {
         const from = new Date(filterDto.from);

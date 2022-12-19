@@ -929,10 +929,7 @@ export class UserService {
 
       const query = status ? ({ status } as any) : ({} as any);
       query.branchId = { $exists: true }; //filter only branches here
-
-      if (authenticatedUser.role === UserRole.BUSINESS) {
-        query.businessId = authenticatedUser.businessId;
-      }
+      query.businessId = authenticatedUser.businessId || authenticatedUser.uuid;
 
       const count = await this.user.count(query);
       const result = await this.user
@@ -979,9 +976,7 @@ export class UserService {
       const query = { $text: { $search: searchString } } as any;
       query.branchId = { $exists: true }; //filter only branches here
 
-      if (authenticatedUser.role === UserRole.BUSINESS) {
-        query.businessId = authenticatedUser.businessId;
-      }
+      query.businessId = authenticatedUser.businessId || authenticatedUser.uuid;
 
       const count = await this.user.count(query);
       const result = await this.user
