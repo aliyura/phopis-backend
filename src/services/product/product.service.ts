@@ -219,48 +219,31 @@ export class ProductService {
 
       const status = quantity > 0 ? Status.AVAILABLE : Status.UNAVAILABLE;
 
-      if (
-        existingProduct.sellingPrice !== requestDto.sellingPrice ||
-        existingProduct.purchasePrice !== requestDto.purchasePrice
-      ) {
-        delete existingProduct._id; //removing previous id
-        existingProduct.quantity = quantity;
-        existingProduct.initialQuantity = quantity;
-        existingProduct.quantityBased = quantity > 0 ? true : false;
-        existingProduct.status = status;
-        existingProduct.code = Helpers.getCode();
-        existingProduct.puid = await Helpers.getUniqueId();
-        existingProduct.title = `${requestDto.title}`;
+      const request = {
+        initialQuantity,
+        quantity,
+        quantityBased: quantity > 0 ? true : false,
+        status,
+      };
+      const updateHistory = {
+        ...requestDto,
+        actionType: ActionType.UPLOAD,
+        actionDate: new Date(),
+        actionBy: authenticatedUser.uuid,
+        actionByUser: authenticatedUser.name,
+      };
 
-        const saved = await this.product.create(existingProduct);
-        return Helpers.success(saved);
-      } else {
-        const request = {
-          initialQuantity,
-          quantity,
-          quantityBased: quantity > 0 ? true : false,
-          status,
-        };
-        const updateHistory = {
-          ...requestDto,
-          actionType: ActionType.UPLOAD,
-          actionDate: new Date(),
-          actionBy: authenticatedUser.uuid,
-          actionByUser: authenticatedUser.name,
-        };
-
-        await this.product.updateOne(
-          { puid, uuid: authenticatedUser.uuid },
-          {
-            $set: request,
-            $push: {
-              updateHistory: updateHistory,
-            },
+      await this.product.updateOne(
+        { puid, uuid: authenticatedUser.uuid },
+        {
+          $set: request,
+          $push: {
+            updateHistory: updateHistory,
           },
-          { upsert: true },
-        );
-        return Helpers.success(await this.product.findOne({ puid }));
-      }
+        },
+        { upsert: true },
+      );
+      return Helpers.success(await this.product.findOne({ puid }));
     } catch (ex) {
       console.log(Messages.ErrorOccurred, ex);
       return Helpers.fail(Messages.Exception);
