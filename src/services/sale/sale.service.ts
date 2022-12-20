@@ -345,7 +345,8 @@ export class SaleService {
         };
       }
 
-      console.log(query);
+      if (!query.businessId && !query.createdById)
+        return Helpers.fail('No account detected');
 
       const size = 20;
       const skip = page || 0;
@@ -414,6 +415,9 @@ export class SaleService {
           $lt: Helpers.formatToNextDay(new Date(filterDto.to)),
         };
       }
+
+      if (!query.businessId && !query.createdById)
+        return Helpers.fail('No account detected');
 
       console.log(query);
 
