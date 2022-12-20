@@ -75,7 +75,14 @@ export class ExpenseService {
   ): Promise<ApiResponse> {
     try {
       const query = {} as any;
-      query.businessId = authenticatedUser.businessId || authenticatedUser.uuid;
+
+      if (authenticatedUser.accountType === AccountType.INDIVIDUAL)
+        return Helpers.fail(Messages.NoPermission);
+
+      if (authenticatedUser.accountType !== AccountType.ADMIN) {
+        query.businessId =
+          authenticatedUser.businessId || authenticatedUser.uuid;
+      }
 
       if (filterDto.from && filterDto.to) {
         const from = new Date(filterDto.from);
@@ -130,8 +137,14 @@ export class ExpenseService {
       const query = {
         $text: { $search: searchString },
       } as any;
-      query.businessId = authenticatedUser.businessId || authenticatedUser.uuid;
 
+      if (authenticatedUser.accountType === AccountType.INDIVIDUAL)
+        return Helpers.fail(Messages.NoPermission);
+
+      if (authenticatedUser.accountType !== AccountType.ADMIN) {
+        query.businessId =
+          authenticatedUser.businessId || authenticatedUser.uuid;
+      }
       if (filterDto.from && filterDto.to) {
         const from = new Date(filterDto.from);
         const to = new Date(filterDto.to);

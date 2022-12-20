@@ -317,8 +317,9 @@ export class SaleService {
       if (authenticatedUser.role === UserRole.USER) {
         query.createdById = authenticatedUser.uuid;
       } else {
-        if (authenticatedUser.accountType === AccountType.BUSINESS) {
-          query.businessId = authenticatedUser.businessId;
+        if (authenticatedUser.accountType !== AccountType.ADMIN) {
+          query.businessId =
+            authenticatedUser.businessId || authenticatedUser.uuid;
         }
       }
 
@@ -392,8 +393,9 @@ export class SaleService {
       if (authenticatedUser.role === UserRole.USER) {
         query.createdById = authenticatedUser.uuid;
       } else {
-        if (authenticatedUser.accountType === AccountType.BUSINESS) {
-          query.businessId = authenticatedUser.businessId;
+        if (authenticatedUser.accountType !== AccountType.ADMIN) {
+          query.businessId =
+            authenticatedUser.businessId || authenticatedUser.uuid;
         }
       }
 

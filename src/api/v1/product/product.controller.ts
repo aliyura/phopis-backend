@@ -170,7 +170,7 @@ export class ProductController {
   }
 
   @UseGuards(AppGuard)
-  @Delete('/detail/:productId')
+  @Delete('/:productId')
   async deleteProduct(
     @Headers('Authorization') token: string,
     @Param('productId') productId: string,

@@ -257,7 +257,6 @@ export class ProductService {
     try {
       const response = await this.product.deleteOne({
         puid,
-        businessId: authenticatedUser.businessId,
       });
       return Helpers.success(response);
     } catch (ex) {
@@ -273,7 +272,14 @@ export class ProductService {
   ): Promise<ApiResponse> {
     try {
       const query = {} as any;
-      query.businessId = authenticatedUser.businessId || authenticatedUser.uuid;
+
+      if (authenticatedUser.accountType === AccountType.INDIVIDUAL)
+        return Helpers.fail(Messages.NoPermission);
+
+      if (authenticatedUser.accountType !== AccountType.ADMIN) {
+        query.businessId =
+          authenticatedUser.businessId || authenticatedUser.uuid;
+      }
 
       if (
         status &&
@@ -281,6 +287,8 @@ export class ProductService {
       ) {
         query.status = status.toUpperCase();
       }
+
+      console.log(query);
 
       const size = 20;
       const skip = page || 0;
@@ -323,10 +331,19 @@ export class ProductService {
       const query = {
         $text: { $search: searchString },
       } as any;
-      query.businessId = authenticatedUser.businessId || authenticatedUser.uuid;
+
+      if (authenticatedUser.accountType === AccountType.INDIVIDUAL)
+        return Helpers.fail(Messages.NoPermission);
+
+      if (authenticatedUser.accountType !== AccountType.ADMIN) {
+        query.businessId =
+          authenticatedUser.businessId || authenticatedUser.uuid;
+      }
 
       const size = 20;
       const skip = page || 0;
+
+      console.log(query);
 
       const count = await this.product.count(query);
       const result = await this.product

@@ -449,15 +449,43 @@ export class UserService {
     }
   }
 
+  async deleteUser(authenticatedUser: User, userId: string): Promise<any> {
+    try {
+      if (authenticatedUser.role == UserRole.USER)
+        return Helpers.fail(Messages.NoPermission);
+
+      const user = await this.user.findOne({ uuid: userId });
+      if (!user) return Helpers.fail(Messages.NoUserFound);
+
+      await this.user.deleteOne({ uuid: userId });
+      await this.walletService.deleteWallet(user.walletAddress);
+
+      return Helpers.success('User deleted successfully');
+    } catch (ex) {
+      console.log(Messages.ErrorOccurred, ex);
+      return Helpers.fail(Messages.Exception);
+    }
+  }
+
   async deactivateUser(authenticatedUser: User, userId: string): Promise<any> {
     try {
       if (authenticatedUser.role == UserRole.USER)
         return Helpers.fail(Messages.NoPermission);
 
+      const user = await this.user.findOne({ uuid: userId });
+      if (!user) return Helpers.fail(Messages.NoUserFound);
+
       const saved = await this.user.updateOne(
         { uuid: userId },
         { status: Status.INACTIVE },
       );
+
+      //send otp to the user;
+      await this.smsService.sendMessage(
+        user.phoneNumber,
+        'Your account has been deactivated',
+      );
+
       return Helpers.success(saved);
     } catch (ex) {
       console.log(Messages.ErrorOccurred, ex);
@@ -790,9 +818,9 @@ export class UserService {
 
       const query = status ? ({ status } as any) : ({} as any);
       query.branchId = { $exists: false };
-
-      if (authenticatedUser.role === UserRole.BUSINESS) {
-        query.businessId = authenticatedUser.businessId;
+      if (authenticatedUser.accountType !== AccountType.ADMIN) {
+        query.businessId =
+          authenticatedUser.businessId || authenticatedUser.uuid;
       }
 
       const count = await this.user.count(query);
@@ -839,8 +867,9 @@ export class UserService {
 
       const query = { $text: { $search: searchString } } as any;
       query.branchId = { $exists: false };
-      if (authenticatedUser.role === UserRole.BUSINESS) {
-        query.businessId = authenticatedUser.businessId;
+      if (authenticatedUser.accountType !== AccountType.ADMIN) {
+        query.businessId =
+          authenticatedUser.businessId || authenticatedUser.uuid;
       }
 
       const count = await this.user.count(query);
@@ -929,7 +958,10 @@ export class UserService {
 
       const query = status ? ({ status } as any) : ({} as any);
       query.branchId = { $exists: true }; //filter only branches here
-      query.businessId = authenticatedUser.businessId || authenticatedUser.uuid;
+      if (authenticatedUser.accountType !== AccountType.ADMIN) {
+        query.businessId =
+          authenticatedUser.businessId || authenticatedUser.uuid;
+      }
 
       const count = await this.user.count(query);
       const result = await this.user
@@ -975,8 +1007,10 @@ export class UserService {
 
       const query = { $text: { $search: searchString } } as any;
       query.branchId = { $exists: true }; //filter only branches here
-
-      query.businessId = authenticatedUser.businessId || authenticatedUser.uuid;
+      if (authenticatedUser.accountType !== AccountType.ADMIN) {
+        query.businessId =
+          authenticatedUser.businessId || authenticatedUser.uuid;
+      }
 
       const count = await this.user.count(query);
       const result = await this.user

@@ -358,6 +358,16 @@ export class WalletService {
     }
   }
 
+  async deleteWallet(walletAddress: string): Promise<ApiResponse> {
+    await this.wallet.deleteOne({
+      walletId: walletAddress,
+    });
+
+    await this.walletWithdrawal.deleteOne({
+      walletId: walletAddress,
+    });
+    return Helpers.success('Deleted successfully');
+  }
   async getWithdrawalRequests(walletAddress: string): Promise<ApiResponse> {
     const requests = await this.walletWithdrawal.find({
       walletId: walletAddress,

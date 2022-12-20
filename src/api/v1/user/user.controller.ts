@@ -9,6 +9,7 @@ import {
   UseGuards,
   Query,
   Param,
+  Delete,
 } from '@nestjs/common';
 import { UserDto } from 'src/dtos';
 import { Helpers } from 'src/helpers';
@@ -214,6 +215,31 @@ export class UserController {
     return Helpers.failedHttpResponse(response.message, HttpStatus.BAD_REQUEST);
   }
 
+  @UseGuards(AppGuard)
+  @Delete('/:userId')
+  async deleteUser(
+    @Param('userId') userId: string,
+    @Headers('Authorization') token: string,
+  ): Promise<ApiResponse> {
+    const authToken = token.substring(7);
+    const userResponse = await this.userService.authenticatedUserByToken(
+      authToken,
+    );
+    if (!userResponse.success)
+      return Helpers.failedHttpResponse(
+        userResponse.message,
+        HttpStatus.UNAUTHORIZED,
+      );
+
+    if (!userResponse.success) return Helpers.fail(userResponse.message);
+    const user = userResponse.data;
+
+    const response = await this.userService.deleteUser(user, userId);
+    if (response.success) {
+      return response;
+    }
+    return Helpers.failedHttpResponse(response.message, HttpStatus.BAD_REQUEST);
+  }
   @UseGuards(AppGuard)
   @Put('/deactivate/:userId')
   async deactivateUser(

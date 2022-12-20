@@ -133,8 +133,14 @@ export class DebtService {
   ): Promise<ApiResponse> {
     try {
       const query = {} as any;
-      query.businessId = authenticatedUser.businessId || authenticatedUser.uuid;
 
+      if (authenticatedUser.accountType === AccountType.INDIVIDUAL)
+        return Helpers.fail(Messages.NoPermission);
+
+      if (authenticatedUser.accountType !== AccountType.ADMIN) {
+        query.businessId =
+          authenticatedUser.businessId || authenticatedUser.uuid;
+      }
       if (
         status &&
         Object.values(Status).includes(status.toUpperCase() as Status)
@@ -195,7 +201,14 @@ export class DebtService {
       const query = {
         $text: { $search: searchString },
       } as any;
-      query.businessId = authenticatedUser.businessId || authenticatedUser.uuid;
+
+      if (authenticatedUser.accountType === AccountType.INDIVIDUAL)
+        return Helpers.fail(Messages.NoPermission);
+
+      if (authenticatedUser.accountType !== AccountType.ADMIN) {
+        query.businessId =
+          authenticatedUser.businessId || authenticatedUser.uuid;
+      }
 
       if (filterDto.from && filterDto.to) {
         const from = new Date(filterDto.from);

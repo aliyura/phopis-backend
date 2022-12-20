@@ -116,7 +116,6 @@ export class ServiceService {
     try {
       const response = await this.service.deleteOne({
         suid,
-        businessId: authenticatedUser.businessId,
       });
       return Helpers.success(response);
     } catch (ex) {
@@ -132,7 +131,14 @@ export class ServiceService {
   ): Promise<ApiResponse> {
     try {
       const query = {} as any;
-      query.businessId = authenticatedUser.businessId || authenticatedUser.uuid;
+
+      if (authenticatedUser.accountType === AccountType.INDIVIDUAL)
+        return Helpers.fail(Messages.NoPermission);
+
+      if (authenticatedUser.accountType !== AccountType.ADMIN) {
+        query.businessId =
+          authenticatedUser.businessId || authenticatedUser.uuid;
+      }
 
       if (
         status &&
@@ -182,7 +188,14 @@ export class ServiceService {
       const query = {
         $text: { $search: searchString },
       } as any;
-      query.businessId = authenticatedUser.businessId || authenticatedUser.uuid;
+
+      if (authenticatedUser.accountType === AccountType.INDIVIDUAL)
+        return Helpers.fail(Messages.NoPermission);
+
+      if (authenticatedUser.accountType !== AccountType.ADMIN) {
+        query.businessId =
+          authenticatedUser.businessId || authenticatedUser.uuid;
+      }
 
       const size = 20;
       const skip = page || 0;

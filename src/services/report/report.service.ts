@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
-import mongoose, { Model } from 'mongoose';
+import { Model } from 'mongoose';
 import { ApiResponse } from 'src/dtos/ApiResponse.dto';
 import { WalletLog } from 'src/schemas/wallet-logs.schema';
 import { WalletLogDocument } from '../../schemas/wallet-logs.schema';
@@ -61,12 +61,14 @@ export class ReportService {
   }
 
   async getProductInventory(authenticatedUser: User) {
-    const query = {
-      $or: [
-        { businessId: authenticatedUser.businessId },
-        { businessId: authenticatedUser.uuid },
-      ],
-    };
+    const query = {} as any;
+
+    if (authenticatedUser.accountType === AccountType.INDIVIDUAL)
+      return Helpers.fail(Messages.NoPermission);
+
+    if (authenticatedUser.accountType !== AccountType.ADMIN) {
+      query.businessId = authenticatedUser.businessId || authenticatedUser.uuid;
+    }
 
     const products = await this.product.find(query).sort({ createdAt: -1 });
 
@@ -98,12 +100,15 @@ export class ReportService {
   }
 
   async getServicesInventory(authenticatedUser: User) {
-    const query = {
-      $or: [
-        { businessId: authenticatedUser.businessId },
-        { businessId: authenticatedUser.uuid },
-      ],
-    };
+    const query = {} as any;
+
+    if (authenticatedUser.accountType === AccountType.INDIVIDUAL)
+      return Helpers.fail(Messages.NoPermission);
+
+    if (authenticatedUser.accountType !== AccountType.ADMIN) {
+      query.businessId = authenticatedUser.businessId || authenticatedUser.uuid;
+    }
+
     const count = await this.service.count(query);
     if (count) {
       const analytics = {
@@ -121,8 +126,13 @@ export class ReportService {
   ): Promise<ApiResponse> {
     try {
       const query = {} as any;
-      if (authenticatedUser.accountType === AccountType.BUSINESS) {
-        query.businessId = authenticatedUser.businessId;
+
+      if (authenticatedUser.accountType === AccountType.INDIVIDUAL)
+        return Helpers.fail(Messages.NoPermission);
+
+      if (authenticatedUser.accountType !== AccountType.ADMIN) {
+        query.businessId =
+          authenticatedUser.businessId || authenticatedUser.uuid;
       }
 
       if (!filterDto.from && !filterDto.to) {
@@ -323,15 +333,17 @@ export class ReportService {
 
   async getResourceAnalytics(authenticatedUser: User): Promise<ApiResponse> {
     try {
-      const query = {
-        currentOwnerUuid:
-          authenticatedUser.accountType === AccountType.BUSINESS
-            ? authenticatedUser.businessId
-            : authenticatedUser.uuid,
-      } as any;
+      const query = {} as any;
+
+      if (authenticatedUser.accountType === AccountType.INDIVIDUAL)
+        return Helpers.fail(Messages.NoPermission);
+
+      if (authenticatedUser.accountType !== AccountType.ADMIN) {
+        query.currentOwnerUuid =
+          authenticatedUser.businessId || authenticatedUser.uuid;
+      }
 
       const resources = await this.resource.find(query).sort({ createdAt: -1 });
-
       const analytic = {
         All: 0,
         Vehicles: 0,
@@ -365,12 +377,15 @@ export class ReportService {
     authenticatedUser: User,
   ): Promise<ApiResponse> {
     try {
-      const query = {
-        currentOwnerUuid:
-          authenticatedUser.accountType === AccountType.BUSINESS
-            ? authenticatedUser.businessId
-            : authenticatedUser.uuid,
-      } as any;
+      const query = {} as any;
+
+      if (authenticatedUser.accountType === AccountType.INDIVIDUAL)
+        return Helpers.fail(Messages.NoPermission);
+
+      if (authenticatedUser.accountType !== AccountType.ADMIN) {
+        query.businessId =
+          authenticatedUser.businessId || authenticatedUser.uuid;
+      }
 
       if (!filterDto.from && !filterDto.to) {
         query.createdAt = {
@@ -412,12 +427,15 @@ export class ReportService {
     authenticatedUser: User,
   ): Promise<ApiResponse> {
     try {
-      const query = {
-        currentOwnerUuid:
-          authenticatedUser.accountType === AccountType.BUSINESS
-            ? authenticatedUser.businessId
-            : authenticatedUser.uuid,
-      } as any;
+      const query = {} as any;
+
+      if (authenticatedUser.accountType === AccountType.INDIVIDUAL)
+        return Helpers.fail(Messages.NoPermission);
+
+      if (authenticatedUser.accountType !== AccountType.ADMIN) {
+        query.businessId =
+          authenticatedUser.businessId || authenticatedUser.uuid;
+      }
 
       if (!filterDto.from && !filterDto.to) {
         query.createdAt = {
