@@ -1,8 +1,10 @@
 import {
   Body,
   Controller,
+  Delete,
   Get,
   HttpStatus,
+  Param,
   Post,
   UseGuards,
 } from '@nestjs/common';
@@ -24,6 +26,16 @@ export class BusinessTypeController {
     const response = await this.businessTypeService.createBusinessType(
       requestDto,
     );
+    if (response.success) {
+      return response;
+    }
+    return Helpers.failedHttpResponse(response.message, HttpStatus.BAD_REQUEST);
+  }
+
+  @UseGuards(AppGuard)
+  @Delete('/:id')
+  async deleteProductType(@Param('id') id: string): Promise<ApiResponse> {
+    const response = await this.businessTypeService.deleteBusinessType(id);
     if (response.success) {
       return response;
     }

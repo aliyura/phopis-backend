@@ -40,6 +40,19 @@ export class BusinessTypeService {
     }
   }
 
+  async deleteBusinessType(btuid: string): Promise<ApiResponse> {
+    try {
+      const req = await this.businessType.deleteOne({ btuid });
+      if (req) {
+        return Helpers.success(req);
+      }
+      return Helpers.fail(Messages.BusinessTypeNotFound);
+    } catch (ex) {
+      console.log(Messages.ErrorOccurred, ex);
+      return Helpers.fail(Messages.Exception);
+    }
+  }
+
   async findBusinessType(btuid: string): Promise<ApiResponse> {
     try {
       const req = await this.businessType.findOne({ btuid });
