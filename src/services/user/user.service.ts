@@ -65,13 +65,6 @@ export class UserService {
       if (requestDto.accountType == AccountType.ADMIN)
         return Helpers.fail(Messages.NoPermission);
 
-      const startDate = new Date().toISOString().slice(0, 10);
-      const endDate = new Date(
-        new Date().setFullYear(new Date().getFullYear() + 1),
-      )
-        .toISOString()
-        .slice(0, 10);
-
       if (requestDto.referee) {
         const refereeExist = await this.findByUserCode(requestDto.referee);
         if (!refereeExist) return Helpers.fail('Invalid referral code');
@@ -209,13 +202,6 @@ export class UserService {
       //encrypt password
       const hash = await this.cryptoService.encrypt(requestDto.password);
       requestDto.password = hash;
-
-      const startDate = new Date().toISOString().slice(0, 10);
-      const endDate = new Date(
-        new Date().setFullYear(new Date().getFullYear() + 1),
-      )
-        .toISOString()
-        .slice(0, 10);
 
       const request = {
         ...requestDto,
