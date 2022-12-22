@@ -17,6 +17,7 @@ import { AccountType, Status, UserRole, SaleType } from '../../enums/enums';
 import { Sale, SaleDocument } from '../../schemas/sale-chema';
 import { Service, ServiceDocument } from '../../schemas/service.schema';
 import { FilterDto } from 'src/dtos/report-filter.dto';
+import { UnitService } from '../unit/unit.service';
 
 @Injectable()
 export class SaleService {
@@ -29,6 +30,7 @@ export class SaleService {
     private sale: Model<SaleDocument>,
     @InjectModel(User.name)
     private user: Model<UserDocument>,
+    private unitService: UnitService,
   ) {}
 
   async createSale(
@@ -40,7 +42,11 @@ export class SaleService {
         return Helpers.fail(Messages.NoPermission);
       }
 
-      if (requestDto.customerAccountCode) {
+      if (
+        requestDto.customerAccountCode &&
+        requestDto.customerAccountCode !== '' &&
+        requestDto.customerAccountCode.length >= 6
+      ) {
         const customer = await this.user.findOne({
           code: requestDto.customerAccountCode,
         });
@@ -165,9 +171,20 @@ export class SaleService {
           createdById: authenticatedUser.uuid,
         } as any;
 
-        await this.product.create(purchasedItems);
-        const saved = await (await this.sale.create(request)).save();
-        return Helpers.success(saved);
+        const debitResponse = await this.unitService.debitUnit({
+          address: authenticatedUser.unitAddress,
+          transactionId: saleId,
+          channel: 'Sale Charges',
+          amount: Number(process.env.TRANSACTION_CHARGE),
+          narration: 'Sale Transaction',
+        });
+        if (debitResponse.success) {
+          await this.product.create(purchasedItems);
+          const saved = await (await this.sale.create(request)).save();
+          return Helpers.success(saved);
+        } else {
+          return debitResponse;
+        }
       } else {
         return Helpers.failure(response, 'Unable to complete your request');
       }
@@ -185,7 +202,11 @@ export class SaleService {
       if (authenticatedUser.accountType !== AccountType.BUSINESS) {
         return Helpers.fail(Messages.NoPermission);
       }
-      if (requestDto.customerAccountCode) {
+      if (
+        requestDto.customerAccountCode &&
+        requestDto.customerAccountCode !== '' &&
+        requestDto.customerAccountCode.length >= 6
+      ) {
         const customer = await this.user.findOne({
           code: requestDto.customerAccountCode,
         });
@@ -282,8 +303,20 @@ export class SaleService {
           createdBy: authenticatedUser.name,
           createdById: authenticatedUser.uuid,
         } as any;
-        const saved = await (await this.sale.create(request)).save();
-        return Helpers.success(saved);
+
+        const debitResponse = await this.unitService.debitUnit({
+          address: authenticatedUser.unitAddress,
+          transactionId: transactionId,
+          channel: 'Transaction Charges',
+          amount: Number(process.env.TRANSACTION_CHARGE),
+          narration: 'Sale Transaction',
+        });
+        if (debitResponse.success) {
+          const saved = await (await this.sale.create(request)).save();
+          return Helpers.success(saved);
+        } else {
+          return debitResponse;
+        }
       } else {
         return Helpers.failure(response, 'Unable to complete your request');
       }
@@ -420,8 +453,6 @@ export class SaleService {
 
       if (!query.businessId && !query.createdById)
         return Helpers.fail('No account detected');
-
-      console.log(query);
 
       const count = await this.sale.count(query);
       const result = await this.sale

@@ -29,12 +29,12 @@ import {
   ProductCategorySchema,
 } from './schemas/product-category.schema';
 import { VerificationService } from './services/verification/verification.service';
-import { Wallet, WalletSchema } from './schemas/wallet.schema';
-import { WalletService } from './services/wallet/wallet.service';
-import { WalletController } from './api/v1/wallet/wallet.controller';
+import { Unit, UnitSchema } from './schemas/unit.schema';
+import { UnitService } from './services/unit/unit.service';
+import { UnitController } from './api/v1/unit/unit.controller';
 import { AppController } from './api/v1/app/app.controller';
 import { LogsService } from './services/logs/logs.service';
-import { WalletLog, WalletLogSchema } from './schemas/wallet-logs.schema';
+import { UnitLog, UnitLogSchema } from './schemas/unite-logs.schema';
 import { FileService } from './services/file/file.service';
 import { FileController } from './api/v1/file/file.controller';
 import {
@@ -68,9 +68,9 @@ import { ServiceController } from './api/v1/service/service.controller';
 import { ServiceTypeService } from './services/service-type/service-type.service';
 import { ServiceService } from './services/service/service.service';
 import {
-  WalletWithdrawal,
-  WalletWithdrawalSchema,
-} from './schemas/wallet-withdrawal.schema';
+  UnitWithdrawal,
+  UnitWithdrawalSchema,
+} from './schemas/unit-withdrawal.schema';
 import {
   ResourceType,
   ResourceTypeSchema,
@@ -81,6 +81,8 @@ import { DebtController } from './api/v1/debt/debt.controller';
 import { ExpenseService } from './services/expense/expense.service';
 import { ExpenseController } from './api/v1/expense/expense.controller';
 import { Expense, ExpenseSchema } from './schemas/expense.schema';
+import { Webhook, WebhookSchema } from './schemas/webhook.schema';
+import { WebhookService } from './services/webhook/webhook.service';
 @Module({
   imports: [
     MongooseModule.forRoot(process.env.DB_ADDRESS),
@@ -114,13 +116,12 @@ import { Expense, ExpenseSchema } from './schemas/expense.schema';
     MongooseModule.forFeature([
       { name: ResourceOwnershipLog.name, schema: ResourceOwnershipLogSchema },
     ]),
-    MongooseModule.forFeature([{ name: Wallet.name, schema: WalletSchema }]),
+    MongooseModule.forFeature([{ name: Unit.name, schema: UnitSchema }]),
     MongooseModule.forFeature([
-      { name: WalletWithdrawal.name, schema: WalletWithdrawalSchema },
+      { name: UnitWithdrawal.name, schema: UnitWithdrawalSchema },
     ]),
-    MongooseModule.forFeature([
-      { name: WalletLog.name, schema: WalletLogSchema },
-    ]),
+    MongooseModule.forFeature([{ name: Webhook.name, schema: WebhookSchema }]),
+    MongooseModule.forFeature([{ name: UnitLog.name, schema: UnitLogSchema }]),
     MongooseModule.forFeature([{ name: Expense.name, schema: ExpenseSchema }]),
     MongooseModule.forFeature([{ name: Debt.name, schema: DebtSchema }]),
     MongooseModule.forFeature([{ name: Sale.name, schema: SaleSchema }]),
@@ -136,7 +137,7 @@ import { Expense, ExpenseSchema } from './schemas/expense.schema';
     BusinessTypeController,
     ResourceController,
     ProductCategoryController,
-    WalletController,
+    UnitController,
     AppController,
     FileController,
     ProductTypeController,
@@ -166,7 +167,7 @@ import { Expense, ExpenseSchema } from './schemas/expense.schema';
     ResourceTypeService,
     ProductService,
     VerificationService,
-    WalletService,
+    UnitService,
     LogsService,
     FileService,
     SaleService,
@@ -176,6 +177,7 @@ import { Expense, ExpenseSchema } from './schemas/expense.schema';
     ServiceService,
     DebtService,
     ExpenseService,
+    WebhookService,
   ],
 })
 export class AppModule {}

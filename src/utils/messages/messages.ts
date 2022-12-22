@@ -5,7 +5,7 @@ export enum Messages {
   InvalidCredentials = 'Invalid Username or Password',
   UserNotFound = 'User not found',
   NoUserFound = 'No User found',
-  WalletNotFound = 'Wallet not found',
+  UnitNotFound = 'Unit account not found',
   ResourceNotFound = 'Resource not found',
   ProductCategoryNotFound = 'Resource category not found',
   ProductTypeNotFound = 'Product type not found',

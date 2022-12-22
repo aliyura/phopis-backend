@@ -24,8 +24,8 @@ export class ReportController {
   ) {}
 
   @UseGuards(AppGuard)
-  @Get('/wallet/analytics')
-  async getWalletTotalCredit(
+  @Get('/unit/analytics')
+  async getUnitTotalCredit(
     @Headers('Authorization') token: string,
   ): Promise<ApiResponse> {
     const authToken = token.substring(7);
@@ -39,7 +39,7 @@ export class ReportController {
       );
 
     const user = userResponse.data as User;
-    const response = await this.reportService.getWalletAnalytics(
+    const response = await this.reportService.getUnitAnalytics(
       user.businessId || user.uuid,
     );
     if (response.success) {

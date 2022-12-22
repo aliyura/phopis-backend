@@ -41,13 +41,6 @@ export class SaleController {
       );
     const user = userResponse.data as User;
 
-    if (user.subscription && user.subscription !== undefined)
-      if (!Helpers.verifySubscription(user.subscription.endDate))
-        return Helpers.failedHttpResponse(
-          `Your subscription expired on ${user.subscription.endDate}, you need to renew`,
-          HttpStatus.UNAUTHORIZED,
-        );
-
     const response = await this.saleService.createSale(user, requestDto);
     if (response.success) {
       return response;
@@ -75,13 +68,6 @@ export class SaleController {
         HttpStatus.UNAUTHORIZED,
       );
     const user = userResponse.data as User;
-
-    if (user.subscription && user.subscription !== undefined)
-      if (!Helpers.verifySubscription(user.subscription.endDate))
-        return Helpers.failedHttpResponse(
-          `Your subscription expired on ${user.subscription.endDate}, you need to renew`,
-          HttpStatus.UNAUTHORIZED,
-        );
 
     const response = await this.saleService.createTransaction(user, requestDto);
     if (response.success) {

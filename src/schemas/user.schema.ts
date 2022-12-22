@@ -52,10 +52,10 @@ export class User {
   address: string;
 
   @Prop()
-  walletAddress: string;
+  unitAddress: string;
 
   @Prop()
-  walletCode: string;
+  unitCode: string;
 
   @Prop()
   nin: string;

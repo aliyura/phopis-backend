@@ -16,8 +16,8 @@ import {
   VerifyResourceDto,
 } from '../../dtos/resource.dto';
 import { Messages } from 'src/utils/messages/messages';
-import { WalletService } from '../wallet/wallet.service';
-import { DebitWalletDto } from '../../dtos/wallet.dto';
+import { UnitService } from '../unit/unit.service';
+import { DebitUnitDto } from '../../dtos/unit.dto';
 import { AccountType, UserRole } from '../../enums/enums';
 import { CryptoService } from '../crypto/crypto.service';
 import {
@@ -32,7 +32,7 @@ export class ResourceService {
     @InjectModel(User.name) private user: Model<UserDocument>,
     @InjectModel(ResourceOwnershipLog.name)
     private resourceOwnershipLog: Model<ResourceOwnershipLogDocument>,
-    private walletService: WalletService,
+    private unitService: UnitService,
     private cryptoService: CryptoService,
   ) {}
   async createResource(
@@ -226,19 +226,19 @@ export class ResourceService {
         verificationCharge = verificationCharge - 100; //100 naira discount for businesses
 
       const transactionRef = `ver${Helpers.getUniqueId()}`;
-      const walletDebitRequest = {
-        address: resourceOwner.walletAddress,
+      const unitDebitRequest = {
+        address: resourceOwner.unitAddress,
         transactionId: transactionRef,
         channel: 'resource verification',
         amount: verificationCharge,
         narration: `Verification of ${existingResource.name}`,
-      } as DebitWalletDto;
-      const walletDebitResponse = await this.walletService.debitWallet(
-        walletDebitRequest,
+      } as DebitUnitDto;
+      const unitDebitResponse = await this.unitService.debitUnit(
+        unitDebitRequest,
       );
-      if (!walletDebitResponse.success)
+      if (!unitDebitResponse.success)
         return Helpers.fail(
-          `Verification failed -${walletDebitResponse.message}`,
+          `Verification failed -${unitDebitResponse.message}`,
         );
 
       const dateTime = new Date();

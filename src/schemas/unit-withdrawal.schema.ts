@@ -1,10 +1,10 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { Document, Types } from 'mongoose';
 
-export type WalletWithdrawalDocument = WalletWithdrawal & Document;
+export type UnitWithdrawalDocument = UnitWithdrawal & Document;
 
 @Schema({ timestamps: true })
-export class WalletWithdrawal {
+export class UnitWithdrawal {
   @Prop({ type: Types.ObjectId })
   id: string;
 
@@ -12,7 +12,7 @@ export class WalletWithdrawal {
   uuid: string;
 
   @Prop({ required: true })
-  walletId: string;
+  unitId: string;
 
   @Prop({ required: true })
   requestId: string;
@@ -36,5 +36,5 @@ export class WalletWithdrawal {
   statusReason: string;
 }
 
-export const WalletWithdrawalSchema =
-  SchemaFactory.createForClass(WalletWithdrawal);
+export const UnitWithdrawalSchema =
+  SchemaFactory.createForClass(UnitWithdrawal);

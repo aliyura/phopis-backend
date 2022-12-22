@@ -27,7 +27,7 @@ export enum ActionType {
   UPLOAD = 'UPLOAD',
   UPDATE = 'UPDATE',
 }
-export enum WalletActivity {
+export enum UnitActivity {
   DEBIT = 'DEBIT',
   CREDIT = 'CREDIT',
 }

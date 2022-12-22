@@ -1,20 +1,33 @@
 import { IsNumber, IsOptional, IsString } from 'class-validator';
 
-export class FundWalletDto {
-  @IsString() paymentRef: string;
-  @IsString() transactionId: number;
-  @IsOptional() channel: string;
-  @IsNumber() amount: number;
+export class BuyUnitDto {
+  txRef: string;
+  flwRef: string;
+  currency: string;
+  status: string;
+  IP: string;
+  channel: string;
+  amount: number;
+  customer: any;
+  createdAt: string;
+}
+export class FundUnitDto {
+  accountId: string;
+  unitAddress: string;
+  paymentRef: string;
+  transactionId: number;
+  channel: string;
+  amount: number;
 }
 
-export class DebitWalletDto {
+export class DebitUnitDto {
   @IsString() address: string;
   @IsString() transactionId: string;
   @IsString() channel: string;
   @IsNumber() amount: number;
   @IsOptional() narration: string;
 }
-export class FundsTransferDto {
+export class UnitTransferDto {
   @IsString() recipient: string;
   @IsOptional() narration: string;
   @IsNumber() amount: number;
@@ -32,7 +45,7 @@ export class WithdrawalStatusDto {
   @IsString() status: string;
   @IsString() reason: string;
 }
-export class WalletLogDto {
+export class UnitLogDto {
   @IsString() uuid: string;
   @IsString() activity: string;
   @IsNumber() amount: number;

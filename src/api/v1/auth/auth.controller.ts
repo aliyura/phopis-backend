@@ -3,7 +3,6 @@ import { UserAuthDto } from 'src/dtos';
 import { Helpers } from 'src/helpers';
 import { AuthService } from '../../../services/auth/auth.service';
 import { ApiResponse } from '../../../dtos/ApiResponse.dto';
-import { AccountType } from '../../../enums/enums';
 
 @Controller('auth')
 export class AuthController {
@@ -17,15 +16,6 @@ export class AuthController {
     if (response.success && response.data) {
       const user = response.data.info;
 
-      //calculate subscription for businesses
-      if (user.accountType !== AccountType.INDIVIDUAL) {
-        if (user.subscription && user.subscription.endDate) {
-          const daysLeft = Helpers.calculateSubscription(
-            user.subscription.endDate,
-          );
-          user.subscription.daysLeft = daysLeft;
-        }
-      }
       response.data.info = user;
       return response;
     }

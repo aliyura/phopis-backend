@@ -2,11 +2,10 @@ import { Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { ApiResponse } from 'src/dtos/ApiResponse.dto';
-import { WalletLog } from 'src/schemas/wallet-logs.schema';
-import { WalletLogDocument } from '../../schemas/wallet-logs.schema';
+import { UnitLogDocument, UnitLog } from '../../schemas/unite-logs.schema';
 import { Helpers } from 'src/helpers';
 import { Messages } from 'src/utils/messages/messages';
-import { AccountType, WalletActivity } from 'src/enums';
+import { AccountType, UnitActivity } from 'src/enums';
 import { Sale, SaleDocument } from '../../schemas/sale-chema';
 import { Product, ProductDocument } from '../../schemas/product.schema';
 import { User } from '../../schemas/user.schema';
@@ -23,7 +22,7 @@ import { ExpenseDocument, Expense } from '../../schemas/expense.schema';
 @Injectable()
 export class ReportService {
   constructor(
-    @InjectModel(WalletLog.name) private walletLog: Model<WalletLogDocument>,
+    @InjectModel(UnitLog.name) private unitLog: Model<UnitLogDocument>,
     @InjectModel(Sale.name) private sale: Model<SaleDocument>,
     @InjectModel(Product.name) private product: Model<ProductDocument>,
     @InjectModel(Service.name) private service: Model<ServiceDocument>,
@@ -31,9 +30,9 @@ export class ReportService {
     @InjectModel(Expense.name) private expense: Model<ExpenseDocument>,
     @InjectModel(Resource.name) private resource: Model<ResourceDocument>,
   ) {}
-  async getWalletAnalytics(uuid: string): Promise<ApiResponse> {
+  async getUnitAnalytics(uuid: string): Promise<ApiResponse> {
     try {
-      const response = await this.walletLog.find({
+      const response = await this.unitLog.find({
         uuid,
       });
 
@@ -41,7 +40,7 @@ export class ReportService {
         let totalDebit = 0;
         let totalCredit = 0;
         await response.forEach((transaction) => {
-          if (transaction.activity === WalletActivity.CREDIT) {
+          if (transaction.activity === UnitActivity.CREDIT) {
             totalCredit += transaction.amount;
           } else {
             totalDebit += transaction.amount;

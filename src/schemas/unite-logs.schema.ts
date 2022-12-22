@@ -1,10 +1,10 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { Document, Types } from 'mongoose';
 
-export type WalletLogDocument = WalletLog & Document;
+export type UnitLogDocument = UnitLog & Document;
 
 @Schema({ timestamps: true })
-export class WalletLog {
+export class UnitLog {
   @Prop({ type: Types.ObjectId })
   id: string;
 
@@ -13,6 +13,9 @@ export class WalletLog {
 
   @Prop({ required: true })
   activity: string;
+
+  @Prop()
+  address: string;
 
   @Prop()
   sender: string;
@@ -36,4 +39,6 @@ export class WalletLog {
   status: string;
 }
 
-export const WalletLogSchema = SchemaFactory.createForClass(WalletLog);
+export const UnitLogSchema = SchemaFactory.createForClass(UnitLog).index({
+  '$**': 'text',
+});

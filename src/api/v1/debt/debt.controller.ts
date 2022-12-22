@@ -47,13 +47,6 @@ export class DebtController {
       );
     const user = userResponse.data as User;
 
-    if (user.subscription && user.subscription !== undefined)
-      if (!Helpers.verifySubscription(user.subscription.endDate))
-        return Helpers.failedHttpResponse(
-          `Your subscription expired on ${user.subscription.endDate}, you need to renew`,
-          HttpStatus.UNAUTHORIZED,
-        );
-
     const response = await this.debtService.createDebt(user, requestDto);
     if (response.success) {
       return response;
@@ -77,13 +70,6 @@ export class DebtController {
         HttpStatus.UNAUTHORIZED,
       );
     const user = userResponse.data as User;
-
-    if (user.subscription && user.subscription !== undefined)
-      if (!Helpers.verifySubscription(user.subscription.endDate))
-        return Helpers.failedHttpResponse(
-          `Your subscription expired on ${user.subscription.endDate}, you need to renew`,
-          HttpStatus.UNAUTHORIZED,
-        );
 
     const response = await this.debtService.updateDebt(id, requestDto);
     if (response.success) {
@@ -109,13 +95,6 @@ export class DebtController {
       );
     const user = userResponse.data as User;
 
-    if (user.subscription && user.subscription !== undefined)
-      if (!Helpers.verifySubscription(user.subscription.endDate))
-        return Helpers.failedHttpResponse(
-          `Your subscription expired on ${user.subscription.endDate}, you need to renew`,
-          HttpStatus.UNAUTHORIZED,
-        );
-
     const response = await this.debtService.debtRepayment(user, requestDto);
     if (response.success) {
       return response;
@@ -138,13 +117,6 @@ export class DebtController {
         HttpStatus.UNAUTHORIZED,
       );
     const user = userResponse.data as User;
-
-    if (user.subscription && user.subscription !== undefined)
-      if (!Helpers.verifySubscription(user.subscription.endDate))
-        return Helpers.failedHttpResponse(
-          `Your subscription expired on ${user.subscription.endDate}, you need to renew`,
-          HttpStatus.UNAUTHORIZED,
-        );
 
     const response = await this.debtService.deleteDebt(id);
     if (response.success) {

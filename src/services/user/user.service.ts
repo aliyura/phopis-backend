@@ -18,14 +18,14 @@ import { AccountType, Status, UserRole } from 'src/enums';
 import { SmsService } from '../sms/sms.service';
 import * as NodeCache from 'node-cache';
 import { Messages } from 'src/utils/messages/messages';
-import { WalletService } from '../wallet/wallet.service';
+import { UnitService } from '../unit/unit.service';
 import { JwtService } from '@nestjs/jwt';
 import { BusinessUserDto, UserBranchDto, KeyValue } from '../../dtos/user.dto';
-import { WalletActivity, ActionKey } from '../../enums/enums';
+import { UnitActivity, ActionKey } from '../../enums/enums';
 import { LogsService } from '../logs/logs.service';
 import { AdditionalInfoRequest } from '../../dtos/additional-info-request.dto';
 import { ServiceDetail, ProductDetail } from '../../dtos/user.dto';
-import { FundWalletDto } from '../../dtos/wallet.dto';
+import { BuyUnitDto, FundUnitDto } from '../../dtos/unit.dto';
 
 @Injectable()
 export class UserService {
@@ -34,7 +34,7 @@ export class UserService {
     @InjectModel(User.name) private user: Model<UserDocument>,
     private readonly cryptoService: CryptoService,
     private readonly smsService: SmsService,
-    private readonly walletService: WalletService,
+    private readonly unitService: UnitService,
     private readonly jwtService: JwtService,
     private readonly logService: LogsService,
   ) {}
@@ -117,30 +117,30 @@ export class UserService {
           if (referredUser.success) {
             //credit the refereed user
             const fundingRequest = {
+              accountId: account.businessId || account.uuid,
+              unitAddress: account.unitAddress,
               paymentRef: `pay${Helpers.getUniqueId()}`,
               transactionId: Helpers.getCode(),
               channel: 'Referral program',
               amount: 100,
-            } as FundWalletDto;
+            } as FundUnitDto;
 
-            await this.walletService.fundWallet(
-              referredUser.data.walletAddress,
-              fundingRequest,
-            );
+            await this.unitService.fundUnit(fundingRequest);
           } else {
             console.error('Referred user not found');
           }
         }
-        const walletResponse = await this.walletService.createWallet(
+
+        const unitResponse = await this.unitService.createUnitAccount(
           account.uuid,
           account.code,
         );
 
-        if (walletResponse.success) {
-          const wallet = walletResponse.data;
+        if (unitResponse.success) {
+          const unit = unitResponse.data;
           const nData = {
-            walletAddress: wallet.address,
-            walletCode: wallet.code,
+            unitAddress: unit.address,
+            unitCode: unit.code,
           };
 
           await this.user.updateOne({ uuid: account.uuid }, nData);
@@ -156,26 +156,25 @@ export class UserService {
             );
           }
 
-          const walletLog = {
-            activity: WalletActivity.CREDIT,
+          const unitLog = {
+            activity: UnitActivity.CREDIT,
             status: Status.SUCCESSFUL,
-            uuid: wallet.uuid,
+            uuid: unit.uuid,
             sender: 'system',
-            recipient: wallet.address,
+            recipient: unit.address,
             amount: 1000,
             ref: `ref${Helpers.getUniqueId()}`,
             channel: 'Transfer',
             narration: 'Starter bonus',
           } as any;
 
-          await this.logService.saveWalletLog(walletLog);
+          await this.logService.saveUnitLog(unitLog);
 
           const createdUser = await this.findByUserId(account.uuid);
           return createdUser;
         } else {
-          //removed saved user if process fail somewhere
           await this.user.deleteOne({ uuid: account.uuid });
-          return Helpers.fail(walletResponse.message);
+          return Helpers.fail(unitResponse.message);
         }
       } else {
         return Helpers.fail('Unable to create your account');
@@ -228,8 +227,8 @@ export class UserService {
         businessId: authenticatedUser.businessId,
         business: authenticatedUser.name,
         accountType: AccountType.BUSINESS,
-        walletAddress: authenticatedUser.walletAddress,
-        walletCode: authenticatedUser.walletCode,
+        unitAddress: authenticatedUser.unitAddress,
+        unitCode: authenticatedUser.unitCode,
         role: UserRole.USER,
         code: Helpers.getCode(),
         subscription: {
@@ -296,16 +295,16 @@ export class UserService {
 
       const account = await (await this.user.create(request)).save();
       if (account) {
-        const walletResponse = await this.walletService.createWallet(
+        const unitResponse = await this.unitService.createUnitAccount(
           account.uuid,
           account.code,
         );
 
-        if (walletResponse.success) {
-          const wallet = walletResponse.data;
+        if (unitResponse.success) {
+          const unit = unitResponse.data;
           const nData = {
-            walletAddress: wallet.address,
-            walletCode: wallet.code,
+            unitAddress: unit.address,
+            unitCode: unit.code,
           };
 
           await this.user.updateOne({ uuid: account.uuid }, nData);
@@ -315,7 +314,7 @@ export class UserService {
         } else {
           //removed saved user if process fail somewhere
           await this.user.deleteOne({ uuid: account.uuid });
-          return Helpers.fail(walletResponse.message);
+          return Helpers.fail(unitResponse.message);
         }
       } else {
         return Helpers.fail('Unable to create your account');
@@ -458,7 +457,7 @@ export class UserService {
       if (!user) return Helpers.fail(Messages.NoUserFound);
 
       await this.user.deleteOne({ uuid: userId });
-      await this.walletService.deleteWallet(user.walletAddress);
+      await this.unitService.deleteUnit(user.unitAddress);
 
       return Helpers.success('User deleted successfully');
     } catch (ex) {

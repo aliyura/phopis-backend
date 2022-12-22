@@ -2,39 +2,38 @@ import { Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { ApiResponse } from 'src/dtos/ApiResponse.dto';
-import { WalletLog } from 'src/schemas/wallet-logs.schema';
-import { WalletLogDocument } from '../../schemas/wallet-logs.schema';
-import { WalletLogDto } from '../../dtos/wallet.dto';
+import { UnitLogDocument, UnitLog } from '../../schemas/unite-logs.schema';
 import { Helpers } from 'src/helpers';
 import { Messages } from 'src/utils/messages/messages';
+import { UnitLogDto } from '../../dtos/unit.dto';
 
 @Injectable()
 export class LogsService {
   constructor(
-    @InjectModel(WalletLog.name) private walletLog: Model<WalletLogDocument>,
+    @InjectModel(UnitLog.name) private unitLog: Model<UnitLogDocument>,
   ) {}
 
-  async saveWalletLog(walletLog: WalletLogDto): Promise<ApiResponse> {
+  async saveUnitLog(unitLog: UnitLogDto): Promise<ApiResponse> {
     try {
       const request = {
-        ...walletLog,
+        ...unitLog,
       } as any;
 
-      const createdWallet = await (await this.walletLog.create(request)).save();
-      return Helpers.success(createdWallet);
+      const createdUnit = await (await this.unitLog.create(request)).save();
+      return Helpers.success(createdUnit);
     } catch (ex) {
       console.log(Messages.ErrorOccurred, ex);
       return Helpers.fail(Messages.Exception);
     }
   }
 
-  async getWalletLog(uuid: string): Promise<ApiResponse> {
+  async getUnitLog(address: string): Promise<ApiResponse> {
     try {
-      const walletLogs = await this.walletLog
-        .find({ uuid })
+      const unitLogs = await this.unitLog
+        .find({ $text: { $search: address } })
         .sort({ createdAt: -1 })
         .exec();
-      if (walletLogs.length) return Helpers.success(walletLogs);
+      if (unitLogs.length) return Helpers.success(unitLogs);
       return Helpers.fail('No transaction found');
     } catch (ex) {
       console.log(Messages.ErrorOccurred, ex);

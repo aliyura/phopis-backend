@@ -11,56 +11,71 @@ import {
 import { ApiResponse } from 'src/dtos/ApiResponse.dto';
 import { Helpers } from 'src/helpers';
 import { AppGuard } from 'src/services/auth/app.guard';
-import { WalletService } from '../../../services/wallet/wallet.service';
+import { UnitService } from '../../../services/unit/unit.service';
 import { UserService } from 'src/services/user/user.service';
 import { User } from '../../../schemas/user.schema';
 import {
-  FundsTransferDto,
-  FundWalletDto,
+  UnitTransferDto,
+  BuyUnitDto,
   WithdrawalRequestDto,
   WithdrawalStatusDto,
-} from '../../../dtos/wallet.dto';
+} from '../../../dtos/unit.dto';
 import { LogsService } from '../../../services/logs/logs.service';
+import { WebhookService } from '../../../services/webhook/webhook.service';
+import { Status } from '../../../enums/enums';
+import { of } from 'rxjs';
 
-@Controller('wallet')
-export class WalletController {
+@Controller('unit')
+export class UnitController {
   constructor(
-    private walletService: WalletService,
+    private unitService: UnitService,
+    private webhookService: WebhookService,
     private logService: LogsService,
     private userService: UserService,
   ) {}
 
-  @UseGuards(AppGuard)
-  @Post('/')
-  async fundWallet(
-    @Headers('Authorization') token: string,
-    @Body() fundWalletDto: FundWalletDto,
+  @Post('/webhook')
+  async addUnit(
+    @Body() webhook: any,
+    @Headers() headers,
   ): Promise<ApiResponse> {
-    const authToken = token.substring(7);
-    const userResponse = await this.userService.authenticatedUserByToken(
-      authToken,
-    );
-    if (!userResponse.success)
-      return Helpers.failedHttpResponse(
-        userResponse.message,
-        HttpStatus.UNAUTHORIZED,
+    console.log('webhook', webhook);
+    console.log('headers', headers);
+
+    const webhookRes = await this.webhookService.saveWebhook(webhook);
+    if (webhook && webhook.status) {
+      const buyUnitDto = webhook as BuyUnitDto;
+      const response = await this.unitService.buyUnit(buyUnitDto);
+      if (response.success) {
+        await this.webhookService.updateWebhookStatus(
+          webhookRes.data.requestId,
+          Status.SUCCESSFUL,
+        );
+      } else {
+        await this.webhookService.updateWebhookStatus(
+          webhookRes.data.requestId,
+          Status.FAILED,
+        );
+      }
+      return response;
+    } else {
+      console.log('Failed transaction');
+      await this.webhookService.updateWebhookStatus(
+        webhookRes.data.requestId,
+        Status.FAILED,
       );
-
-    const currentUser = userResponse.data as User;
-    const response = await this.walletService.fundWallet(
-      currentUser.walletAddress,
-      fundWalletDto,
-    );
-    if (response.success) return response;
-
-    return Helpers.failedHttpResponse(response.message, HttpStatus.BAD_REQUEST);
+      return Helpers.failedHttpResponse(
+        'Unable to validate transaction',
+        HttpStatus.BAD_REQUEST,
+      );
+    }
   }
 
   @UseGuards(AppGuard)
   @Post('/transfer')
-  async transferFunds(
+  async transferUnits(
     @Headers('Authorization') token: string,
-    @Body() fundTransferDto: FundsTransferDto,
+    @Body() fundTransferDto: UnitTransferDto,
   ): Promise<ApiResponse> {
     const authToken = token.substring(7);
     const userResponse = await this.userService.authenticatedUserByToken(
@@ -73,8 +88,8 @@ export class WalletController {
       );
 
     const currentUser = userResponse.data as User;
-    const response = await this.walletService.fundsTransfer(
-      currentUser.walletAddress,
+    const response = await this.unitService.fundsTransfer(
+      currentUser.unitAddress,
       fundTransferDto,
     );
     if (response.success) return response;
@@ -84,7 +99,7 @@ export class WalletController {
 
   @UseGuards(AppGuard)
   @Post('/withdraw')
-  async withdrawFunds(
+  async withdrawUnits(
     @Headers('Authorization') token: string,
     @Body() requestDto: WithdrawalRequestDto,
   ): Promise<ApiResponse> {
@@ -99,8 +114,8 @@ export class WalletController {
       );
 
     const currentUser = userResponse.data as User;
-    const response = await this.walletService.withdrawFunds(
-      currentUser.walletAddress,
+    const response = await this.unitService.withdrawUnits(
+      currentUser.unitAddress,
       requestDto,
     );
     if (response.success) return response;
@@ -124,9 +139,7 @@ export class WalletController {
         HttpStatus.UNAUTHORIZED,
       );
 
-    const response = await this.walletService.updateWithdrawalStatus(
-      requestDto,
-    );
+    const response = await this.unitService.updateWithdrawalStatus(requestDto);
     if (response.success) return response;
 
     return Helpers.failedHttpResponse(response.message, HttpStatus.BAD_REQUEST);
@@ -134,9 +147,7 @@ export class WalletController {
 
   @UseGuards(AppGuard)
   @Get('/')
-  async getWallet(
-    @Headers('Authorization') token: string,
-  ): Promise<ApiResponse> {
+  async getUnit(@Headers('Authorization') token: string): Promise<ApiResponse> {
     const authToken = token.substring(7);
     const userResponse = await this.userService.authenticatedUserByToken(
       authToken,
@@ -148,9 +159,8 @@ export class WalletController {
       );
 
     const user = userResponse.data as User;
-    const response = await this.walletService.findWalletByAddress(
-      user.walletAddress,
-    );
+
+    const response = await this.unitService.findUnitByAddress(user.unitAddress);
     if (response.success) {
       return response;
     }
@@ -158,7 +168,7 @@ export class WalletController {
   }
   @UseGuards(AppGuard)
   @Get('/logs')
-  async getWalletLogs(
+  async getUnitLogs(
     @Headers('Authorization') token: string,
   ): Promise<ApiResponse> {
     const authToken = token.substring(7);
@@ -172,7 +182,7 @@ export class WalletController {
       );
 
     const user = userResponse.data as User;
-    const response = await this.logService.getWalletLog(user.walletAddress);
+    const response = await this.logService.getUnitLog(user.unitAddress);
     if (response.success) {
       return response;
     }
@@ -181,7 +191,7 @@ export class WalletController {
 
   @UseGuards(AppGuard)
   @Get('/withdrawal/requests')
-  async getWalletWithdrawals(
+  async getUnitWithdrawals(
     @Headers('Authorization') token: string,
   ): Promise<ApiResponse> {
     const authToken = token.substring(7);
@@ -195,7 +205,7 @@ export class WalletController {
       );
 
     const user = userResponse.data as User;
-    const response = await this.walletService.getWithdrawalRequests(
+    const response = await this.unitService.getWithdrawalRequests(
       user.businessId || user.uuid,
     );
     if (response.success) {
