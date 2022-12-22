@@ -85,9 +85,6 @@ export class User {
   referee: number;
 
   @Prop()
-  subscription: UserSubscriptionDto;
-
-  @Prop()
   additionalInfo: AdditionalInfoDto;
 
   @Prop()
