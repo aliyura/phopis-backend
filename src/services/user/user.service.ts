@@ -102,10 +102,6 @@ export class UserService {
       if (requestDto.accountType === AccountType.BUSINESS) {
         request.businessId = request.uuid;
         request.business = request.name;
-        request.subscription = {
-          startDate: startDate,
-          endDate: endDate,
-        };
       }
 
       const account = await (await this.user.create(request)).save();
@@ -231,10 +227,6 @@ export class UserService {
         unitCode: authenticatedUser.unitCode,
         role: UserRole.USER,
         code: Helpers.getCode(),
-        subscription: {
-          startDate: startDate,
-          endDate: endDate,
-        },
         uuid: `biu${Helpers.getUniqueId()}`,
       } as User;
 
