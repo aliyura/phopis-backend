@@ -31,6 +31,7 @@ export class LogsService {
     try {
       const unitLogs = await this.unitLog
         .find({ $text: { $search: address } })
+        .limit(10)
         .sort({ createdAt: -1 })
         .exec();
       if (unitLogs.length) return Helpers.success(unitLogs);

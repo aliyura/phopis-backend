@@ -4,10 +4,10 @@ import { Model } from 'mongoose';
 import { ApiResponse } from 'src/dtos/ApiResponse.dto';
 import { Helpers } from 'src/helpers';
 import { ServiceDocument, Service } from '../../schemas/service.schema';
-import { UserDocument, User } from 'src/schemas/user.schema';
+import { User } from 'src/schemas/user.schema';
 import { Status } from 'src/enums';
 import { Messages } from 'src/utils/messages/messages';
-import { ActionType, AccountType, UserRole } from '../../enums/enums';
+import { ActionType, AccountType } from '../../enums/enums';
 import {
   ServiceTypeDocument,
   ServiceType,
@@ -18,7 +18,6 @@ import { ServiceDto, UpdateServiceDto } from '../../dtos/service.dto';
 export class ServiceService {
   constructor(
     @InjectModel(Service.name) private service: Model<ServiceDocument>,
-    @InjectModel(User.name) private user: Model<UserDocument>,
     @InjectModel(ServiceType.name)
     private serviceType: Model<ServiceTypeDocument>,
   ) {}

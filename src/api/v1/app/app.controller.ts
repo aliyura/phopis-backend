@@ -11,6 +11,6 @@ export class AppController {
 
   @Get('/ping')
   async ping(): Promise<ApiResponse> {
-    return Helpers.success('Service is up and running...');
+    return Helpers.success('Phopis Service is up and running...');
   }
 }

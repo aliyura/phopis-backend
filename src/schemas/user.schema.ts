@@ -1,6 +1,6 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { Document, Types } from 'mongoose';
-import { UserSubscriptionDto, AdditionalInfoDto } from '../dtos/user.dto';
+import { AdditionalInfoDto } from '../dtos/user.dto';
 
 export type UserDocument = User & Document;
 

@@ -83,6 +83,7 @@ import { ExpenseController } from './api/v1/expense/expense.controller';
 import { Expense, ExpenseSchema } from './schemas/expense.schema';
 import { Webhook, WebhookSchema } from './schemas/webhook.schema';
 import { WebhookService } from './services/webhook/webhook.service';
+import { WebhookController } from './api/v1/webhook/webhook.controller';
 @Module({
   imports: [
     MongooseModule.forRoot(process.env.DB_ADDRESS),
@@ -152,6 +153,7 @@ import { WebhookService } from './services/webhook/webhook.service';
     ServiceController,
     DebtController,
     ExpenseController,
+    WebhookController,
   ],
   providers: [
     UserService,

@@ -23,7 +23,6 @@ import {
 import { LogsService } from '../../../services/logs/logs.service';
 import { WebhookService } from '../../../services/webhook/webhook.service';
 import { Status } from '../../../enums/enums';
-import { of } from 'rxjs';
 
 @Controller('unit')
 export class UnitController {
