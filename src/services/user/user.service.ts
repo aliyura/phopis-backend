@@ -25,7 +25,7 @@ import { UnitActivity, ActionKey } from '../../enums/enums';
 import { LogsService } from '../logs/logs.service';
 import { AdditionalInfoRequest } from '../../dtos/additional-info-request.dto';
 import { ServiceDetail, ProductDetail } from '../../dtos/user.dto';
-import { BuyUnitDto, FundUnitDto } from '../../dtos/unit.dto';
+import { FundUnitDto } from '../../dtos/unit.dto';
 
 @Injectable()
 export class UserService {
@@ -209,6 +209,7 @@ export class UserService {
         businessId: authenticatedUser.businessId,
         business: authenticatedUser.name,
         accountType: AccountType.BUSINESS,
+        businessTarget: authenticatedUser.businessTarget,
         unitAddress: authenticatedUser.unitAddress,
         unitCode: authenticatedUser.unitCode,
         role: UserRole.USER,
@@ -260,6 +261,7 @@ export class UserService {
         business: authenticatedUser.name,
         branchId: branchId,
         branch: requestDto.name,
+        businessTarget: authenticatedUser.businessTarget,
         businessType: authenticatedUser.businessType,
         accountType: AccountType.BUSINESS,
         role: UserRole.BUSINESS,
