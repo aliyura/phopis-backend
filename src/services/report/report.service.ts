@@ -324,7 +324,7 @@ export class ReportService {
       } catch (ex) {
         return Helpers.fail('Unable to build CSV');
       }
-      response.url = process.env.APP_URL + `/public/exports/${fileName}`;
+      response.url = process.env.APP_URL + `/papi/public/exports/${fileName}`;
       response.type = 'CSV';
     }
     return Helpers.success(response);
